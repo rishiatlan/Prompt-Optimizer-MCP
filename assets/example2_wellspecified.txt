@@ -1,0 +1,83 @@
+════════════════════════════════════════════════════════════
+EXAMPLE 2: Well-Specified Prompt
+════════════════════════════════════════════════════════════
+
+Raw prompt: "Refactor the authentication middleware in src/auth/middleware.ts to use JWT toke..."
+
+Quality Score:  81/100  →  90/100  (+9)
+State:          COMPILED
+Risk Level:     high
+Task Type:      refactor
+Model Rec:      opus
+Reason:         High-risk task — maximum capability recommended for safety.
+
+── Quality Breakdown (Before) ──
+         Clarity: ████████████████████ 20/20
+                 ↳ Goal is well-scoped
+     Specificity: ███████████████░░░░░ 15/20
+                 ↳ 2 file path(s) referenced (+10)
+    Completeness: ██████████████████░░ 18/20
+                 ↳ 2 explicit success criteria (+10)
+                 ↳ Task type detected: refactor (+3)
+     Constraints: ██████████░░░░░░░░░░ 10/20
+                 ↳ 1 forbidden action(s) (+5)
+      Efficiency: ██████████████████░░ 18/20
+                 ↳ ~70 tokens — efficient
+
+Blocking Questions: 0
+Assumptions:        0
+
+── Detected Inputs ──
+  📄 src/auth/middleware.ts
+  📄 auth.test.ts
+
+── Extracted Constraints ──
+  🚫 Do not touch the user model or the database layer
+
+── Changes Made ──
+  ✓ Added: role definition (refactor)
+  ✓ Extracted: single-sentence goal from prompt
+  ✓ Added: 2 success criteria
+  ✓ Added: high-risk safety constraints
+  ✓ Added: universal safety constraints
+  ✓ Added: refactor workflow (4 steps)
+  ✓ Standardized: output format
+  ✓ Added: uncertainty policy (ask, don't guess)
+
+── Cost Estimate ──
+   haiku: $0.001810
+  sonnet: $0.006789
+    opus: $0.033945
+
+── Compiled Prompt (first 30 lines) ──
+  <role>
+  You are a refactoring specialist who improves code structure while preserving behavior.
+  </role>
+  
+  <goal>
+  Refactor the authentication middleware in src/auth/middleware
+  </goal>
+  
+  <definition_of_done>
+    - should be replaced with validateJWT()
+    - Must pass all existing tests in auth
+  </definition_of_done>
+  
+  <constraints>
+    - Forbidden: Do not touch the user model or the database layer
+    - Do not modify files or code outside the stated scope
+    - Do not invent requirements that were not stated
+    - Prefer minimal changes over sweeping rewrites
+    - HIGH RISK — double-check every change before applying
+    - Explain the reasoning behind each change
+  </constraints>
+  
+  <workflow>
+    1. Understand current behavior and ensure it is preserved
+    2. Identify the structural improvements to make
+    3. Apply changes incrementally, verifying behavior at each step
+    4. Confirm the refactored code passes all existing tests
+  </workflow>
+  
+  <output_format>
+  ... (8 more lines)

@@ -1,0 +1,38 @@
+════════════════════════════════════════════════════════════
+EXAMPLE 1: Vague Prompt
+════════════════════════════════════════════════════════════
+
+Raw prompt: "make the code better"
+
+Quality Score:  48/100  →  90/100  (+42)
+State:          ANALYZING
+Risk Level:     medium
+Model Rec:      sonnet
+
+── Quality Breakdown (Before) ──
+         Clarity: ███████████████░░░░░ 15/20
+                 ↳ Goal is very short — may be too terse (-5)
+     Specificity: █████░░░░░░░░░░░░░░░ 5/20
+    Completeness: █████░░░░░░░░░░░░░░░ 5/20
+                 ↳ No explicit success criteria (defaults applied)
+     Constraints: █████░░░░░░░░░░░░░░░ 5/20
+                 ↳ No constraints specified
+      Efficiency: ██████████████████░░ 18/20
+                 ↳ ~5 tokens — efficient
+
+── Blocking Questions ──
+  ⛔ Which file(s) or module(s) should this change apply to?
+     Reason: A code change was requested but no target location was specified.
+
+── Changes Made ──
+  ✓ Added: role definition (other)
+  ✓ Added: 1 success criteria
+  ✓ Added: universal safety constraints
+  ✓ Added: other workflow (4 steps)
+  ✓ Standardized: output format
+  ✓ Added: uncertainty policy (ask, don't guess)
+
+── Cost Estimate ──
+   haiku: $0.001051
+  sonnet: $0.003942
+    opus: $0.019710

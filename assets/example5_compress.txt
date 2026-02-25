@@ -1,0 +1,38 @@
+============================================================
+EXAMPLE 5: Context Compression
+============================================================
+
+Intent: "fix the updateProfile method to validate email format"
+
+Original:    ~397 tokens
+Compressed:  ~169 tokens
+Saved:       ~228 tokens (57%)
+
+-- What Was Removed --
+  x  Trimmed 7 import statements (kept first 5)
+  x  Removed 15-line block comment
+  x  Collapsed excessive blank lines
+  x  Removed test-related code (not relevant to intent)
+
+-- Compressed Output (first 20 lines) --
+  import express from 'express';
+  import { Router } from 'express';
+  import { validate } from './validators';
+  import { authenticate } from './auth';
+  import { rateLimit } from './rateLimit';
+  // ... 7 more imports
+  
+  /* ... (large comment removed for brevity) */
+  
+  export class UserController {
+    async getProfile(req: Request, res: Response) {
+      const user = await this.userRepo.findById(req.params.id);
+      return res.json(user);
+    }
+  
+    async updateProfile(req: Request, res: Response) {
+      const validated = validate(req.body);
+      const user = await this.userRepo.update(req.params.id, validated);
+      return res.json(user);
+    }
+  ... (2 more lines)

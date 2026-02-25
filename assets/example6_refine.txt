@@ -1,0 +1,38 @@
+============================================================
+EXAMPLE 6: Refine Flow (Question -> Answer -> Compiled)
+============================================================
+
+-- Step 1: Initial prompt --
+  Raw: "fix the login bug"
+  Quality:  51/100
+  State:    ANALYZING
+  Blocking: 3 question(s)
+    ? What specific file, function, or component should be changed?
+    ? Which file(s) or module(s) should this change apply to?
+    ? This touches a sensitive area. What are the boundaries?
+
+-- Step 2: User answers the questions --
+  "TypeError when email field is empty"
+  "src/components/LoginForm.tsx"
+  "Don't modify other auth components or auth API"
+
+-- Step 3: Refined result --
+  Quality:  71/100  (up from 51)
+  State:    COMPILED
+  Blocking: 0 question(s)
+  Risk:     high
+  Task:     debug
+  Model:    opus
+
+  Detected inputs:
+    > src/components/LoginForm.tsx
+
+  Constraints extracted:
+    x Don't modify other auth components or auth API
+
+-- Step 4: Approved! --
+  Status:      APPROVED
+  Quality:     90/100
+  Improvement: +19 points
+  Model:       opus
+  Reason:      High-risk task — max capability recommended for safety.

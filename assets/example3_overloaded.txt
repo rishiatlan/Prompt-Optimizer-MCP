@@ -1,0 +1,46 @@
+════════════════════════════════════════════════════════════
+EXAMPLE 3: Overloaded + High-Risk Prompt
+════════════════════════════════════════════════════════════
+
+Raw prompt: "update the payment processing to handle edge cases and also refactor t..."
+
+Quality Score:  51/100  →  90/100  (+39)
+State:          ANALYZING
+Risk Level:     high
+Task Type:      refactor
+Model Rec:      opus
+
+── Quality Breakdown (Before) ──
+         Clarity: ████████████████████ 20/20
+                 ↳ Goal is well-scoped
+     Specificity: █████░░░░░░░░░░░░░░░ 5/20
+    Completeness: ████████░░░░░░░░░░░░ 8/20
+                 ↳ No explicit success criteria (defaults applied)
+                 ↳ Task type detected: refactor (+3)
+     Constraints: ░░░░░░░░░░░░░░░░░░░░ 0/20
+                 ↳ High-risk task with no constraints (-5)
+                 ↳ No constraints specified
+      Efficiency: ██████████████████░░ 18/20
+                 ↳ ~40 tokens — efficient
+
+── Blocking Questions ──
+  ⛔ What specific file, function, or component should be changed?
+     Reason: The prompt uses vague terms without pointing to a specific target.
+  ⛔ Which file(s) or module(s) should this change apply to?
+     Reason: A code change was requested but no target location was specified.
+  ⛔ This touches a sensitive area. What are the boundaries — what should NOT be changed?
+     Reason: High-risk domain detected but no constraints or safety boundaries were mentioned.
+
+── Assumptions ──
+  💡 All tasks will be addressed in sequence. Consider splitting into separate prompts for better focus.
+     Confidence: medium | Impact: medium
+
+── Changes Made ──
+  ✓ Added: role definition (refactor)
+  ✓ Added: 2 success criteria
+  ✓ Added: high-risk safety constraints
+  ✓ Added: universal safety constraints
+  ✓ Added: refactor workflow (4 steps)
+  ✓ Standardized: output format
+  ✓ Added: uncertainty policy (ask, don't guess)
+  ✓ Surfaced: 1 assumption(s) for review

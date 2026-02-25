@@ -1,0 +1,20 @@
+════════════════════════════════════════════════════════════
+EXAMPLE 4: Standalone Cost Estimation
+════════════════════════════════════════════════════════════
+
+Prompt: "Refactor auth middleware from sessions to JWT..."
+        (detailed prompt with role, constraints, success criteria)
+
+Input tokens:    ~103
+Output tokens:   ~83 (estimated)
+
+┌────────┬───────────┬────────────┬────────────┐
+│ Model  │ Input     │ Output     │ Total      │
+├────────┼───────────┼────────────┼────────────┤
+│  haiku │ $0.000082 │ $0.000332  │ $0.000414  │
+│ sonnet │ $0.000309 │ $0.001245  │ $0.001554  │
+│   opus │ $0.001545 │ $0.006225  │ $0.007770  │
+└────────┴───────────┴────────────┴────────────┘
+
+Recommended:  sonnet
+Reason:       Sonnet recommended as default balance of quality and cost.
