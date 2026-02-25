@@ -20,8 +20,9 @@ export function estimateTokens(text: string): number {
 /** Estimate output tokens based on task type and input size. */
 function estimateOutputTokens(inputTokens: number, taskType: TaskType): number {
   switch (taskType) {
+    // Code tasks
     case 'question':
-      return Math.min(inputTokens, 500); // Short answers
+      return Math.min(inputTokens, 500);
     case 'review':
       return Math.min(Math.ceil(inputTokens * 0.5), 2000);
     case 'debug':
@@ -31,6 +32,18 @@ function estimateOutputTokens(inputTokens: number, taskType: TaskType): number {
       return Math.min(Math.ceil(inputTokens * 1.2), 8000);
     case 'create':
       return Math.min(Math.ceil(inputTokens * 2.0), 12000);
+    // Non-code tasks
+    case 'writing':
+    case 'communication':
+      return Math.min(Math.ceil(inputTokens * 1.5), 4000); // Prose generation
+    case 'research':
+      return Math.min(Math.ceil(inputTokens * 2.0), 6000); // Findings + sources
+    case 'planning':
+      return Math.min(Math.ceil(inputTokens * 1.5), 5000); // Structured plan
+    case 'analysis':
+      return Math.min(Math.ceil(inputTokens * 1.2), 4000); // Insights + data
+    case 'data':
+      return Math.min(Math.ceil(inputTokens * 0.8), 3000); // Transformations
     default:
       return Math.min(inputTokens, 4000);
   }
@@ -61,16 +74,33 @@ function recommendModel(taskType: TaskType, riskLevel: RiskLevel, inputTokens: n
     return { model: 'opus', reason: 'High-risk task — maximum capability recommended for safety.' };
   }
 
-  // Questions and reviews → Haiku (fast, cheap)
+  // ── Lightweight tasks → Haiku ──
   if (taskType === 'question') {
     return { model: 'haiku', reason: 'Simple question — Haiku is fast and cost-effective.' };
   }
-
   if (taskType === 'review' && inputTokens < 5000) {
     return { model: 'haiku', reason: 'Code review with moderate context — Haiku handles this well.' };
   }
+  if (taskType === 'data') {
+    return { model: 'haiku', reason: 'Data transformation — Haiku handles structured operations well.' };
+  }
 
-  // Large-scope creation or refactoring → Opus
+  // ── Writing / communication → Sonnet (good prose quality) ──
+  if (taskType === 'writing' || taskType === 'communication') {
+    return { model: 'sonnet', reason: 'Writing task — Sonnet produces high-quality prose at a reasonable cost.' };
+  }
+
+  // ── Research / analysis → Sonnet (reasoning + cost balance) ──
+  if (taskType === 'research' || taskType === 'analysis') {
+    return { model: 'sonnet', reason: 'Research/analysis — Sonnet offers strong reasoning at a reasonable cost.' };
+  }
+
+  // ── Planning → Sonnet for small, Opus for complex ──
+  if (taskType === 'planning' && inputTokens > 5000) {
+    return { model: 'opus', reason: 'Complex planning task — Opus provides best strategic reasoning.' };
+  }
+
+  // ── Large-scope creation or refactoring → Opus ──
   if ((taskType === 'create' || taskType === 'refactor') && inputTokens > 10000) {
     return { model: 'opus', reason: 'Large-scope creation/refactoring — Opus provides best architectural reasoning.' };
   }

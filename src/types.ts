@@ -3,13 +3,31 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export type TaskType =
+  // Code tasks
   | 'code_change'
   | 'question'
   | 'review'
   | 'debug'
   | 'create'
   | 'refactor'
+  // Non-code tasks
+  | 'writing'
+  | 'research'
+  | 'planning'
+  | 'analysis'
+  | 'communication'
+  | 'data'
   | 'other';
+
+/** Whether a task type is code-related. Used by rules, scorer, and compiler to adapt behavior. */
+export function isCodeTask(taskType: TaskType): boolean {
+  return ['code_change', 'debug', 'create', 'refactor'].includes(taskType);
+}
+
+/** Whether a task type involves prose/communication. */
+export function isProseTask(taskType: TaskType): boolean {
+  return ['writing', 'communication', 'planning'].includes(taskType);
+}
 
 export type RiskLevel = 'low' | 'medium' | 'high';
 

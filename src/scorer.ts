@@ -1,6 +1,8 @@
 // scorer.ts — Prompt quality scoring (0-100). Pure function, no MCP imports.
+// Task-type aware: code tasks reward file paths, prose tasks reward audience/tone.
 
 import type { IntentSpec, QualityScore, QualityDimension } from './types.js';
+import { isCodeTask, isProseTask } from './types.js';
 import { estimateTokens } from './estimator.js';
 
 // ─── Vague terms that reduce clarity ──────────────────────────────────────────
@@ -46,23 +48,56 @@ function scoreSpecificity(spec: IntentSpec): QualityDimension {
   let score = 5; // Start lower, earn points
   const notes: string[] = [];
 
-  // Reward file references
-  const fileCount = spec.inputs_detected.filter(i => !i.startsWith('http') && i !== '[inline code block]').length;
-  const fileBonus = Math.min(fileCount * 5, 10);
-  score += fileBonus;
-  if (fileCount > 0) notes.push(`${fileCount} file path(s) referenced (+${fileBonus})`);
+  if (isCodeTask(spec.task_type)) {
+    // ── Code tasks: reward file paths, code blocks, URLs ──
+    const fileCount = spec.inputs_detected.filter(i => !i.startsWith('http') && i !== '[inline code block]').length;
+    const fileBonus = Math.min(fileCount * 5, 10);
+    score += fileBonus;
+    if (fileCount > 0) notes.push(`${fileCount} file path(s) referenced (+${fileBonus})`);
 
-  // Reward code references
-  if (spec.inputs_detected.includes('[inline code block]')) {
-    score += 3;
-    notes.push('Inline code provided (+3)');
-  }
+    if (spec.inputs_detected.includes('[inline code block]')) {
+      score += 3;
+      notes.push('Inline code provided (+3)');
+    }
 
-  // Reward URL references
-  const urlCount = spec.inputs_detected.filter(i => i.startsWith('http')).length;
-  if (urlCount > 0) {
-    score += 2;
-    notes.push(`${urlCount} URL(s) provided (+2)`);
+    const urlCount = spec.inputs_detected.filter(i => i.startsWith('http')).length;
+    if (urlCount > 0) {
+      score += 2;
+      notes.push(`${urlCount} URL(s) provided (+2)`);
+    }
+  } else {
+    // ── Non-code tasks: reward audience, tone, platform, length constraints ──
+    const prompt = spec.user_intent;
+
+    // Audience specified?
+    if (/\b(for|to)\s+(my\s+)?(team|colleagues?|manager|stakeholders?|engineers?|designers?|leadership|customers?|users?|clients?|public|community|audience|everyone)\b/i.test(prompt)) {
+      score += 5;
+      notes.push('Target audience specified (+5)');
+    }
+
+    // Tone specified?
+    if (/\b(casual|formal|professional|friendly|technical|simple|concise|detailed|persuasive|neutral|enthusiastic|serious|conversational)\b/i.test(prompt)) {
+      score += 4;
+      notes.push('Tone/style specified (+4)');
+    }
+
+    // Platform/medium specified?
+    if (/\b(slack|email|blog|twitter|linkedin|newsletter|docs?|wiki|presentation|meeting|standup)\b/i.test(prompt)) {
+      score += 3;
+      notes.push('Platform/medium specified (+3)');
+    }
+
+    // Length constraint?
+    if (/\b(short|brief|concise|one[\s-]?liner|paragraph|under\s+\d+\s*words?|max\s+\d+)\b/i.test(prompt)) {
+      score += 3;
+      notes.push('Length constraint specified (+3)');
+    }
+
+    // Key points / examples mentioned?
+    if (/\b(include|mention|cover|highlight|reference|example)\b/i.test(prompt)) {
+      score += 2;
+      notes.push('Specific content requirements mentioned (+2)');
+    }
   }
 
   return { name: 'Specificity', score: Math.min(20, score), max: 20, notes };
@@ -72,14 +107,19 @@ function scoreCompleteness(spec: IntentSpec): QualityDimension {
   let score = 5;
   const notes: string[] = [];
 
-  // Reward explicit success criteria
+  // Reward explicit success criteria (filter out all default DoD items)
+  const DEFAULT_DOD_PREFIXES = [
+    'Code compiles', 'Changes are minimal', 'Behavior is preserved',
+    'Root cause', 'Key findings', 'Actionable recommendations',
+    'Answer is', 'Task is',
+    // Non-code defaults
+    'Content is clear', 'Message is clear', 'Message achieves',
+    'Key information', 'Findings are organized', 'Sources are cited',
+    'Plan has clear', 'Dependencies and risks', 'Key insights',
+    'Data supports', 'Output format is correct', 'Edge cases',
+  ];
   const explicitDoDCount = spec.definition_of_done.filter(d =>
-    !d.startsWith('Code compiles') &&
-    !d.startsWith('Behavior is') &&
-    !d.startsWith('Root cause') &&
-    !d.startsWith('Key findings') &&
-    !d.startsWith('Answer is') &&
-    !d.startsWith('Task is')
+    !DEFAULT_DOD_PREFIXES.some(prefix => d.startsWith(prefix))
   ).length;
 
   if (explicitDoDCount >= 2) {

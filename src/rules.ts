@@ -1,44 +1,45 @@
 // rules.ts — Deterministic ambiguity detection rules. No LLM calls.
+// Rules are task-type aware: code-only rules skip for prose/research tasks.
 
-import type { RuleResult, RiskLevel } from './types.js';
+import type { RuleResult, RiskLevel, TaskType } from './types.js';
+import { isCodeTask, isProseTask } from './types.js';
 
 // ─── Rule Definitions ─────────────────────────────────────────────────────────
 
 interface Rule {
   name: string;
+  /** Which task types this rule applies to. 'all' = always run. */
+  applies_to: 'code' | 'prose' | 'all';
   check: (prompt: string, context?: string) => RuleResult;
 }
 
-// Vague terms without a specific target
-const VAGUE_PATTERNS = [
+// ─── Pattern Libraries ────────────────────────────────────────────────────────
+
+const VAGUE_CODE_PATTERNS = [
   /\bmake\s+it\s+(better|work|good|nice|faster|cleaner)\b/i,
   /\b(improve|enhance|optimize|update|change|fix|tweak)\b(?!.*\b(in|at|for|the file|function|class|module|component)\b)/i,
   /\bdo\s+something\s+(about|with)\b/i,
   /\bhandle\s+this\b/i,
 ];
 
-// File path patterns
 const FILE_PATH_PATTERNS = [
   /\b[\w\-./]+\.(ts|js|tsx|jsx|py|go|rs|java|rb|css|html|json|yaml|yml|md|sql|sh)\b/,
   /\b(src|lib|app|pages|components|utils|test|spec)\//,
   /\.\//,
 ];
 
-// Function/class references
 const CODE_REF_PATTERNS = [
   /\b(function|class|method|interface|type|enum|const|let|var|def|fn)\s+\w+/i,
   /\b\w+\(\)/,
   /\b\w+\.\w+\(/,
 ];
 
-// Scope explosion keywords — allow scoping nouns within a short window after "all"/"every"/etc.
-const SCOPE_EXPLOSION = [
+const SCOPE_EXPLOSION_CODE = [
   /\b(everything|entire|whole)\b(?![\w\s]{0,25}\b(files?|functions?|class(?:es)?|tests?|modules?|components?|endpoints?|routes?)\b)/i,
   /\b(all|every)\b(?![\w\s]{0,25}\b(files?|functions?|class(?:es)?|tests?|modules?|components?|endpoints?|routes?|the)\b)/i,
   /\bacross\s+the\s+(codebase|project|repo)\b/i,
 ];
 
-// High-risk domain keywords
 const HIGH_RISK_KEYWORDS = [
   /\b(auth|authentication|authorization|login|password|credential|secret|token|api[_\s]?key)\b/i,
   /\b(payment|billing|invoice|credit\s*card|stripe|transaction|checkout)\b/i,
@@ -48,26 +49,26 @@ const HIGH_RISK_KEYWORDS = [
   /\b(security|encryption|certificate|ssl|tls|cors|csrf|xss|injection)\b/i,
 ];
 
-// Format references without schema
 const FORMAT_REFS = [
   /\b(json|yaml|xml|csv|graphql)\b/i,
   /\breturn\s+(a|the)?\s*(json|object|array|list|table|schema)\b/i,
 ];
 
-// Task separators (multiple tasks in one prompt)
 const TASK_SEPARATORS = [
   /\b(also|and\s+also|additionally|plus|on\s+top\s+of\s+that|while\s+you['']?re\s+at\s+it)\b/i,
   /\b(first|second|third|then|after\s+that|next|finally)\b/i,
-  /\d+\.\s+\w/g, // numbered lists like "1. Do X"
+  /\d+\.\s+\w/g,
 ];
 
 // ─── Rule Implementations ─────────────────────────────────────────────────────
 
 const rules: Rule[] = [
+  // ── Code-only rules ─────────────────────────────────────────────────────
   {
     name: 'vague_objective',
+    applies_to: 'code',
     check(prompt) {
-      const hasVague = VAGUE_PATTERNS.some(p => p.test(prompt));
+      const hasVague = VAGUE_CODE_PATTERNS.some(p => p.test(prompt));
       const hasTarget = FILE_PATH_PATTERNS.some(p => p.test(prompt))
         || CODE_REF_PATTERNS.some(p => p.test(prompt));
 
@@ -88,8 +89,9 @@ const rules: Rule[] = [
 
   {
     name: 'missing_target',
+    applies_to: 'code',
     check(prompt) {
-      const isCodeTask = /\b(code|implement|build|write|create|add|remove|refactor|fix|debug|test)\b/i.test(prompt);
+      const isCode = /\b(code|implement|build|write|create|add|remove|refactor|fix|debug|test)\b/i.test(prompt);
       const hasTarget = FILE_PATH_PATTERNS.some(p => p.test(prompt))
         || CODE_REF_PATTERNS.some(p => p.test(prompt))
         || /\b(the|this|that)\s+(component|module|service|page|endpoint|route|handler|hook|util)\b/i.test(prompt);
@@ -97,9 +99,9 @@ const rules: Rule[] = [
       return {
         rule_name: 'missing_target',
         severity: 'blocking',
-        triggered: isCodeTask && !hasTarget,
+        triggered: isCode && !hasTarget,
         message: 'Code task detected but no target file, function, or module specified.',
-        question: isCodeTask && !hasTarget ? {
+        question: isCode && !hasTarget ? {
           id: 'q_missing_target',
           question: 'Which file(s) or module(s) should this change apply to?',
           reason: 'A code change was requested but no target location was specified.',
@@ -111,8 +113,9 @@ const rules: Rule[] = [
 
   {
     name: 'scope_explosion',
+    applies_to: 'code',
     check(prompt) {
-      const hasExplosion = SCOPE_EXPLOSION.some(p => p.test(prompt));
+      const hasExplosion = SCOPE_EXPLOSION_CODE.some(p => p.test(prompt));
       return {
         rule_name: 'scope_explosion',
         severity: 'blocking',
@@ -129,30 +132,8 @@ const rules: Rule[] = [
   },
 
   {
-    name: 'format_ambiguity',
-    check(prompt) {
-      const mentionsFormat = FORMAT_REFS.some(p => p.test(prompt));
-      const hasSchema = /\b(schema|structure|shape|fields?|columns?|properties)\b/i.test(prompt)
-        || /\{[\s\S]*:[\s\S]*\}/.test(prompt); // inline JSON-like structure
-
-      return {
-        rule_name: 'format_ambiguity',
-        severity: 'non_blocking',
-        triggered: mentionsFormat && !hasSchema,
-        message: 'A structured format was mentioned but no schema was provided.',
-        assumption: mentionsFormat && !hasSchema ? {
-          id: 'a_format_flexible',
-          assumption: 'Output format will be inferred from context. No strict schema enforced.',
-          confidence: 'medium',
-          impact: 'low',
-          reversible: true,
-        } : undefined,
-      };
-    },
-  },
-
-  {
     name: 'high_risk_domain',
+    applies_to: 'code',
     check(prompt) {
       const matchedDomains: string[] = [];
       for (const pattern of HIGH_RISK_KEYWORDS) {
@@ -172,6 +153,7 @@ const rules: Rule[] = [
 
   {
     name: 'no_constraints_high_risk',
+    applies_to: 'code',
     check(prompt) {
       const isHighRisk = HIGH_RISK_KEYWORDS.some(p => p.test(prompt));
       const hasConstraints = /\b(don['']?t|do\s+not|never|avoid|skip|only|except|without|must\s+not|should\s+not)\b/i.test(prompt)
@@ -192,15 +174,40 @@ const rules: Rule[] = [
     },
   },
 
+  // ── Universal rules (all task types) ────────────────────────────────────
+  {
+    name: 'format_ambiguity',
+    applies_to: 'all',
+    check(prompt) {
+      const mentionsFormat = FORMAT_REFS.some(p => p.test(prompt));
+      const hasSchema = /\b(schema|structure|shape|fields?|columns?|properties)\b/i.test(prompt)
+        || /\{[\s\S]*:[\s\S]*\}/.test(prompt);
+
+      return {
+        rule_name: 'format_ambiguity',
+        severity: 'non_blocking',
+        triggered: mentionsFormat && !hasSchema,
+        message: 'A structured format was mentioned but no schema was provided.',
+        assumption: mentionsFormat && !hasSchema ? {
+          id: 'a_format_flexible',
+          assumption: 'Output format will be inferred from context. No strict schema enforced.',
+          confidence: 'medium',
+          impact: 'low',
+          reversible: true,
+        } : undefined,
+      };
+    },
+  },
+
   {
     name: 'multi_task_overload',
+    applies_to: 'all',
     check(prompt) {
       let taskCount = 0;
       for (const pattern of TASK_SEPARATORS) {
         const matches = prompt.match(pattern);
         if (matches) taskCount += matches.length;
       }
-      // Heuristic: 3+ task separators suggests multiple distinct tasks
       const overloaded = taskCount >= 3;
 
       return {
@@ -218,13 +225,66 @@ const rules: Rule[] = [
       };
     },
   },
+
+  // ── Prose-only rules ────────────────────────────────────────────────────
+  {
+    name: 'missing_audience',
+    applies_to: 'prose',
+    check(prompt) {
+      const hasAudience = /\b(for|to|with)\s+(my\s+)?(team|colleagues?|manager|stakeholders?|engineers?|designers?|leadership|exec|board|customers?|users?|clients?|public|community|audience|channel|everyone)\b/i.test(prompt)
+        || /\b(slack|email|blog|twitter|linkedin|newsletter|internal|external)\b/i.test(prompt);
+
+      return {
+        rule_name: 'missing_audience',
+        severity: 'non_blocking',
+        triggered: !hasAudience,
+        message: 'No target audience specified. Who will read this?',
+        assumption: !hasAudience ? {
+          id: 'a_general_audience',
+          assumption: 'Writing for a general professional audience. Tone: clear and neutral.',
+          confidence: 'medium',
+          impact: 'low',
+          reversible: true,
+        } : undefined,
+      };
+    },
+  },
+
+  {
+    name: 'no_clear_ask',
+    applies_to: 'prose',
+    check(prompt) {
+      const hasClearPurpose = /\b(announce|share|ask|request|inform|update|pitch|propose|convince|explain|feedback|review)\b/i.test(prompt);
+
+      return {
+        rule_name: 'no_clear_ask',
+        severity: 'non_blocking',
+        triggered: !hasClearPurpose,
+        message: 'No clear communication goal detected. What should the reader do after reading this?',
+        assumption: !hasClearPurpose ? {
+          id: 'a_informational',
+          assumption: 'Message is informational — no specific action required from the reader.',
+          confidence: 'medium',
+          impact: 'low',
+          reversible: true,
+        } : undefined,
+      };
+    },
+  },
 ];
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-/** Run all ambiguity rules against a prompt. Returns triggered results only. */
-export function runRules(prompt: string, context?: string): RuleResult[] {
+/** Run applicable ambiguity rules against a prompt. Task-type aware. */
+export function runRules(prompt: string, context?: string, taskType?: TaskType): RuleResult[] {
   return rules
+    .filter(rule => {
+      if (rule.applies_to === 'all') return true;
+      if (rule.applies_to === 'code' && taskType && isCodeTask(taskType)) return true;
+      if (rule.applies_to === 'prose' && taskType && isProseTask(taskType)) return true;
+      if (!taskType) return true; // backward compat: no type = run all
+      return false;
+    })
     .map(rule => rule.check(prompt, context))
     .filter(result => result.triggered);
 }

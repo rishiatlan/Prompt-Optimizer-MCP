@@ -1,6 +1,7 @@
 // compiler.ts — Prompt compilation: IntentSpec → XML-tagged Claude prompt.
 
 import type { IntentSpec } from './types.js';
+import { isCodeTask } from './types.js';
 import { getRole, getWorkflow } from './templates.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ export function compilePrompt(spec: IntentSpec, context?: string): { prompt: str
     sections.push(`<context>\n${context.trim()}\n</context>`);
   }
 
-  // ── Constraints ──
+  // ── Constraints (task-type aware) ──
   const constraintLines: string[] = [];
   if (spec.constraints.scope.length > 0) {
     constraintLines.push(...spec.constraints.scope.map(s => `Scope: ${s}`));
@@ -52,19 +53,26 @@ export function compilePrompt(spec: IntentSpec, context?: string): { prompt: str
   if (spec.constraints.forbidden.length > 0) {
     constraintLines.push(...spec.constraints.forbidden.map(f => `Forbidden: ${f}`));
   }
-  // Always add universal constraints
-  constraintLines.push('Do not modify files or code outside the stated scope');
-  constraintLines.push('Do not invent requirements that were not stated');
-  constraintLines.push('Prefer minimal changes over sweeping rewrites');
+
+  // Task-type-specific universal constraints
+  if (isCodeTask(spec.task_type)) {
+    constraintLines.push('Do not modify files or code outside the stated scope');
+    constraintLines.push('Do not invent requirements that were not stated');
+    constraintLines.push('Prefer minimal changes over sweeping rewrites');
+  } else {
+    constraintLines.push('Do not invent facts, claims, or requirements that were not stated');
+    constraintLines.push('Match the intended tone and audience throughout');
+    constraintLines.push('Stay within any stated length or format constraints');
+  }
 
   if (spec.risk_level === 'high') {
     constraintLines.push('HIGH RISK — double-check every change before applying');
-    constraintLines.push('Explain the reasoning behind each change');
+    constraintLines.push('Explain the reasoning behind each decision');
     changes.push('Added: high-risk safety constraints');
   }
 
   sections.push(`<constraints>\n${bulleted(constraintLines)}\n</constraints>`);
-  changes.push('Added: universal safety constraints');
+  changes.push(`Added: ${isCodeTask(spec.task_type) ? 'code' : 'content'} safety constraints`);
 
   // ── Workflow ──
   const workflow = getWorkflow(spec.task_type);
