@@ -1,0 +1,41 @@
+════════════════════════════════════════════════════════════
+EXAMPLE 8: Research Task (Redis vs Memcached)
+════════════════════════════════════════════════════════════
+
+Raw prompt: "Research the pros and cons of using Redis vs
+Memcached for our session caching layer. We need to support
+50K concurrent users, sessions expire after 30 minutes, and
+we are running on AWS."
+
+Quality Score:  61/100  →  90/100  (+29)
+State:          COMPILED
+Task Type:      research
+Risk Level:     low
+Model Rec:      sonnet
+Reason:         Research/analysis — Sonnet offers strong reasoning at a reasonable cost.
+
+── Quality Breakdown (Before) ──
+         Clarity: ████████████████████ 20/20
+                 ↳ Goal is well-scoped
+     Specificity: █████░░░░░░░░░░░░░░░ 5/20
+    Completeness: █████████████░░░░░░░ 13/20
+                 ↳ 1 explicit success criterion (+5)
+                 ↳ Task type detected: research (+3)
+     Constraints: █████░░░░░░░░░░░░░░░ 5/20
+                 ↳ No constraints specified
+      Efficiency: ██████████████████░░ 18/20
+                 ↳ ~47 tokens — efficient
+
+── Changes Made ──
+  ✓ Added: role definition (research)
+  ✓ Extracted: single-sentence goal
+  ✓ Added: 1 success criteria
+  ✓ Added: content safety constraints
+  ✓ Added: research workflow (4 steps)
+  ✓ Standardized: output format
+  ✓ Added: uncertainty policy (ask, don't guess)
+
+── Cost Estimate ──
+   haiku: $0.002596
+  sonnet: $0.009735
+    opus: $0.048675

@@ -1,0 +1,53 @@
+════════════════════════════════════════════════════════════
+EXAMPLE 9: Planning Task (REST to GraphQL Migration)
+════════════════════════════════════════════════════════════
+
+Raw prompt: "Create a roadmap for migrating our REST API to
+GraphQL over the next 2 quarters. We have 15 endpoints, a
+React frontend, and 3 mobile apps consuming the API. The
+team has no GraphQL experience."
+
+Quality Score:  56/100  →  90/100  (+34)
+State:          COMPILED
+Task Type:      planning
+Risk Level:     low
+Model Rec:      sonnet
+Reason:         Balanced task — Sonnet offers the best quality-to-cost ratio.
+
+── Quality Breakdown (Before) ──
+         Clarity: ████████████████████ 20/20
+                 ↳ Goal is well-scoped
+     Specificity: █████░░░░░░░░░░░░░░░ 5/20
+    Completeness: ████████░░░░░░░░░░░░ 8/20
+                 ↳ No explicit success criteria (defaults applied)
+                 ↳ Task type detected: planning (+3)
+     Constraints: █████░░░░░░░░░░░░░░░ 5/20
+                 ↳ No constraints specified
+      Efficiency: ██████████████████░░ 18/20
+                 ↳ ~49 tokens — efficient
+
+── Assumptions ──
+  💡 Output format will be inferred from context.
+     No strict schema enforced.
+     Confidence: medium | Impact: low
+  💡 Writing for a general professional audience.
+     Tone: clear and neutral.
+     Confidence: medium | Impact: low
+  💡 Message is informational — no specific action
+     required from the reader.
+     Confidence: medium | Impact: low
+
+── Changes Made ──
+  ✓ Added: role definition (planning)
+  ✓ Extracted: single-sentence goal
+  ✓ Added: 2 success criteria
+  ✓ Added: content safety constraints
+  ✓ Added: planning workflow (4 steps)
+  ✓ Standardized: output format
+  ✓ Added: uncertainty policy (ask, don't guess)
+  ✓ Surfaced: 3 assumptions for review
+
+── Cost Estimate ──
+   haiku: $0.002715
+  sonnet: $0.010182
+    opus: $0.050910

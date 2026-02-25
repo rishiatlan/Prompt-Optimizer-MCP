@@ -1,0 +1,51 @@
+════════════════════════════════════════════════════════════
+EXAMPLE 7: Writing Task (Slack Post)
+════════════════════════════════════════════════════════════
+
+Raw prompt: "Write me a short Slack post for my colleagues
+announcing that our team shipped the new dashboard feature.
+Keep it celebratory but professional, mention it was a
+3-sprint effort, and tag the design team for their mockups."
+
+Quality Score:  71/100  →  90/100  (+19)
+State:          COMPILED
+Task Type:      writing
+Risk Level:     low
+Model Rec:      sonnet
+Reason:         Writing task — Sonnet produces high-quality prose at a reasonable cost.
+
+── Quality Breakdown (Before) ──
+         Clarity: ████████████████████ 20/20
+                 ↳ Goal is well-scoped
+     Specificity: ████████████████████ 20/20
+                 ↳ Audience specified (+5)
+                 ↳ Tone specified (+4)
+                 ↳ Platform specified (+3)
+                 ↳ Length constraint (+3)
+                 ↳ Content requirements (+2)
+    Completeness: ████████░░░░░░░░░░░░ 8/20
+                 ↳ No explicit success criteria (defaults applied)
+     Constraints: █████░░░░░░░░░░░░░░░ 5/20
+                 ↳ No constraints specified
+      Efficiency: ██████████████████░░ 18/20
+                 ↳ ~55 tokens — efficient
+
+── Assumptions ──
+  💡 Message is informational — no specific action
+     required from the reader.
+     Confidence: medium | Impact: low
+
+── Changes Made ──
+  ✓ Added: role definition (writing)
+  ✓ Extracted: single-sentence goal
+  ✓ Added: 2 success criteria
+  ✓ Added: content safety constraints
+  ✓ Added: writing workflow (4 steps)
+  ✓ Standardized: output format
+  ✓ Added: uncertainty policy (ask, don't guess)
+  ✓ Surfaced: 1 assumption for review
+
+── Cost Estimate ──
+   haiku: $0.002430
+  sonnet: $0.009111
+    opus: $0.045555

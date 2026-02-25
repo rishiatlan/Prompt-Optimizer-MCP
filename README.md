@@ -117,6 +117,64 @@ What Was Removed:
 
 </td>
 </tr>
+<tr>
+<td width="50%">
+
+**Writing Task Optimization**
+
+```
+Raw: "Write a Slack post for my
+      colleagues announcing the new
+      dashboard feature. Celebratory
+      but professional, 3-sprint effort."
+
+Quality:  71/100  →  90/100  (+19)
+Task:     writing
+Model:    sonnet (recommended)
+
+Detected Context:
+  👥 Audience: colleagues
+  🎯 Tone: celebratory but professional
+  📱 Platform: Slack
+
+Changes Made:
+  ✓ Added: role definition (writing)
+  ✓ Added: writing workflow (4 steps)
+  ✓ Added: content safety constraints
+```
+
+*Auto-detects audience, tone, and platform — applies writing-specific scoring and constraints*
+
+</td>
+<td width="50%">
+
+**Planning Task Optimization**
+
+```
+Raw: "Create a roadmap for migrating
+      REST API to GraphQL over 2
+      quarters. 15 endpoints, React
+      frontend, 3 mobile apps."
+
+Quality:  56/100  →  90/100  (+34)
+Task:     planning
+Model:    sonnet (recommended)
+
+Assumptions Surfaced:
+  💡 Output format inferred from context
+  💡 General professional audience
+  💡 Informational — no reader action
+
+Changes Made:
+  ✓ Added: role definition (planning)
+  ✓ Added: planning workflow (4 steps)
+  ✓ Surfaced: 3 assumptions for review
+```
+
+*Surfaces hidden assumptions, adds milestones + dependencies structure*
+
+</td>
+</tr>
 </table>
 
 ## Quick Start
@@ -563,6 +621,145 @@ Saved:       ~228 tokens (57%)
   Improvement: +19 points
   Model:       opus
   Reason:      High-risk task — max capability recommended.
+```
+
+</details>
+
+<details>
+<summary><strong>Example 7: Writing Task (Slack Post)</strong></summary>
+
+```
+Raw prompt: "Write me a short Slack post for my colleagues
+announcing that our team shipped the new dashboard feature.
+Keep it celebratory but professional, mention it was a
+3-sprint effort, and tag the design team for their mockups."
+
+Quality Score:  71/100  →  90/100  (+19)
+State:          COMPILED
+Task Type:      writing
+Risk Level:     low
+Model Rec:      sonnet
+Reason:         Writing task — Sonnet produces high-quality
+                prose at a reasonable cost.
+
+── Quality Breakdown (Before) ──
+       Clarity: ████████████████████ 20/20
+                ↳ Goal is well-scoped
+   Specificity: ████████████████████ 20/20
+                ↳ Audience (+5), Tone (+4), Platform (+3)
+                ↳ Length constraint (+3), Content reqs (+2)
+  Completeness: ████████░░░░░░░░░░░░ 8/20
+                ↳ No explicit success criteria (defaults)
+   Constraints: █████░░░░░░░░░░░░░░░ 5/20
+                ↳ No constraints specified
+    Efficiency: ██████████████████░░ 18/20
+                ↳ ~55 tokens — efficient
+
+── Assumptions ──
+  💡 Message is informational — no specific
+     action required from the reader.
+
+── Changes Made ──
+  ✓ Added: role definition (writing)
+  ✓ Added: 2 success criteria
+  ✓ Added: content safety constraints
+  ✓ Added: writing workflow (4 steps)
+  ✓ Surfaced: 1 assumption for review
+
+── Cost Estimate ──
+   haiku: $0.002430
+  sonnet: $0.009111
+    opus: $0.045555
+```
+
+</details>
+
+<details>
+<summary><strong>Example 8: Research Task (Redis vs Memcached)</strong></summary>
+
+```
+Raw prompt: "Research the pros and cons of using Redis vs
+Memcached for our session caching layer. We need to support
+50K concurrent users, sessions expire after 30 minutes, and
+we are running on AWS."
+
+Quality Score:  61/100  →  90/100  (+29)
+State:          COMPILED
+Task Type:      research
+Risk Level:     low
+Model Rec:      sonnet
+Reason:         Research/analysis — Sonnet offers strong
+                reasoning at a reasonable cost.
+
+── Quality Breakdown (Before) ──
+       Clarity: ████████████████████ 20/20
+                ↳ Goal is well-scoped
+   Specificity: █████░░░░░░░░░░░░░░░ 5/20
+  Completeness: █████████████░░░░░░░ 13/20
+                ↳ 1 explicit success criterion (+5)
+   Constraints: █████░░░░░░░░░░░░░░░ 5/20
+                ↳ No constraints specified
+    Efficiency: ██████████████████░░ 18/20
+                ↳ ~47 tokens — efficient
+
+── Changes Made ──
+  ✓ Added: role definition (research)
+  ✓ Added: research workflow (4 steps)
+  ✓ Added: content safety constraints
+  ✓ Added: uncertainty policy
+
+── Cost Estimate ──
+   haiku: $0.002596
+  sonnet: $0.009735
+    opus: $0.048675
+```
+
+</details>
+
+<details>
+<summary><strong>Example 9: Planning Task (REST → GraphQL Roadmap)</strong></summary>
+
+```
+Raw prompt: "Create a roadmap for migrating our REST API to
+GraphQL over the next 2 quarters. We have 15 endpoints, a
+React frontend, and 3 mobile apps consuming the API. The
+team has no GraphQL experience."
+
+Quality Score:  56/100  →  90/100  (+34)
+State:          COMPILED
+Task Type:      planning
+Risk Level:     low
+Model Rec:      sonnet
+Reason:         Balanced task — Sonnet offers the best
+                quality-to-cost ratio.
+
+── Quality Breakdown (Before) ──
+       Clarity: ████████████████████ 20/20
+                ↳ Goal is well-scoped
+   Specificity: █████░░░░░░░░░░░░░░░ 5/20
+  Completeness: ████████░░░░░░░░░░░░ 8/20
+                ↳ No explicit success criteria (defaults)
+   Constraints: █████░░░░░░░░░░░░░░░ 5/20
+                ↳ No constraints specified
+    Efficiency: ██████████████████░░ 18/20
+                ↳ ~49 tokens — efficient
+
+── Assumptions Surfaced ──
+  💡 Output format inferred from context
+  💡 General professional audience assumed
+  💡 Message is informational
+
+── Changes Made ──
+  ✓ Added: role definition (planning)
+  ✓ Added: 2 success criteria
+  ✓ Added: planning workflow (4 steps)
+  ✓ Added: content safety constraints
+  ✓ Surfaced: 3 assumptions for review
+
+── Cost Estimate ──
+   haiku: $0.002715
+  sonnet: $0.010182
+    opus: $0.050910
 ```
 
 </details>
