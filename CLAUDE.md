@@ -78,7 +78,7 @@ Fallback: `other`
 |------|------|
 | `src/index.ts` | Entry point — MCP server + stdio transport wiring |
 | `src/tools.ts` | 5 MCP tool registrations with Zod schemas (thin wiring layer) |
-| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Priority-ordered task detection, audience/tone detection, task-aware constraint extraction. |
+| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer intent-first task detection, audience/tone detection, task-aware constraint extraction. |
 | `src/compiler.ts` | Prompt compilation: IntentSpec → XML-tagged prompt. Task-type-aware constraints. |
 | `src/estimator.ts` | Token counting (`ceil(len/4)`), per-model cost estimation, task-aware model recommendations |
 | `src/scorer.ts` | Quality scoring (0-100, 5 dimensions × 20 points). Task-type-aware specificity scoring. |

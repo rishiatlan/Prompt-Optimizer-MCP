@@ -303,7 +303,7 @@ The MCP is a **co-pilot for the co-pilot**. It does the structural work (decompo
 
 **Zero LLM calls inside the MCP.** All analysis is deterministic — regex, heuristics, and rule engines. The host Claude provides all intelligence. This means the MCP itself is instant, free, and predictable.
 
-**Works for all prompt types** — not just code. The pipeline auto-detects 13 task types (code changes, writing, research, planning, analysis, communication, data, and more) and adapts scoring, constraints, templates, and model recommendations accordingly. A Slack post gets writing-optimized constraints; a refactoring task gets code safety guardrails.
+**Works for all prompt types** — not just code. The pipeline auto-detects 13 task types (code changes, writing, research, planning, analysis, communication, data, and more) and adapts scoring, constraints, templates, and model recommendations accordingly. A Slack post gets writing-optimized constraints; a refactoring task gets code safety guardrails. **Intent-first detection** ensures that prompts *about* technical topics but requesting non-code tasks (e.g., "Write me a LinkedIn post about my MCP server") are classified correctly — the opening verb phrase takes priority over technical keywords in the body.
 
 <details>
 <summary><strong>Quality Scoring System</strong></summary>
@@ -786,6 +786,8 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] Session-based state with sign-off gate
 - [x] Universal task type support — 13 types (code, writing, research, planning, analysis, communication, data)
 - [x] Task-type-aware pipeline (scoring, constraints, model recommendations adapt per type)
+- [x] Intent-first detection — prevents topic-vs-task misclassification for technical writing prompts
+- [x] Answered question carry-forward — refine flow no longer regenerates already-answered blocking questions
 - [ ] Optional Haiku pass for nuanced ambiguity detection
 - [ ] Prompt template library (common patterns)
 - [ ] History/export of past sessions
