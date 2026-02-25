@@ -4,18 +4,109 @@ import type { IntentSpec, TaskType, RiskLevel } from './types.js';
 import { isCodeTask, isProseTask } from './types.js';
 import { runRules, extractBlockingQuestions, extractAssumptions, getElevatedRisk } from './rules.js';
 
+// ─── Prose Output Types ──────────────────────────────────────────────────────
+// Comprehensive list of non-code output types. Used by intent-first detection
+// AND full-prompt pattern matching. Keep in sync.
+
+const PROSE_OUTPUT_TYPES = [
+  // Common documents
+  'post', 'article', 'blog', 'blog\\s+post', 'essay', 'copy', 'email',
+  'message', 'announcement', 'letter', 'memo', 'brief', 'newsletter',
+  // Reports & proposals
+  'report', 'proposal', 'summary', 'executive\\s+summary', 'one[- ]pager',
+  'abstract', 'overview', 'blurb', 'description',
+  // Technical writing (prose, not code)
+  'doc', 'documentation', 'readme', 'guide', 'tutorial', 'faq',
+  'changelog', 'release\\s+notes',
+  // Communication
+  'pitch', 'presentation', 'speech', 'talking\\s+points', 'script',
+  'response', 'reply', 'comment', 'review',
+  // Social & professional
+  'tweet', 'bio', 'introduction', 'intro',
+  // Meeting artifacts
+  'minutes', 'recap', 'digest', 'notes',
+  // Professional
+  'cover\\s+letter',
+].join('|');
+
+const PROSE_OUTPUT_RE = new RegExp(`\\b(${PROSE_OUTPUT_TYPES})\\b`, 'i');
+
+// ─── Intent-First Detection ─────────────────────────────────────────────────
+// The opening phrase is the strongest signal of user intent. A prompt that
+// starts with "Write me a LinkedIn post" is WRITING — even if the rest of
+// the prompt is saturated with technical keywords like "server", "API", "MCP".
+// This prevents topic-vs-task confusion.
+
+const WRITING_VERBS = /\b(write|draft|compose|rewrite|edit|proofread|polish|craft|prepare|put\s+together|summarize|create|generate)\b/i;
+const RESEARCH_VERBS = /^(research|compare|investigate|benchmark|evaluate|explore)\b/i;
+const PLANNING_NOUNS = /\b(plan|roadmap|strategy|timeline|proposal|rfc|outline|schedule|budget)\b/i;
+const CODE_ARTIFACT_NOUNS = /\b(app|api|server|service|component|module|function|class|project|repo|library|package|tool|system|endpoint|cli|sdk|bot|worker|lambda|pipeline|daemon)\b/i;
+
+// Platform signals — if the opener mentions these, it's prose not code
+const PLATFORM_SIGNALS = /\b(linkedin|medium|substack|twitter|slack|x\.com|notion|confluence|wiki|google\s+docs?|blog)\b/i;
+
+function detectIntentFromOpener(prompt: string): TaskType | null {
+  // Take first sentence or first 150 chars, whichever is shorter
+  const sentenceEnd = prompt.search(/[.!?\n]/);
+  const limit = Math.min(sentenceEnd > 0 ? sentenceEnd : 150, 150);
+  const opener = prompt.slice(0, limit);
+
+  // ── Writing intent ────────────────────────────────────────────────────
+  // "Write/Draft/Compose [me/us] a [prose type]"
+  // "Summarize X into a report"
+  // "Create a blog post about..."
+  if (WRITING_VERBS.test(opener)) {
+    // Check if the output is a prose type (not a code artifact)
+    if (PROSE_OUTPUT_RE.test(opener)) {
+      // Guard: "Create a server" should NOT match writing
+      // Only block if a code artifact noun is present AND no prose noun is
+      if (!CODE_ARTIFACT_NOUNS.test(opener)) {
+        return 'writing';
+      }
+      // If BOTH are present (e.g. "Write a guide for the API server"),
+      // the prose noun wins — it's still writing
+      return 'writing';
+    }
+    // Platform signal: "Write a LinkedIn post..." even without matching a prose noun
+    if (PLATFORM_SIGNALS.test(opener)) {
+      return 'writing';
+    }
+  }
+
+  // ── Research intent ───────────────────────────────────────────────────
+  // "Research X", "Compare X vs Y", "Investigate..."
+  if (RESEARCH_VERBS.test(opener)) {
+    return 'research';
+  }
+
+  // ── Planning intent ───────────────────────────────────────────────────
+  // "Create a roadmap..." (not "Create a server")
+  if (/\b(create|build|design|develop|make)\b/i.test(opener)) {
+    if (PLANNING_NOUNS.test(opener) && !CODE_ARTIFACT_NOUNS.test(opener)) {
+      return 'planning';
+    }
+  }
+
+  return null; // No strong opening intent — fall through to full-prompt patterns
+}
+
 // ─── Task Type Detection ──────────────────────────────────────────────────────
-// PRIORITY: Non-code tasks are detected FIRST to prevent misclassification.
-// A Slack post that mentions "fix the login bug" as an example should match
-// 'writing' or 'communication', not 'debug'.
+// Three-layer detection:
+//   Layer 1: Intent-first (opening phrase) — strongest signal, prevents topic contamination
+//   Layer 2: Full-prompt pattern matching — catches everything else
+//   Layer 3: Fallback to 'other'
 
 const TASK_TYPE_PATTERNS: Array<{ type: TaskType; patterns: RegExp[] }> = [
   // ── Non-code tasks (checked first) ──────────────────────────────────────
   {
     type: 'writing',
     patterns: [
-      /\b(write|draft|compose|rewrite|edit|proofread|polish)\s+(a|an|the|my|this)?\s*(post|article|blog|essay|copy|email|message|announcement|doc|documentation|readme|report|proposal|brief|pitch|summary)\b/i,
-      /\b(slack\s+post|slack\s+message|blog\s+post|press\s+release|newsletter|tweet|linkedin)\b/i,
+      // Pattern 1: Verb + [me/us] + article + prose noun
+      // Handles: "Write a post", "Write me a post", "Draft us a report"
+      new RegExp(`\\b(write|draft|compose|rewrite|edit|proofread|polish|craft|prepare|summarize)\\s+(?:(?:me|us|them|him|her)\\s+)?(?:a|an|the|my|this)?\\s*(?:\\w+\\s+){0,2}(${PROSE_OUTPUT_TYPES})\\b`, 'i'),
+      // Pattern 2: Platform keywords — if any appear, it's a writing task
+      /\b(slack\s+(?:post|message)|blog\s+post|press\s+release|newsletter|tweet|linkedin(?:\s+post)?|medium\s+(?:article|post)|substack(?:\s+post)?|twitter\s+(?:thread|post)|x\s+(?:thread|post)|notion\s+page|confluence\s+page|wiki\s+page|google\s+doc|github\s+(?:issue|pr)\s+description)\b/i,
+      // Pattern 3: Tone/style signals — strong indicator of prose task
       /\b(tone|voice|audience|readability|word\s*count|paragraph)\b/i,
     ],
   },
@@ -78,7 +169,7 @@ const TASK_TYPE_PATTERNS: Array<{ type: TaskType; patterns: RegExp[] }> = [
   {
     type: 'create',
     patterns: [
-      /\b(create|build|scaffold|generate|set\s*up|bootstrap|initialize)\s+(a|an|the|my)?\s*(app|api|server|service|component|module|function|class|project|repo)\b/i,
+      /\b(create|build|scaffold|generate|set\s*up|bootstrap|initialize)\s+(?:a|an|the|my)?\s*(?:\w+\s+){0,2}(app|api|server|service|component|module|function|class|project|repo)\b/i,
     ],
   },
   {
@@ -102,6 +193,11 @@ const TASK_TYPE_PATTERNS: Array<{ type: TaskType; patterns: RegExp[] }> = [
 ];
 
 function detectTaskType(prompt: string): TaskType {
+  // Layer 1: Opening intent — strongest signal, prevents topic contamination
+  const openerIntent = detectIntentFromOpener(prompt);
+  if (openerIntent) return openerIntent;
+
+  // Layer 2: Full-prompt pattern matching
   for (const { type, patterns } of TASK_TYPE_PATTERNS) {
     if (patterns.some(p => p.test(prompt))) return type;
   }
@@ -316,8 +412,10 @@ function assessBaseRisk(prompt: string, taskType: TaskType): RiskLevel {
 
 // ─── Main Analyzer ────────────────────────────────────────────────────────────
 
-/** Decompose a raw prompt into a structured IntentSpec. */
-export function analyzePrompt(prompt: string, context?: string): IntentSpec {
+/** Decompose a raw prompt into a structured IntentSpec.
+ *  @param answeredQuestionIds — IDs of blocking questions already answered (for refine flow)
+ */
+export function analyzePrompt(prompt: string, context?: string, answeredQuestionIds?: Set<string>): IntentSpec {
   const taskType = detectTaskType(prompt);
   const baseRisk = assessBaseRisk(prompt, taskType);
 
@@ -338,6 +436,6 @@ export function analyzePrompt(prompt: string, context?: string): IntentSpec {
     output_format: detectOutputFormat(prompt, taskType),
     risk_level: riskLevel,
     assumptions: extractAssumptions(ruleResults),
-    blocking_questions: extractBlockingQuestions(ruleResults),
+    blocking_questions: extractBlockingQuestions(ruleResults, answeredQuestionIds),
   };
 }

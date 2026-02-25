@@ -36,8 +36,8 @@ User prompt → Host Claude → [calls MCP tools] → Deterministic analysis
 
 The entire pipeline adapts behavior based on `TaskType`. Every module branches on whether the prompt is code, prose, research, etc:
 
-- **analyzer.ts** — non-code patterns checked FIRST to prevent misclassification (a Slack post mentioning "fix the bug" as an example must match `writing`, not `debug`)
-- **rules.ts** — each rule has an `applies_to` field (`'code' | 'prose' | 'all'`). Code-only rules (vague_objective, missing_target, scope_explosion) skip for writing tasks.
+- **analyzer.ts** — three-layer detection with intent-first opener check (see below)
+- **rules.ts** — each rule has an `applies_to` field (`'code' | 'prose' | 'all'`). Code-only rules (vague_objective, missing_target, scope_explosion) skip for writing tasks. `extractBlockingQuestions` accepts `answeredIds` to skip already-answered questions in refine flow.
 - **scorer.ts** — code tasks reward file paths; prose tasks reward audience/tone/platform/length
 - **compiler.ts** — code tasks get "Do not modify files outside scope"; prose tasks get "Match the intended tone and audience"
 - **estimator.ts** — output token estimates and model recommendations vary by task type
@@ -45,13 +45,22 @@ The entire pipeline adapts behavior based on `TaskType`. Every module branches o
 
 The helpers `isCodeTask()` and `isProseTask()` in `types.ts` drive this branching.
 
+### Three-Layer Task Detection (analyzer.ts)
+
+Detection uses a three-layer strategy to prevent topic-vs-task confusion (e.g., "Write me a LinkedIn post about my MCP server" must be `writing`, not `create`):
+
+1. **Layer 1: Intent-first opener** (`detectIntentFromOpener`) — examines the first sentence (≤150 chars) for strong intent signals. Opening verb phrase is the strongest signal of user intent. If found, short-circuits before full-prompt analysis.
+   - Writing: `WRITING_VERBS` + `PROSE_OUTPUT_RE` (40+ prose output types) or `PLATFORM_SIGNALS`
+   - Research: `RESEARCH_VERBS` at sentence start
+   - Planning: create/build/design + `PLANNING_NOUNS` (without `CODE_ARTIFACT_NOUNS`)
+2. **Layer 2: Full-prompt patterns** (`TASK_TYPE_PATTERNS`) — non-code patterns checked FIRST (writing before debug) to prevent misclassification
+3. **Layer 3: Fallback** — returns `'other'`
+
 ### 13 Task Types
 
 Code: `code_change`, `question`, `review`, `debug`, `create`, `refactor`
 Non-code: `writing`, `research`, `planning`, `analysis`, `communication`, `data`
 Fallback: `other`
-
-Detection priority in `analyzer.ts`: non-code patterns are evaluated before code patterns to prevent false positives from prose that mentions code concepts.
 
 ## 5 MCP Tools
 
@@ -99,15 +108,18 @@ Hard caps: max 3 blocking questions, max 5 assumptions per cycle.
 1. **Deterministic only** — No LLM calls inside the MCP. Rules, regex, heuristics.
 2. **Sign-off gate** — `approve_prompt` refuses if blocking questions remain unanswered.
 3. **Task-type polymorphism** — Every module adapts behavior via `isCodeTask()`/`isProseTask()`.
-4. **Detection priority** — Non-code patterns checked first in `analyzer.ts` to prevent misclassification.
-5. **XML-tagged output** — Anthropic-optimized prompt structure (role, goal, constraints, workflow).
-6. **Session-based state** — In-memory Map, 30min TTL, single-client stdio transport.
+4. **Intent-first detection** — Opening verb phrase is the strongest signal. Prevents topic-vs-task confusion where technical keywords in the body contaminate classification.
+5. **Answered question carry-forward** — Refine flow passes `answeredIds` from `session.answers` through to `extractBlockingQuestions`, preventing already-answered blocking questions from being regenerated.
+6. **XML-tagged output** — Anthropic-optimized prompt structure (role, goal, constraints, workflow).
+7. **Session-based state** — In-memory Map, 30min TTL, single-client stdio transport.
 
 ## Common Pitfalls
 
-- **Adding a new TaskType**: You must update `types.ts` (union + helper functions), `templates.ts` (both `ROLES` and `WORKFLOWS` are `Record<TaskType, string>` — TypeScript will error if a key is missing), `analyzer.ts` (detection patterns), `estimator.ts` (output token estimate + model recommendation), and `analyzer.ts` `extractDefinitionOfDone` (default DoD).
+- **Adding a new TaskType**: You must update `types.ts` (union + helper functions), `templates.ts` (both `ROLES` and `WORKFLOWS` are `Record<TaskType, string>` — TypeScript will error if a key is missing), `analyzer.ts` (detection patterns + `detectIntentFromOpener` if applicable), `estimator.ts` (output token estimate + model recommendation), and `analyzer.ts` `extractDefinitionOfDone` (default DoD).
+- **Topic-vs-task confusion**: A prompt ABOUT a technical topic but requesting a WRITING task (e.g., "Write a LinkedIn post about my MCP server") must classify as `writing`. The intent-first opener check handles this — if you add new patterns to Layer 2, ensure they don't override Layer 1's opener detection.
 - **Regex false positives**: The `scope_explosion` rule uses a 25-char lookahead window to allow "all existing tests" while catching "fix all". If adjusting, test with both "refactor all the code" (should trigger) and "pass all existing tests in auth.test.ts" (should NOT trigger).
-- **Detection order matters**: In `analyzer.ts`, `TASK_TYPE_PATTERNS` is evaluated top-to-bottom, first match wins. More specific patterns (data before analysis, writing before debug) must appear earlier.
+- **Detection order matters**: Layer 1 (opener) beats Layer 2 (full-prompt). Within Layer 2, `TASK_TYPE_PATTERNS` is evaluated top-to-bottom, first match wins. Non-code patterns (writing, communication, planning, research) must appear before code patterns.
+- **Refine re-analysis**: `refine_prompt` re-runs the full analyzer on enriched prompts. Always pass `answeredIds` to prevent blocking question regeneration.
 
 ## Testing
 

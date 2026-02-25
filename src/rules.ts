@@ -289,10 +289,13 @@ export function runRules(prompt: string, context?: string, taskType?: TaskType):
     .filter(result => result.triggered);
 }
 
-/** Extract blocking questions from rule results. Capped at 3. */
-export function extractBlockingQuestions(results: RuleResult[]) {
+/** Extract blocking questions from rule results. Capped at 3.
+ *  @param answeredIds — IDs of questions already answered (skipped during refine)
+ */
+export function extractBlockingQuestions(results: RuleResult[], answeredIds?: Set<string>) {
   return results
     .filter(r => r.question?.blocking)
+    .filter(r => !answeredIds || !answeredIds.has(r.question!.id))
     .map(r => r.question!)
     .slice(0, 3);
 }

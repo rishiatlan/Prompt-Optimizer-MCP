@@ -134,8 +134,9 @@ export function registerTools(server: McpServer): void {
         enrichedPrompt += `\n\n${edits}`;
       }
 
-      // Re-analyze with enriched prompt
-      const intentSpec = analyzePrompt(enrichedPrompt, session.context);
+      // Re-analyze with enriched prompt — pass answered IDs so cleared questions aren't regenerated
+      const answeredIds = new Set(Object.keys(session.answers));
+      const intentSpec = analyzePrompt(enrichedPrompt, session.context, answeredIds);
       const qualityBefore = scorePrompt(intentSpec, session.context);
       const { prompt: compiledPrompt, changes } = compilePrompt(intentSpec, session.context);
       const qualityAfter = scoreCompiledPrompt(compiledPrompt);
