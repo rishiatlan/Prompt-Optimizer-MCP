@@ -2,6 +2,11 @@
 
 A Model Context Protocol server that optimizes prompts for maximum impact and minimum cost with Claude.
 
+![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue)
+![No Dependencies](https://img.shields.io/badge/Runtime_Deps-2-brightgreen)
+
 ---
 
 ## Why This Exists
@@ -240,6 +245,8 @@ The MCP is a **co-pilot for the co-pilot**. It does the structural work (decompo
 
 **Zero LLM calls inside the MCP.** All analysis is deterministic — regex, heuristics, and rule engines. The host Claude provides all intelligence. This means the MCP itself is instant, free, and predictable.
 
+**Works for all prompt types** — not just code. The pipeline auto-detects 13 task types (code changes, writing, research, planning, analysis, communication, data, and more) and adapts scoring, constraints, templates, and model recommendations accordingly. A Slack post gets writing-optimized constraints; a refactoring task gets code safety guardrails.
+
 <details>
 <summary><strong>Quality Scoring System</strong></summary>
 
@@ -248,29 +255,33 @@ Prompts are scored on 5 dimensions, each worth 0-20 points (total 0-100):
 | Dimension | What it measures | How it scores |
 |-----------|-----------------|---------------|
 | **Clarity** | Is the goal unambiguous? | -5 per vague term detected |
-| **Specificity** | Are targets identified? | +5 per file/function referenced |
+| **Specificity** | Are targets identified? | Code: +5 per file/function. Prose: +5 for audience, +4 for tone, +3 for platform |
 | **Completeness** | Are success criteria defined? | +10 if definition-of-done has 2+ items |
 | **Constraints** | Are boundaries set? | +10 if scope + forbidden actions defined |
 | **Efficiency** | Is context minimal and relevant? | -2 per 1000 tokens of bloat |
+
+Scoring adapts to task type: code tasks reward file paths and code references; writing/communication tasks reward audience, tone, platform, and length constraints.
 
 The before/after delta shows exactly what improved: "Your prompt went from 48 to 90."
 
 </details>
 
 <details>
-<summary><strong>7 Ambiguity Detection Rules</strong></summary>
+<summary><strong>9 Ambiguity Detection Rules</strong></summary>
 
-All rules are deterministic (regex + keyword matching). No LLM calls.
+All rules are deterministic (regex + keyword matching). No LLM calls. Rules are **task-type aware** — code-only rules skip for writing/research tasks, prose-only rules skip for code tasks.
 
-| Rule | Severity | Trigger |
-|------|----------|---------|
-| `vague_objective` | BLOCKING | Vague terms ("make it better", "improve", "fix") without a specific target |
-| `missing_target` | BLOCKING | Code task with no file paths, function names, or module references |
-| `scope_explosion` | BLOCKING | "All", "everything", "entire" without clear boundaries |
-| `format_ambiguity` | NON-BLOCKING | Mentions JSON/YAML but provides no schema |
-| `high_risk_domain` | NON-BLOCKING | Auth, payment, database, production, delete keywords detected |
-| `no_constraints_high_risk` | BLOCKING | High-risk task with zero constraints mentioned |
-| `multi_task_overload` | NON-BLOCKING | 3+ distinct tasks detected in one prompt |
+| Rule | Applies To | Severity | Trigger |
+|------|-----------|----------|---------|
+| `vague_objective` | Code | BLOCKING | Vague terms ("make it better", "improve", "fix") without a specific target |
+| `missing_target` | Code | BLOCKING | Code task with no file paths, function names, or module references |
+| `scope_explosion` | Code | BLOCKING | "All", "everything", "entire" without clear boundaries |
+| `high_risk_domain` | Code | NON-BLOCKING | Auth, payment, database, production, delete keywords detected |
+| `no_constraints_high_risk` | Code | BLOCKING | High-risk task with zero constraints mentioned |
+| `format_ambiguity` | All | NON-BLOCKING | Mentions JSON/YAML but provides no schema |
+| `multi_task_overload` | All | NON-BLOCKING | 3+ distinct tasks detected in one prompt |
+| `missing_audience` | Prose | NON-BLOCKING | No target audience specified for writing/communication task |
+| `no_clear_ask` | Prose | NON-BLOCKING | No clear communication goal detected |
 
 Hard caps: max 3 blocking questions per cycle, max 5 assumptions shown.
 
@@ -337,11 +348,16 @@ Output tokens are estimated based on task type:
 - Debug: min(input × 0.7, 3000) — diagnosis + fix
 - Code changes: min(input × 1.2, 8000) — code + explanation
 - Creation: min(input × 2.0, 12000) — full implementation
+- Writing/Communication: min(input × 1.5, 4000) — prose generation
+- Research: min(input × 2.0, 6000) — findings + sources
+- Planning: min(input × 1.5, 5000) — structured plan
+- Analysis: min(input × 1.2, 4000) — insights + data
+- Data: min(input × 0.8, 3000) — transformations
 
 Model recommendation logic:
-- **Haiku** — questions, simple reviews (fast, cheap)
-- **Sonnet** — standard code changes, moderate risk (best balance)
-- **Opus** — high-risk tasks, large-scope creation/refactoring (maximum capability)
+- **Haiku** — questions, simple reviews, data transformations (fast, cheap)
+- **Sonnet** — writing, communication, research, analysis, standard code changes (best balance)
+- **Opus** — high-risk tasks, complex planning, large-scope creation/refactoring (maximum capability)
 
 Pricing is hardcoded from published Anthropic rates and versioned in `src/estimator.ts`.
 
@@ -566,16 +582,22 @@ Saved:       ~228 tokens (57%)
 ## Roadmap
 
 - [x] Core prompt optimizer with 5 MCP tools
-- [x] 7 deterministic ambiguity detection rules
+- [x] 9 deterministic ambiguity detection rules (task-type aware)
 - [x] Quality scoring (0-100) with before/after delta
 - [x] Cost estimation with per-model breakdown
 - [x] Context compression
 - [x] Session-based state with sign-off gate
+- [x] Universal task type support — 13 types (code, writing, research, planning, analysis, communication, data)
+- [x] Task-type-aware pipeline (scoring, constraints, model recommendations adapt per type)
 - [ ] Optional Haiku pass for nuanced ambiguity detection
 - [ ] Prompt template library (common patterns)
 - [ ] History/export of past sessions
 - [ ] Custom rule definitions via config file
 - [ ] Integration with Claude Code hooks for auto-trigger on complex tasks
+
+## Credits
+
+Built on the [Model Context Protocol](https://modelcontextprotocol.io) by **[Anthropic](https://anthropic.com)**.
 
 ## License
 
