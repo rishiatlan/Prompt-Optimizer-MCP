@@ -243,13 +243,19 @@ export function scoreCompiledPrompt(compiledPrompt: string): QualityScore {
     notes: hasGoal ? ['Explicit goal tag present'] : ['No goal tag found'],
   });
 
-  // Specificity: check for context and role
+  // Specificity: check for context, role, audience, tone, platform
   const hasRole = /<role>/.test(compiledPrompt);
   const hasContext = /<context>/.test(compiledPrompt);
+  const hasAudience = /<audience>/.test(compiledPrompt);
+  const hasTone = /<tone>/.test(compiledPrompt);
+  const hasPlatform = /<platform_guidelines/.test(compiledPrompt);
   let specScore = 10;
   const specNotes: string[] = [];
-  if (hasRole) { specScore += 5; specNotes.push('Role defined (+5)'); }
-  if (hasContext) { specScore += 5; specNotes.push('Context provided (+5)'); }
+  if (hasRole) { specScore += 3; specNotes.push('Role defined (+3)'); }
+  if (hasContext) { specScore += 3; specNotes.push('Context provided (+3)'); }
+  if (hasAudience) { specScore += 4; specNotes.push('Audience specified (+4)'); }
+  if (hasTone) { specScore += 3; specNotes.push('Tone specified (+3)'); }
+  if (hasPlatform) { specScore += 3; specNotes.push('Platform guidelines included (+3)'); }
   dimensions.push({ name: 'Specificity', score: Math.min(20, specScore), max: 20, notes: specNotes });
 
   // Completeness: check for DoD, workflow, output format

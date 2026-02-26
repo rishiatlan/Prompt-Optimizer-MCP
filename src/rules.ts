@@ -60,6 +60,30 @@ const TASK_SEPARATORS = [
   /\d+\.\s+\w/g,
 ];
 
+const VAGUE_GENERIC_PATTERNS = [
+  /\bmake\s+it\s+(better|work|good|nice|faster|cleaner|right)\b/i,
+  /\bdo\s+something\s+(about|with)\b/i,
+  /\bhandle\s+this\b/i,
+  /\bjust\s+(fix|do|make|change)\s+(it|this|that)\b/i,
+];
+
+const SPECIFICS_PATTERNS = [
+  // File paths or code references
+  ...FILE_PATH_PATTERNS,
+  ...CODE_REF_PATTERNS,
+  // Prose specifics: audience, platform, format, subject matter
+  /\b(for|to)\s+(my\s+)?(team|colleagues?|manager|stakeholders?|customers?|users?)\b/i,
+  /\b(slack|email|blog|linkedin|twitter|report|post|article|doc)\b/i,
+  // Concrete noun phrases suggest the prompt has enough specifics
+  /\b(the|this|our|my)\s+\w+\s+(function|module|service|page|feature|bug|issue|api|component|system|pipeline|process|database|report|dashboard)\b/i,
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function NOT_TRIGGERED(ruleName: string): RuleResult {
+  return { rule_name: ruleName, severity: 'blocking', triggered: false, message: '' };
+}
+
 // ─── Rule Implementations ─────────────────────────────────────────────────────
 
 const rules: Rule[] = [
@@ -221,6 +245,34 @@ const rules: Rule[] = [
           confidence: 'medium',
           impact: 'medium',
           reversible: true,
+        } : undefined,
+      };
+    },
+  },
+
+  {
+    name: 'generic_vague_ask',
+    applies_to: 'all',
+    check(prompt) {
+      // If the prompt has code-specific targets, let vague_objective handle it
+      const hasCodeTarget = FILE_PATH_PATTERNS.some(p => p.test(prompt))
+        || CODE_REF_PATTERNS.some(p => p.test(prompt));
+      if (hasCodeTarget) return NOT_TRIGGERED('generic_vague_ask');
+
+      const isVague = VAGUE_GENERIC_PATTERNS.some(p => p.test(prompt));
+      const hasAnySpecifics = SPECIFICS_PATTERNS.some(p => p.test(prompt));
+
+      const triggered = isVague && !hasAnySpecifics;
+      return {
+        rule_name: 'generic_vague_ask',
+        severity: 'blocking',
+        triggered,
+        message: 'The prompt is too vague to act on. What specifically should be done?',
+        question: triggered ? {
+          id: 'q_generic_vague',
+          question: 'Can you be more specific? What exactly do you want changed and what does "done" look like?',
+          reason: 'The prompt lacks enough detail to determine what action to take.',
+          blocking: true,
         } : undefined,
       };
     },

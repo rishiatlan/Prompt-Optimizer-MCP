@@ -1,7 +1,7 @@
 // compiler.ts — Prompt compilation: IntentSpec → XML-tagged Claude prompt.
 
 import type { IntentSpec } from './types.js';
-import { isCodeTask } from './types.js';
+import { isCodeTask, isProseTask } from './types.js';
 import { getRole, getWorkflow } from './templates.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -18,6 +18,125 @@ function bulleted(items: string[]): string {
   return items.map(item => `  - ${item}`).join('\n');
 }
 
+// ─── Platform Hints ──────────────────────────────────────────────────────────
+
+const PLATFORM_HINTS: Record<string, string[]> = {
+  'Slack': [
+    'Keep it scannable — use short paragraphs and line breaks',
+    'Use emoji where appropriate for visual anchors',
+    'Avoid walls of text; break into sections if longer than 3 sentences',
+  ],
+  'LinkedIn': [
+    'Hook in the first line — it shows before "See more"',
+    'Under 1300 characters for full feed visibility',
+    'Use line breaks for readability; avoid dense paragraphs',
+  ],
+  'Blog': [
+    'SEO-friendly structure with clear subheadings (H2/H3)',
+    'Short paragraphs for web readability (2-3 sentences each)',
+    'Include meta description if applicable',
+  ],
+  'Email': [
+    'Clear subject line that conveys the key message',
+    'Front-load the most important information',
+    'End with a clear call-to-action or next step',
+  ],
+  'Twitter/X': [
+    'Max 280 characters per post',
+    'Front-load the hook; cut filler words aggressively',
+    'Use thread format for longer content',
+  ],
+  'Medium/Substack': [
+    'Compelling headline and subtitle',
+    'Use pull quotes or bold text for key insights',
+    'Aim for 5-8 minute read length (1000-1600 words)',
+  ],
+  'Wiki': [
+    'Neutral, encyclopedic tone',
+    'Use structured headings and cross-links',
+    'Lead with a concise summary paragraph',
+  ],
+  'Newsletter': [
+    'Strong subject line for open rate',
+    'Scannable layout with clear sections',
+    'Single clear call-to-action per edition',
+  ],
+  'Presentation': [
+    'One key idea per slide',
+    'Use speaker notes for detail; keep slides visual',
+    'Clear narrative arc: setup → tension → resolution',
+  ],
+};
+
+// ─── Goal Enrichment ─────────────────────────────────────────────────────────
+
+/** Enrich the goal based on detected signals and task type. Returns enriched goal and change descriptions. */
+function enrichGoal(spec: IntentSpec): { enrichedGoal: string; changes: string[] } {
+  const lines: string[] = [spec.goal];
+  const changes: string[] = [];
+
+  if (isProseTask(spec.task_type)) {
+    // ── Prose enrichment: audience, tone, platform, structure guidance ──
+    if (spec.audience) {
+      lines.push(`Target audience: ${spec.audience}.`);
+      changes.push(`Enriched goal: pinned target audience (${spec.audience})`);
+    }
+    if (spec.tone) {
+      lines.push(`Tone: ${spec.tone}.`);
+      changes.push(`Enriched goal: pinned tone (${spec.tone})`);
+    }
+    if (spec.platform) {
+      lines.push(`Platform: ${spec.platform}.`);
+      changes.push(`Enriched goal: pinned platform (${spec.platform})`);
+    }
+
+    // Thin goal heuristic: short goal with no content directives
+    const hasContentDirective = /\b(include|cover|mention|highlight|address|discuss|explain|list)\b/i.test(spec.user_intent);
+    if (spec.goal.length < 80 && !hasContentDirective) {
+      lines.push('Include: the key message, supporting context, and any required next steps or calls-to-action.');
+      changes.push('Enriched goal: added content structure guidance (thin prompt detected)');
+    }
+  } else if (isCodeTask(spec.task_type)) {
+    // ── Code enrichment: pin file paths and first scope constraint ──
+    const filePaths = spec.inputs_detected.filter(i => !i.startsWith('http') && i !== '[inline code block]');
+    if (filePaths.length > 0) {
+      lines.push(`Target file(s): ${filePaths.join(', ')}`);
+      changes.push(`Enriched goal: pinned ${filePaths.length} target file(s)`);
+    }
+    if (spec.constraints.scope.length > 0) {
+      lines.push(`Scope: ${spec.constraints.scope[0]}`);
+      changes.push('Enriched goal: surfaced primary scope constraint');
+    }
+  } else if (spec.task_type === 'research') {
+    lines.push('Structure findings with: background, key findings, comparison (if applicable), and recommendations.');
+    changes.push('Enriched goal: added research output structure');
+  } else if (spec.task_type === 'analysis') {
+    lines.push('Lead with the most important insight. Support each conclusion with data.');
+    changes.push('Enriched goal: added analysis structure guidance');
+  } else if (spec.task_type === 'data') {
+    const inputRefs = spec.inputs_detected.filter(i => !i.startsWith('http'));
+    if (inputRefs.length > 0) {
+      lines.push(`Input reference(s): ${inputRefs.join(', ')}`);
+      changes.push(`Enriched goal: pinned ${inputRefs.length} input reference(s)`);
+    }
+  } else {
+    // Fallback: append audience and tone if detected
+    if (spec.audience) {
+      lines.push(`Target audience: ${spec.audience}.`);
+      changes.push(`Enriched goal: pinned target audience (${spec.audience})`);
+    }
+    if (spec.tone) {
+      lines.push(`Tone: ${spec.tone}.`);
+      changes.push(`Enriched goal: pinned tone (${spec.tone})`);
+    }
+  }
+
+  return {
+    enrichedGoal: lines.join('\n'),
+    changes,
+  };
+}
+
 // ─── Compiler ─────────────────────────────────────────────────────────────────
 
 /** Compile an IntentSpec into an XML-tagged prompt. Returns the prompt string and a list of changes made. */
@@ -30,9 +149,23 @@ export function compilePrompt(spec: IntentSpec, context?: string): { prompt: str
   sections.push(`<role>\nYou are ${role}.\n</role>`);
   changes.push(`Added: role definition (${spec.task_type})`);
 
-  // ── Goal ──
-  sections.push(`<goal>\n${spec.goal}\n</goal>`);
-  if (spec.goal !== spec.user_intent) {
+  // ── Audience (if detected) ──
+  if (spec.audience) {
+    sections.push(`<audience>\n  ${spec.audience}\n</audience>`);
+    changes.push(`Added: audience section (${spec.audience})`);
+  }
+
+  // ── Tone (if detected) ──
+  if (spec.tone) {
+    sections.push(`<tone>\n  ${spec.tone}\n</tone>`);
+    changes.push(`Added: tone section (${spec.tone})`);
+  }
+
+  // ── Goal (enriched) ──
+  const { enrichedGoal, changes: goalChanges } = enrichGoal(spec);
+  sections.push(`<goal>\n${enrichedGoal}\n</goal>`);
+  changes.push(...goalChanges);
+  if (spec.goal !== spec.user_intent && goalChanges.length === 0) {
     changes.push('Extracted: single-sentence goal from prompt');
   }
 
@@ -73,6 +206,13 @@ export function compilePrompt(spec: IntentSpec, context?: string): { prompt: str
 
   sections.push(`<constraints>\n${bulleted(constraintLines)}\n</constraints>`);
   changes.push(`Added: ${isCodeTask(spec.task_type) ? 'code' : 'content'} safety constraints`);
+
+  // ── Platform Guidelines (if detected) ──
+  if (spec.platform && PLATFORM_HINTS[spec.platform]) {
+    const hints = PLATFORM_HINTS[spec.platform];
+    sections.push(`<platform_guidelines platform="${spec.platform}">\n${bulleted(hints)}\n</platform_guidelines>`);
+    changes.push(`Added: ${spec.platform} platform guidelines`);
+  }
 
   // ── Workflow ──
   const workflow = getWorkflow(spec.task_type);

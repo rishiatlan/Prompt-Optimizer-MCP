@@ -81,6 +81,9 @@ export interface IntentSpec {
   risk_level: RiskLevel;
   assumptions: Assumption[];
   blocking_questions: Question[];
+  audience?: string;
+  tone?: string;
+  platform?: string;
 }
 
 // ─── Quality Score ────────────────────────────────────────────────────────────
