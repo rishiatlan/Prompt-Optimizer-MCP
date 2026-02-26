@@ -17,6 +17,16 @@ npm run start    # node dist/index.js
 
 No test suite, no linter. The project is validated by manual JSON-RPC testing (see Testing section below).
 
+## Distribution
+
+Published to npm as `claude-prompt-optimizer-mcp`. End users install via `npx` — no cloning needed.
+
+- `package.json` has `bin` pointing to `dist/index.js` (with shebang)
+- `files` whitelist ships only `dist/`, `README.md`, `LICENSE`
+- `prepare` script runs `npm run build` on install (supports `npm install github:...`)
+- `src/index.ts` handles `--version` and `--help` flags before starting the server
+- Version is read from `package.json` at runtime (single source of truth)
+
 ## Architecture
 
 ```
@@ -82,12 +92,12 @@ Fallback: `other`
 | `src/compiler.ts` | Prompt compilation: IntentSpec → XML-tagged prompt. Task-type-aware constraints. |
 | `src/estimator.ts` | Token counting (`ceil(len/4)`), per-model cost estimation, task-aware model recommendations |
 | `src/scorer.ts` | Quality scoring (0-100, 5 dimensions × 20 points). Task-type-aware specificity scoring. |
-| `src/rules.ts` | 9 deterministic ambiguity detection rules with `applies_to` field |
+| `src/rules.ts` | 10 deterministic ambiguity detection rules with `applies_to` field |
 | `src/templates.ts` | `Record<TaskType, string>` for roles and workflows — must include ALL 13 task types |
 | `src/session.ts` | In-memory `Map<string, Session>` with 30min TTL |
 | `src/types.ts` | All TypeScript interfaces + `isCodeTask()`/`isProseTask()` helpers |
 
-## Ambiguity Rules (9 deterministic checks)
+## Ambiguity Rules (10 deterministic checks)
 
 | Rule | Applies To | Severity | Trigger |
 |------|-----------|----------|---------|
@@ -98,6 +108,7 @@ Fallback: `other`
 | `no_constraints_high_risk` | code | BLOCKING | High-risk task with zero constraints |
 | `format_ambiguity` | all | NON-BLOCKING | Mentions JSON/YAML but no schema |
 | `multi_task_overload` | all | NON-BLOCKING | 3+ task indicators in one prompt |
+| `generic_vague_ask` | all | BLOCKING | Extremely vague prompt with no actionable specifics |
 | `missing_audience` | prose | NON-BLOCKING | No target audience specified |
 | `no_clear_ask` | prose | NON-BLOCKING | No clear communication goal |
 

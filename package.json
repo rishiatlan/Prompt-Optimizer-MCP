@@ -4,10 +4,42 @@
   "type": "module",
   "description": "MCP server that optimizes prompts for maximum impact and minimum cost with Claude",
   "main": "dist/index.js",
+  "bin": {
+    "claude-prompt-optimizer-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepare": "npm run build"
   },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "prompt-optimization",
+    "prompt-engineering",
+    "token-cost",
+    "llm",
+    "anthropic",
+    "ai",
+    "cost-reduction",
+    "context-compression",
+    "model-routing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP.git"
+  },
+  "homepage": "https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP#readme",
+  "bugs": {
+    "url": "https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP/issues"
+  },
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
     "zod": "^3.25.0"
