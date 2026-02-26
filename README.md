@@ -407,7 +407,7 @@ The before/after delta shows exactly what improved: "Your prompt went from 48 to
 </details>
 
 <details>
-<summary><strong>9 Ambiguity Detection Rules</strong></summary>
+<summary><strong>10 Ambiguity Detection Rules</strong></summary>
 
 All rules are deterministic (regex + keyword matching). No LLM calls. Rules are **task-type aware** — code-only rules skip for writing/research tasks, prose-only rules skip for code tasks.
 
@@ -420,6 +420,7 @@ All rules are deterministic (regex + keyword matching). No LLM calls. Rules are 
 | `no_constraints_high_risk` | Code | BLOCKING | High-risk task with zero constraints mentioned |
 | `format_ambiguity` | All | NON-BLOCKING | Mentions JSON/YAML but provides no schema |
 | `multi_task_overload` | All | NON-BLOCKING | 3+ distinct tasks detected in one prompt |
+| `generic_vague_ask` | All | BLOCKING | Extremely vague prompt with no actionable specifics ("make it better", "just fix it") |
 | `missing_audience` | Prose | NON-BLOCKING | No target audience specified for writing/communication task |
 | `no_clear_ask` | Prose | NON-BLOCKING | No clear communication goal detected |
 
@@ -873,6 +874,11 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] Intent-first detection — prevents topic-vs-task misclassification for technical writing prompts
 - [x] Answered question carry-forward — refine flow no longer regenerates already-answered blocking questions
 - [x] NPM package — `npx claude-prompt-optimizer-mcp` for zero-friction install
+- [x] Structured audience/tone/platform detection — 19 audience patterns, 9 platforms, tone signals threaded through entire pipeline
+- [x] Goal enrichment — task-type-aware goal enrichment (prose, code, research, analysis, data)
+- [x] Platform-specific guidelines — Slack, LinkedIn, Email, Blog, Twitter/X, and more
+- [x] `generic_vague_ask` rule — catches ultra-vague prompts ("make it better", "just fix it") across all task types
+- [x] CLI flags — `--version` and `--help` for NPM distribution
 - [ ] Optional Haiku pass for nuanced ambiguity detection
 - [ ] Prompt template library (common patterns)
 - [ ] History/export of past sessions
