@@ -222,16 +222,31 @@ function detectInputs(prompt: string): string[] {
 
 // ─── Audience Detection (for non-code tasks) ─────────────────────────────────
 
-const AUDIENCE_PATTERNS = [
-  /\b(for|to|with)\s+(my\s+)?(team|colleagues?|manager|stakeholders?|engineers?|designers?|leadership|exec|board|customers?|users?|clients?|public|community|audience)\b/i,
-  /\b(internal|external|public|private)\s+(audience|post|announcement|message)\b/i,
-  /\b(slack|email|blog|twitter|linkedin|newsletter|docs?|wiki)\b/i,
+const AUDIENCE_MAP: Array<{ pattern: RegExp; label: string }> = [
+  { pattern: /\b(for|to)\s+(my\s+)?team\b/i, label: 'team (internal)' },
+  { pattern: /\b(for|to)\s+(my\s+)?colleagues?\b/i, label: 'colleagues (internal)' },
+  { pattern: /\b(for|to)\s+(my\s+)?manager\b/i, label: 'manager' },
+  { pattern: /\b(for|to)\s+(the\s+)?stakeholders?\b/i, label: 'stakeholders' },
+  { pattern: /\b(for|to)\s+(the\s+)?leadership\b/i, label: 'leadership / executives' },
+  { pattern: /\b(for|to)\s+(the\s+)?(exec|board)\b/i, label: 'executives' },
+  { pattern: /\b(for|to)\s+(the\s+)?engineers?\b/i, label: 'engineers (technical)' },
+  { pattern: /\b(for|to)\s+(the\s+)?designers?\b/i, label: 'designers' },
+  { pattern: /\b(for|to)\s+(the\s+)?developers?\b/i, label: 'developers (technical)' },
+  { pattern: /\b(for|to)\s+(the\s+)?customers?\b/i, label: 'customers (external)' },
+  { pattern: /\b(for|to)\s+(the\s+)?clients?\b/i, label: 'clients (external)' },
+  { pattern: /\b(for|to)\s+(the\s+)?users?\b/i, label: 'end users' },
+  { pattern: /\b(for|to)\s+(the\s+)?public\b/i, label: 'general public' },
+  { pattern: /\b(for|to)\s+(the\s+)?community\b/i, label: 'community' },
+  { pattern: /\b(for|to)\s+(the\s+)?everyone\b/i, label: 'general audience' },
+  { pattern: /\binternal\s+(audience|post|announcement|message)\b/i, label: 'internal audience' },
+  { pattern: /\bexternal\s+(audience|post|announcement|message)\b/i, label: 'external audience' },
+  { pattern: /\btechnical\s+PMs?\b/i, label: 'technical PMs' },
+  { pattern: /\bnon[- ]?technical\b/i, label: 'non-technical audience' },
 ];
 
 function detectAudience(prompt: string): string | undefined {
-  for (const pattern of AUDIENCE_PATTERNS) {
-    const match = prompt.match(pattern);
-    if (match) return match[0];
+  for (const { pattern, label } of AUDIENCE_MAP) {
+    if (pattern.test(prompt)) return label;
   }
   return undefined;
 }
@@ -246,6 +261,27 @@ function detectTone(prompt: string): string | undefined {
   for (const pattern of TONE_PATTERNS) {
     const match = prompt.match(pattern);
     if (match) return match[0];
+  }
+  return undefined;
+}
+
+// ─── Platform Detection (for non-code tasks) ────────────────────────────────
+
+const PLATFORM_MAP: Array<{ pattern: RegExp; label: string }> = [
+  { pattern: /\bslack\b/i, label: 'Slack' },
+  { pattern: /\blinkedin\b/i, label: 'LinkedIn' },
+  { pattern: /\bblog\s*(?:post)?\b/i, label: 'Blog' },
+  { pattern: /\btwitter\b|\bx\.com\b/i, label: 'Twitter/X' },
+  { pattern: /\bmedium\b|\bsubstack\b/i, label: 'Medium/Substack' },
+  { pattern: /\bemail\b/i, label: 'Email' },
+  { pattern: /\bnewsletter\b/i, label: 'Newsletter' },
+  { pattern: /\bwiki\b|\bconfluence\b|\bnotion\b/i, label: 'Wiki' },
+  { pattern: /\bpresentation\b|\bslides?\b/i, label: 'Presentation' },
+];
+
+function detectPlatform(prompt: string): string | undefined {
+  for (const { pattern, label } of PLATFORM_MAP) {
+    if (pattern.test(prompt)) return label;
   }
   return undefined;
 }
@@ -426,6 +462,10 @@ export function analyzePrompt(prompt: string, context?: string, answeredQuestion
     ? (elevatedRisk === 'high' || baseRisk === 'high' ? 'high' : elevatedRisk)
     : baseRisk;
 
+  const audience = detectAudience(prompt);
+  const tone = detectTone(prompt);
+  const platform = detectPlatform(prompt);
+
   return {
     user_intent: prompt,
     goal: extractGoal(prompt),
@@ -437,5 +477,8 @@ export function analyzePrompt(prompt: string, context?: string, answeredQuestion
     risk_level: riskLevel,
     assumptions: extractAssumptions(ruleResults),
     blocking_questions: extractBlockingQuestions(ruleResults, answeredQuestionIds),
+    audience,
+    tone,
+    platform,
   };
 }

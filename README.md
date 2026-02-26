@@ -206,26 +206,67 @@ Changes Made:
 
 **30 seconds — requires Node.js 18+ and Claude Code.**
 
-1. Add to your Claude Code MCP settings (`~/.claude/settings.json`):
-   ```json
-   {
-     "mcpServers": {
-       "prompt-optimizer": {
-         "command": "npx",
-         "args": ["-y", "claude-prompt-optimizer-mcp"]
-       }
-     }
-   }
-   ```
+Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global access):
 
-2. Restart Claude Code. The 5 tools appear automatically.
+```json
+{
+  "mcpServers": {
+    "prompt-optimizer": {
+      "command": "npx",
+      "args": ["-y", "claude-prompt-optimizer-mcp"]
+    }
+  }
+}
+```
 
-That's it. No cloning, no building, no dependencies to manage. Auto-updates on every run.
+Restart Claude Code. The 5 tools appear automatically.
+
+### Alternative setups
 
 <details>
-<summary><strong>Alternative: Install from source</strong></summary>
+<summary><strong>Claude Desktop</strong></summary>
 
-For contributors or custom modifications:
+Add to your Claude Desktop config file:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "prompt-optimizer": {
+      "command": "npx",
+      "args": ["-y", "claude-prompt-optimizer-mcp"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop.
+
+</details>
+
+<details>
+<summary><strong>Global install (faster startup, no npx download check)</strong></summary>
+
+```bash
+npm install -g claude-prompt-optimizer-mcp
+```
+
+Then use in your MCP config:
+```json
+{
+  "mcpServers": {
+    "prompt-optimizer": {
+      "command": "claude-prompt-optimizer-mcp"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>From source (for contributors)</strong></summary>
 
 ```bash
 git clone https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP.git
@@ -233,7 +274,7 @@ cd Claude-Prompt-Optimizer-MCP
 npm install && npm run build
 ```
 
-Then register with an absolute path:
+Then use in your MCP config:
 ```json
 {
   "mcpServers": {
@@ -809,13 +850,15 @@ Reason:         Balanced task — Sonnet offers the best
 
 | Issue | Fix |
 |-------|-----|
-| Tools don't appear in Claude Code | Verify the path in MCP settings is absolute and points to `dist/index.js`. Restart Claude Code. |
-| `Cannot find module` error | Run `npm run build` first. The `dist/` directory must exist. |
+| Tools don't appear in Claude Code | Verify your `.mcp.json` or settings file is valid JSON. Restart Claude Code after changes. |
+| `npx` hangs or is slow | First run downloads the package. Use `npm install -g claude-prompt-optimizer-mcp` for instant startup. |
+| `Cannot find module` error (source install) | Run `npm run build` first. The `dist/` directory must exist. |
 | Session expired | Sessions have a 30-minute TTL. Call `optimize_prompt` again to start a new session. |
 | False positive on blocking questions | The regex rules are tunable in `src/rules.ts`. Adjust patterns for your workflow. |
 | "Scope explosion" triggers incorrectly | The rule detects "all", "everything", "entire" without nearby scoping nouns. Add more exemption words in `SCOPE_EXPLOSION` patterns. |
 | Cost estimates seem off | Token estimation uses `text.length / 4` approximation. For precise counts, use Anthropic's tokenizer directly. |
 | No model recommendation | Default is Sonnet. Opus is recommended only for high-risk or large-scope tasks. |
+| Check installed version | Run `npx claude-prompt-optimizer-mcp --version` or `claude-prompt-optimizer-mcp -v` (if globally installed). |
 
 ## Roadmap
 

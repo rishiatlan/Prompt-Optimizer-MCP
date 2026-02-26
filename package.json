@@ -1,6 +1,6 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Open-source prompt compiler that reduces Claude API cost by 30-60% — deterministic analysis, model routing, and context compression via MCP",
   "main": "dist/index.js",

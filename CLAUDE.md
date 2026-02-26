@@ -17,6 +17,16 @@ npm run start    # node dist/index.js
 
 No test suite, no linter. The project is validated by manual JSON-RPC testing (see Testing section below).
 
+## Distribution
+
+Published to npm as `claude-prompt-optimizer-mcp`. End users install via `npx` — no cloning needed.
+
+- `bin/cli.js` is the shebang entry point, importing `dist/index.js`
+- `package.json` has `bin` pointing to `bin/cli.js`, `files` whitelist ships only `dist/`, `bin/`, `README.md`, `LICENSE`
+- `prepublishOnly` script runs `npm run build` before publish
+- `src/index.ts` handles `--version` and `--help` flags before starting the server
+- Version is read from `package.json` at runtime (single source of truth)
+
 ## Architecture
 
 ```
@@ -36,10 +46,10 @@ User prompt → Host Claude → [calls MCP tools] → Deterministic analysis
 
 The entire pipeline adapts behavior based on `TaskType`. Every module branches on whether the prompt is code, prose, research, etc:
 
-- **analyzer.ts** — three-layer detection with intent-first opener check (see below)
+- **analyzer.ts** — three-layer detection with intent-first opener check (see below). Structured audience detection (19 labeled patterns), platform detection (9 platforms), tone detection. All surfaced on IntentSpec.
 - **rules.ts** — each rule has an `applies_to` field (`'code' | 'prose' | 'all'`). Code-only rules (vague_objective, missing_target, scope_explosion) skip for writing tasks. `extractBlockingQuestions` accepts `answeredIds` to skip already-answered questions in refine flow.
-- **scorer.ts** — code tasks reward file paths; prose tasks reward audience/tone/platform/length
-- **compiler.ts** — code tasks get "Do not modify files outside scope"; prose tasks get "Match the intended tone and audience"
+- **scorer.ts** — code tasks reward file paths; prose tasks reward audience/tone/platform/length. Compiled prompt scoring rewards `<audience>`, `<tone>`, `<platform_guidelines>` tags.
+- **compiler.ts** — code tasks get "Do not modify files outside scope"; prose tasks get "Match the intended tone and audience". Goal enrichment per task type (prose gets audience/tone/platform pins, code gets file paths, research/analysis get structure guidance). Platform-specific guidelines (Slack, LinkedIn, Email, etc.).
 - **estimator.ts** — output token estimates and model recommendations vary by task type
 - **templates.ts** — role descriptions and workflow steps are task-type specific
 
@@ -76,18 +86,18 @@ Fallback: `other`
 
 | File | Role |
 |------|------|
-| `src/index.ts` | Entry point — MCP server + stdio transport wiring |
+| `src/index.ts` | Entry point — shebang, CLI flags (--version, --help), MCP server + stdio transport wiring |
 | `src/tools.ts` | 5 MCP tool registrations with Zod schemas (thin wiring layer) |
-| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer intent-first task detection, audience/tone detection, task-aware constraint extraction. |
-| `src/compiler.ts` | Prompt compilation: IntentSpec → XML-tagged prompt. Task-type-aware constraints. |
+| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer intent-first task detection, structured audience/tone/platform detection, task-aware constraint extraction. |
+| `src/compiler.ts` | Prompt compilation: IntentSpec → XML-tagged prompt. Goal enrichment, platform hints, task-type-aware constraints. |
 | `src/estimator.ts` | Token counting (`ceil(len/4)`), per-model cost estimation, task-aware model recommendations |
 | `src/scorer.ts` | Quality scoring (0-100, 5 dimensions × 20 points). Task-type-aware specificity scoring. |
-| `src/rules.ts` | 9 deterministic ambiguity detection rules with `applies_to` field |
+| `src/rules.ts` | 10 deterministic ambiguity detection rules with `applies_to` field |
 | `src/templates.ts` | `Record<TaskType, string>` for roles and workflows — must include ALL 13 task types |
 | `src/session.ts` | In-memory `Map<string, Session>` with 30min TTL |
 | `src/types.ts` | All TypeScript interfaces + `isCodeTask()`/`isProseTask()` helpers |
 
-## Ambiguity Rules (9 deterministic checks)
+## Ambiguity Rules (10 deterministic checks)
 
 | Rule | Applies To | Severity | Trigger |
 |------|-----------|----------|---------|
@@ -98,6 +108,7 @@ Fallback: `other`
 | `no_constraints_high_risk` | code | BLOCKING | High-risk task with zero constraints |
 | `format_ambiguity` | all | NON-BLOCKING | Mentions JSON/YAML but no schema |
 | `multi_task_overload` | all | NON-BLOCKING | 3+ task indicators in one prompt |
+| `generic_vague_ask` | all | BLOCKING | Extremely vague prompt with no actionable specifics |
 | `missing_audience` | prose | NON-BLOCKING | No target audience specified |
 | `no_clear_ask` | prose | NON-BLOCKING | No clear communication goal |
 
@@ -112,6 +123,8 @@ Hard caps: max 3 blocking questions, max 5 assumptions per cycle.
 5. **Answered question carry-forward** — Refine flow passes `answeredIds` from `session.answers` through to `extractBlockingQuestions`, preventing already-answered blocking questions from being regenerated.
 6. **XML-tagged output** — Anthropic-optimized prompt structure (role, goal, constraints, workflow).
 7. **Session-based state** — In-memory Map, 30min TTL, single-client stdio transport.
+8. **Goal enrichment** — Compiler enriches goals per task type: prose gets audience/tone/platform pins, code gets file path pins, research/analysis get structure guidance.
+9. **Platform-aware compilation** — 9 platforms (Slack, LinkedIn, Email, etc.) get specific writing guidelines compiled into `<platform_guidelines>` XML sections.
 
 ## Common Pitfalls
 
