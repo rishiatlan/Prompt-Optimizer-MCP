@@ -885,6 +885,10 @@ Reason:         Balanced task — Sonnet offers the best
 - [ ] Custom rule definitions via config file
 - [ ] Integration with Claude Code hooks for auto-trigger on complex tasks
 
+## Contributors
+
+- [@aish-varya](https://github.com/aish-varya) — audience/tone/platform detection, goal enrichment, `generic_vague_ask` rule, CLI flags ([PR #1](https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP/pull/1))
+
 ## Credits
 
 Built on the [Model Context Protocol](https://modelcontextprotocol.io) by **[Anthropic](https://anthropic.com)**.
