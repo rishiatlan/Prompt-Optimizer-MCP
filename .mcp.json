@@ -2,7 +2,8 @@
   "mcpServers": {
     "prompt-optimizer": {
       "command": "node",
-      "args": ["dist/index.js"]
+      "args": ["dist/src/index.js"],
+      "cwd": "/Users/rishi.banerjee/Documents/Rishi Ideas/Prompt Optimizer MCP"
     }
   }
 }

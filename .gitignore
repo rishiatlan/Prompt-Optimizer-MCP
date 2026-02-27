@@ -16,3 +16,9 @@ Thumbs.db
 *.swo
 .idea/
 .vscode/
+
+# MCP Registry tokens
+.mcpregistry_*
+
+# Smithery build artifacts
+.smithery/
