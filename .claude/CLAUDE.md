@@ -199,6 +199,14 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 - **License key validation is synchronous**: `validateLicenseKey()` is a pure function (no I/O). Storage methods are async but validation itself is sync crypto.
 - **Production key**: `PRODUCTION_PUBLIC_KEY_PEM` contains the live Ed25519 public key. Regenerating the keypair (scripts/keygen.mjs init) invalidates ALL existing license keys.
 
+## npm Publishing
+
+**Just run:** `npm publish --access public` — the automation token in `~/.npmrc` handles auth with no OTP.
+
+**If it fails with EOTP:** The token was overwritten. Tell the user to create a new **Automation** token (NOT Publish, NOT Read-only) at https://www.npmjs.com/settings/tokens, then run: `npm config set //registry.npmjs.org/:_authToken=<new-token>`
+
+**Never ask the user for an OTP code.** Never try env var hacks. The automation token is the solution.
+
 ## Breaking Changes (v1 → v2)
 
 - `quality_after` → `compilation_checklist` (CompilationChecklist, not a numeric score)
