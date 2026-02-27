@@ -166,7 +166,7 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 ## Scoring
 
 - **scoring_version: 2** — max 100/100 achievable (v1 capped at 96)
-- 5 dimensions × 20 points: Specificity, Constraints, Structure, Efficiency, Context Fit
+- 5 dimensions × 20 points: Clarity, Specificity, Completeness, Constraints, Efficiency
 - Constraints: +2 for preservation instructions ("preserve", "keep existing", "maintain")
 - Efficiency: +2 bonus for concise prompts (<1000 tokens + no repetition)
 - `generateChecklist()` returns 9-item structural coverage (separate from numeric score)

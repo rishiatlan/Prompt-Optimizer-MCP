@@ -7,6 +7,7 @@ Turn sloppy prompts into structured AI instructions — scores, compiles, and op
 ![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![No Dependencies](https://img.shields.io/badge/Runtime_Deps-2-brightgreen)
+[![npm downloads](https://img.shields.io/npm/dm/claude-prompt-optimizer-mcp)](https://www.npmjs.com/package/claude-prompt-optimizer-mcp)
 
 ---
 
@@ -14,7 +15,7 @@ Turn sloppy prompts into structured AI instructions — scores, compiles, and op
 
 - **Vague prompts waste tokens and iterations.** "Make the code better" gives Claude no constraints, no success criteria, and no target — leading to unpredictable results and wasted compute.
 - **Nobody structures prompts consistently.** Even experienced engineers skip success criteria, constraints, and workflow steps. This MCP enforces structure every time.
-- **Cost is invisible.** Most users have no idea how many tokens their prompt will consume across Haiku, Sonnet, and Opus. The optimizer shows exact cost breakdowns before you commit.
+- **Cost is invisible.** Most users have no idea how many tokens their prompt will consume. The optimizer shows exact cost breakdowns across 8 models from Anthropic, OpenAI, and Google before you commit.
 - **Context bloat is the hidden cost multiplier.** Sending 500 lines of code when 50 are relevant burns tokens on irrelevant context. The compressor strips what doesn't matter.
 - **There's no sign-off gate.** Claude starts working immediately on whatever you type. This MCP makes you review the compiled prompt — with extracted assumptions, blocking questions, and constraint injection — before anything executes.
 
@@ -366,11 +367,11 @@ Prompts are scored on 5 dimensions, each worth 0-20 points (total 0-100):
 
 | Dimension | What it measures | How it scores |
 |-----------|-----------------|---------------|
-| **Clarity** | Is the goal unambiguous? | -5 per vague term detected |
-| **Specificity** | Are targets identified? | Code: +5 per file/function. Prose: +5 for audience, +4 for tone, +3 for platform |
-| **Completeness** | Are success criteria defined? | +10 if definition-of-done has 2+ items |
-| **Constraints** | Are boundaries set? | +10 if scope + forbidden actions defined |
-| **Efficiency** | Is context minimal and relevant? | -2 per 1000 tokens of bloat |
+| **Clarity** (0–20) | Is the goal unambiguous? | -5 per vague term detected |
+| **Specificity** (0–20) | Are targets identified? | Code: +5 per file/function. Prose: +5 for audience, +4 for tone, +3 for platform |
+| **Completeness** (0–20) | Are success criteria defined? | +10 if definition-of-done has 2+ items |
+| **Constraints** (0–20) | Are boundaries set? | +10 if scope + forbidden actions defined. +2 for preservation instructions. |
+| **Efficiency** (0–20) | Is context minimal and relevant? | -2 per 1000 tokens of bloat. +2 bonus for concise prompts. |
 
 Scoring adapts to task type: code tasks reward file paths and code references; writing/communication tasks reward audience, tone, platform, and length constraints.
 
@@ -472,7 +473,7 @@ Model recommendation logic:
 - **Sonnet** — writing, communication, research, analysis, standard code changes (best balance)
 - **Opus** — high-risk tasks, complex planning, large-scope creation/refactoring (maximum capability)
 
-Pricing is hardcoded from published Anthropic rates and versioned in `src/estimator.ts`.
+Pricing is hardcoded from published rates (Anthropic, OpenAI, Google) and versioned in `src/estimator.ts`.
 
 </details>
 
@@ -825,6 +826,18 @@ Reason:         Balanced task — Sonnet offers the best
 
 </details>
 
+## Security & Privacy
+
+| What | Detail |
+|------|--------|
+| **LLM calls** | Zero. All analysis is deterministic — regex, heuristics, rule engines. |
+| **Network calls** | Zero. The MCP runs 100% locally. No telemetry, no phone-home. |
+| **Data storage** | `~/.prompt-optimizer/` on your machine. Sessions, usage, config, stats, license. |
+| **License validation** | Ed25519 asymmetric signatures. Public key only in the package. No PII in the key. |
+| **License file** | `chmod 600` on POSIX systems (best-effort). Only your user can read it. |
+| **Prompt logging** | Disabled by default. Opt-in via `PROMPT_OPTIMIZER_LOG_PROMPTS=true`. Never enable in shared environments. |
+| **Dependencies** | 2 runtime: `@modelcontextprotocol/sdk` and `zod`. No transitive bloat. |
+
 ## Troubleshooting
 
 | Issue | Fix |
@@ -866,7 +879,7 @@ Reason:         Balanced task — Sonnet offers the best
 - [ ] History/export of past sessions
 - [ ] Custom rule definitions via config file
 - [ ] Integration with Claude Code hooks for auto-trigger on complex tasks
-- [ ] Always-on mode for Power tier (auto-optimize every prompt)
+- [x] Always-on mode for Power tier (auto-optimize every prompt)
 
 ## Contributors
 
