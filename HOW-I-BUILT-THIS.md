@@ -20,6 +20,7 @@
 - [What's Next](#whats-next)
 - [The Actual Timeline — 49 Hours, 21 Commits](#the-actual-timeline--49-hours-21-commits)
 - [By the Numbers](#by-the-numbers)
+- [Acknowledgments](#acknowledgments)
 
 ---
 
@@ -345,6 +346,12 @@ Three late-night sessions. Ten hours of actual work. One AI pair programmer. Zer
 | **Directory listings** | 6+ |
 | **Average score improvement** | +32 points |
 | **AI calls made by the optimizer** | 0 |
+
+---
+
+## Acknowledgments
+
+Thanks to **[@aish-varya](https://github.com/aish-varya)** for [PR #1](https://github.com/rishiatlan/Prompt-Optimizer-MCP/pull/1) — audience/tone/platform detection, goal enrichment, the `generic_vague_ask` rule, and CLI flags. Several of those ideas shipped directly into v1.2 on Day 1.
 
 ---
 
