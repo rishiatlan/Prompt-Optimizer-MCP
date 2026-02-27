@@ -49,9 +49,10 @@ function errorResponse(data: { request_id: string; error: string; message: strin
   };
 }
 
-// ─── Purchase URL (Lemon Squeezy checkout) ──────────────────────────────────
+// ─── Purchase URLs (Lemon Squeezy checkout) ─────────────────────────────────
 
-const PURCHASE_URL = 'https://promptoptimizer.lemonsqueezy.com/buy/TODO_PRODUCT_ID';
+export const PRO_PURCHASE_URL = 'https://rishibanerjee.lemonsqueezy.com/checkout/buy/16bb57a4-a9a5-4bee-a476-b7d998481506';
+export const POWER_PURCHASE_URL = 'https://rishibanerjee.lemonsqueezy.com/checkout/buy/14eff7b8-6773-4a8f-9540-83553dad11ad';
 
 // ─── Strictness Threshold Map ────────────────────────────────────────────────
 
@@ -123,7 +124,8 @@ export function registerTools(
               retry_after_seconds: enforcement.retry_after_seconds,
             }),
             ...(!isRateLimit && {
-              purchase_url: PURCHASE_URL,
+              pro_purchase_url: PRO_PURCHASE_URL,
+              power_purchase_url: POWER_PURCHASE_URL,
               next_step: 'You\'ve hit your plan limit. Upgrade to Pro ($4.99/mo) or Power ($9.99/mo) for more optimizations — then run set_license with your key.',
             }),
           });
@@ -251,7 +253,8 @@ export function registerTools(
               retry_after_seconds: enforcement.retry_after_seconds,
             }),
             ...(!isRateLimit && {
-              purchase_url: PURCHASE_URL,
+              pro_purchase_url: PRO_PURCHASE_URL,
+              power_purchase_url: POWER_PURCHASE_URL,
               next_step: 'You\'ve hit your plan limit. Upgrade to Pro ($4.99/mo) or Power ($9.99/mo) for more optimizations — then run set_license with your key.',
             }),
           });
@@ -746,9 +749,10 @@ export function registerTools(
             request_id: requestId,
             error: 'invalid_license',
             message: result.error === 'expired'
-              ? 'License key has expired. Please renew your Pro license.'
+              ? 'License key has expired. Please renew your subscription.'
               : `License key is invalid: ${result.error}`,
-            purchase_url: PURCHASE_URL,
+            pro_purchase_url: PRO_PURCHASE_URL,
+            power_purchase_url: POWER_PURCHASE_URL,
           });
         }
 
@@ -807,7 +811,8 @@ export function registerTools(
             has_license: false,
             tier: 'free',
             limits: PLAN_LIMITS.free,
-            purchase_url: PURCHASE_URL,
+            pro_purchase_url: PRO_PURCHASE_URL,
+            power_purchase_url: POWER_PURCHASE_URL,
           });
         }
 
@@ -824,7 +829,7 @@ export function registerTools(
           activated_at: license.activated_at,
           limits,
           ...(license.validation_error && { validation_error: license.validation_error }),
-          ...(!license.valid && { purchase_url: PURCHASE_URL }),
+          ...(!license.valid && { pro_purchase_url: PRO_PURCHASE_URL, power_purchase_url: POWER_PURCHASE_URL }),
         });
       } catch (err) {
         log.error(requestId, 'license_status failed:', err instanceof Error ? err.message : String(err));

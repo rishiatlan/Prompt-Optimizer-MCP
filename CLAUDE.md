@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An MCP (Model Context Protocol) server that optimizes prompts for maximum impact and minimum cost. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle.
 
-**v2.1: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, and 11 tools.
+**v2.2: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 11 tools, programmatic API (`import { optimize }`), and dual entry points (API + MCP server).
 
 **Zero LLM calls inside the MCP.** All intelligence comes from the host Claude. The MCP provides structure, rules, and discipline.
 
@@ -14,7 +14,7 @@ An MCP (Model Context Protocol) server that optimizes prompts for maximum impact
 
 ```bash
 npm run build    # tsc → dist/
-npm test         # node --test dist/test/*.test.js (7 test files, 98 tests)
+npm test         # node --test dist/test/*.test.js (9 test files, 129 tests)
 npm run start    # node dist/src/index.js
 ```
 
@@ -22,11 +22,25 @@ npm run start    # node dist/src/index.js
 
 ## Distribution
 
-Published to npm as `claude-prompt-optimizer-mcp`. End users install via `npx`.
+Published to npm as `claude-prompt-optimizer-mcp`. Four install channels:
 
+| Channel | Command |
+|---------|---------|
+| **MCP Config** (recommended) | Add JSON to `.mcp.json` / `claude_desktop_config.json` |
+| **npx** | `npx -y claude-prompt-optimizer-mcp` |
+| **npm global** | `npm install -g claude-prompt-optimizer-mcp` |
+| **curl** | `curl -fsSL .../install.sh \| bash` |
+
+**Dual entry points (ESM-only):**
+- `import { optimize } from 'claude-prompt-optimizer-mcp'` → programmatic API (pure, no side effects)
+- `import 'claude-prompt-optimizer-mcp/server'` → starts MCP stdio server (side-effect import)
+- `npx claude-prompt-optimizer-mcp` → CLI (unchanged, uses `bin/cli.js`)
+
+**Package internals:**
 - `bin/cli.js` is the shebang entry point, importing `dist/src/index.js`
 - `package.json` has `bin` pointing to `bin/cli.js`, `files` whitelist ships only `dist/`, `bin/`, `README.md`, `LICENSE`
 - `prepublishOnly` script runs `npm run build` before publish
+- `exports["."]` → `dist/src/api.js` (barrel export), `exports["./server"]` → `dist/src/index.js` (MCP server)
 
 ## Environment Variables
 
@@ -97,6 +111,7 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | File | Role |
 |------|------|
 | `src/index.ts` | Entry point — CLI flags, MCP server + stdio transport, wires storage + rate limiter |
+| `src/api.ts` | Barrel export for programmatic API — re-exports all pure functions + `optimize()` convenience pipeline |
 | `src/tools.ts` | 11 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
 | `src/types.ts` | All interfaces: TierLimits, PLAN_LIMITS, PreviewPack, ExecutionContext, StorageInterface, OutputTarget, LicenseData |
 | `src/license.ts` | Ed25519 offline license key validation (public key only, zero npm deps) |
@@ -125,6 +140,8 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `test/contracts.test.ts` | Output shape freeze (PreviewPack, CostEstimate, LicenseData), deterministic ordering |
 | `test/security.test.ts` | Input hardening, session ID sanitization, no-throw invariant, UUID format |
 | `test/license.test.ts` | Ed25519 validation, storage CRUD, tier priority chain, file permissions |
+| `test/api.test.ts` | Barrel exports, `optimize()` shape/determinism/context/targets, packaging validation |
+| `test/e2e.test.ts` | Full pipeline, license→tier upgrade, gate enforcement, checkout URL wiring, config & stats |
 
 ## Key Type Contracts
 
@@ -160,8 +177,7 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 - **Tier priority chain:** license key (cryptographically verified) > `PROMPT_OPTIMIZER_PRO` env var > default free
 - **`getLicense()` re-checks expiry** on every read; marks `valid=false` + `validation_error='expired'` if newly expired
 - **`setLicense()` sets chmod 600** on POSIX (best-effort, skip on Windows)
-- **Gate responses** include `purchase_url` + `next_step` when tier limit is hit (not on rate limits)
-- **Production key:** Replace `PRODUCTION_PUBLIC_KEY_PEM` placeholder before first npm publish
+- **Gate responses** include `pro_purchase_url` + `power_purchase_url` + `next_step` when tier limit is hit (not on rate limits)
 
 ## Scoring
 

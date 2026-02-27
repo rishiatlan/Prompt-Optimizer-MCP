@@ -203,9 +203,18 @@ Changes Made:
 </tr>
 </table>
 
-## Quick Start
+## Install
 
-**30 seconds — requires Node.js 18+ and Claude Code.**
+**Requires Node.js 18+ with ESM support.** Pick one method — 30 seconds or less.
+
+| Method | Command / Config |
+|--------|-----------------|
+| **MCP Config** (recommended) | Add to `.mcp.json` or `~/.claude/settings.json` — see below |
+| **npx** | `npx -y claude-prompt-optimizer-mcp` |
+| **npm global** | `npm install -g claude-prompt-optimizer-mcp` |
+| **curl** | `curl -fsSL https://rishiatlan.github.io/Claude-Prompt-Optimizer-MCP/install.sh \| bash` |
+
+### MCP Config (Claude Code / Claude Desktop)
 
 Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global access):
 
@@ -222,27 +231,13 @@ Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global acces
 
 Restart Claude Code. All 11 tools appear automatically. Free tier gives you 10 optimizations to try it out.
 
-### Alternative setups
-
 <details>
-<summary><strong>Claude Desktop</strong></summary>
+<summary><strong>Claude Desktop config path</strong></summary>
 
-Add to your Claude Desktop config file:
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-```json
-{
-  "mcpServers": {
-    "prompt-optimizer": {
-      "command": "npx",
-      "args": ["-y", "claude-prompt-optimizer-mcp"]
-    }
-  }
-}
-```
-
-Restart Claude Desktop.
+Same JSON config as above.
 
 </details>
 
@@ -263,6 +258,17 @@ Then use in your MCP config:
   }
 }
 ```
+
+</details>
+
+<details>
+<summary><strong>Curl installer (installs globally + prints MCP config)</strong></summary>
+
+```bash
+curl -fsSL https://rishiatlan.github.io/Claude-Prompt-Optimizer-MCP/install.sh | bash
+```
+
+Checks Node.js ≥ 18, installs the package globally, and prints the MCP config JSON for your platform.
 
 </details>
 
@@ -288,6 +294,49 @@ Then use in your MCP config:
 ```
 
 </details>
+
+## Programmatic API
+
+Use the optimizer as a library in your own Node.js code — no MCP server needed.
+
+```typescript
+import { optimize } from 'claude-prompt-optimizer-mcp';
+
+const result = optimize('fix the login bug in src/auth.ts');
+
+console.log(result.quality.total);  // 51 (raw prompt score)
+console.log(result.compiled);       // Full XML-compiled prompt
+console.log(result.cost);           // Token + cost estimates
+```
+
+The `optimize()` function runs the exact same pipeline as the `optimize_prompt` MCP tool: analyze → score → compile → checklist → estimate cost. Pure, synchronous, deterministic.
+
+### API Exports
+
+| Import | What it does |
+|--------|-------------|
+| `optimize(prompt, context?, target?)` | Full pipeline → `OptimizeResult` |
+| `analyzePrompt(prompt, context?)` | Raw prompt → `IntentSpec` |
+| `scorePrompt(intent, context?)` | Intent → `QualityScore` (0–100) |
+| `compilePrompt(intent, context?, target?)` | Intent → compiled prompt string |
+| `generateChecklist(compiledPrompt)` | Compiled prompt → structural coverage |
+| `estimateCost(text, taskType, riskLevel, target?)` | Text → `CostEstimate` (8 models) |
+| `compressContext(context, intent)` | Strip irrelevant context, report savings |
+| `validateLicenseKey(key)` | Ed25519 offline license validation |
+
+**Targets:** `'claude'` (XML), `'openai'` (System/User), `'generic'` (Markdown). Default is `'claude'`.
+
+```typescript
+// OpenAI-formatted output
+const openai = optimize('write a REST API', undefined, 'openai');
+console.log(openai.compiled); // [SYSTEM]...[USER]...
+
+// With context
+const withCtx = optimize('fix the bug', myCodeString);
+console.log(withCtx.cost);   // Higher token count (context included)
+```
+
+> **ESM only.** This package requires Node 18+ with ESM support. `import` works; `require()` does not. The `./server` subpath starts the MCP stdio transport as a side effect — use it only for MCP server startup.
 
 ## Usage
 
@@ -874,6 +923,11 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] Rate limiting — tier-keyed sliding window (5/30/60 per minute)
 - [x] 11 MCP tools including `check_prompt`, `configure_optimizer`, `get_usage`, `prompt_stats`, `set_license`, `license_status`
 - [x] Usage metering, statistics tracking, and cost savings aggregation
+- [x] Programmatic API — `import { optimize } from 'claude-prompt-optimizer-mcp'` for library use
+- [x] Dual entry points — `"."` (API) + `"./server"` (MCP server)
+- [x] Curl installer — `curl -fsSL .../install.sh | bash`
+- [x] Lemon Squeezy checkout integration — tier-specific purchase URLs
+- [x] 129 tests across 9 test suites (including E2E pipeline, license, and gate enforcement)
 - [ ] Optional Haiku pass for nuanced ambiguity detection
 - [ ] Prompt template library (common patterns)
 - [ ] History/export of past sessions
