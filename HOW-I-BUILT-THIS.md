@@ -93,9 +93,11 @@ Your prompt → ANALYZE → SCORE → COMPILE → CHECKLIST → COST ESTIMATE
 4. **Checklist** — 9-point structural coverage check (does it have a goal? constraints? inputs? outputs?)
 5. **Cost Estimate** — Exact token counts and dollar costs across 8 models from 3 providers
 
+And then the **approval gate**: the user always reviews the compiled prompt before it's used. If the MCP detects ambiguity, it surfaces up to 3 blocking questions that must be answered before the prompt can be approved. `approve_prompt` hard-fails if unanswered questions remain — no prompt ships without explicit user sign-off.
+
 Average improvement: **+32 points.** A vague prompt scoring 48/100 comes out at 90/100 after compilation.
 
-> **TL;DR:** Five deterministic stages turn any prompt from amateur to professional. No AI used in the process — pure pattern matching and rules.
+> **TL;DR:** Five deterministic stages turn any prompt from amateur to professional, with a mandatory human approval gate at the end. No AI used in the process — pure pattern matching and rules.
 
 ---
 

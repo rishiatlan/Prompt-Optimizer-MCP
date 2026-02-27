@@ -18,6 +18,7 @@ Turn sloppy prompts into structured AI instructions — scores, compiles, and op
 - **Cost is invisible.** Most users have no idea how many tokens their prompt will consume. The optimizer shows exact cost breakdowns across 8 models from Anthropic, OpenAI, and Google before you commit.
 - **Context bloat is the hidden cost multiplier.** Sending 500 lines of code when 50 are relevant burns tokens on irrelevant context. The compressor strips what doesn't matter.
 - **There's no sign-off gate.** Claude starts working immediately on whatever you type. This MCP makes you review the compiled prompt — with extracted assumptions, blocking questions, and constraint injection — before anything executes.
+- **Human-in-the-loop approval.** The MCP asks blocking questions when your prompt is ambiguous, requires you to answer them before proceeding, and only finalizes the compiled prompt after you explicitly approve. No prompt ships without your sign-off — the gate is enforced in code, not convention.
 
 ## Benchmarks
 
@@ -402,6 +403,15 @@ User prompt → Host Claude → calls optimize_prompt → Deterministic analysis
                                                Claude executes with
                                                compiled prompt as guide
 ```
+
+### The Approval Loop
+
+Every prompt goes through a mandatory review cycle before it's finalized:
+
+1. **Analyze** — You type a prompt. The MCP scores it, detects ambiguities, and compiles a structured version.
+2. **Ask** — If the prompt is vague or missing context, the MCP surfaces up to 3 blocking questions. You answer them via `refine_prompt`.
+3. **Review** — You see the compiled prompt, quality score, cost estimate, and what changed. No surprises.
+4. **Approve** — You say "approve" and the compiled prompt is locked in. `approve_prompt` **hard-fails** if unanswered blocking questions remain — the gate is enforced in code, not convention.
 
 The MCP is a **co-pilot for the co-pilot**. It does the structural work (decomposition, gap detection, template compilation, token counting) so Claude can focus on intelligence.
 

@@ -734,11 +734,13 @@
         <li><strong>Cost Estimate</strong> &mdash; Exact token counts and dollar costs across 8 models from 3 providers</li>
       </ol>
 
+      <p>And then the <strong>approval gate</strong>: the user always reviews the compiled prompt before it&rsquo;s used. If the MCP detects ambiguity, it surfaces up to 3 blocking questions that must be answered before the prompt can be approved. <code>approve_prompt</code> hard-fails if unanswered questions remain &mdash; no prompt ships without explicit user sign-off.</p>
+
       <p>Average improvement: <strong>+32 points.</strong> A vague prompt scoring 48/100 comes out at 90/100 after compilation.</p>
 
       <div class="tldr">
         <div class="tldr-label">TL;DR</div>
-        Five deterministic stages turn any prompt from amateur to professional. No AI used in the process &mdash; pure pattern matching and rules.
+        Five deterministic stages turn any prompt from amateur to professional, with a mandatory human approval gate at the end. No AI used in the process &mdash; pure pattern matching and rules.
       </div>
 
       <hr>

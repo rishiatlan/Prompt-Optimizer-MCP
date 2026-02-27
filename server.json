@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.rishiatlan/claude-prompt-optimizer",
+  "name": "io.github.rishiatlan/prompt-optimizer-mcp",
   "description": "Scores, compiles & optimizes prompts for any LLM. Zero AI calls inside. Freemium.",
   "repository": {
     "url": "https://github.com/rishiatlan/Prompt-Optimizer-MCP",
