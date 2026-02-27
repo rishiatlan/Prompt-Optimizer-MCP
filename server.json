@@ -6,12 +6,12 @@
     "url": "https://github.com/rishiatlan/Prompt-Optimizer-MCP",
     "source": "github"
   },
-  "version": "2.2.2",
+  "version": "2.2.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "claude-prompt-optimizer-mcp",
-      "version": "2.2.2",
+      "version": "2.2.3",
       "transport": {
         "type": "stdio"
       },

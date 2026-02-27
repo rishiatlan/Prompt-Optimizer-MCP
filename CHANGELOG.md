@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.2.3] - 2026-02-28
+
+### Changed
+- **npm README sync**: Published updated README with human-in-the-loop approval documentation, approval loop subsection, and backfilled CHANGELOG to npm.
+
 ## [2.2.2] - 2026-02-28
 
 ### Added
