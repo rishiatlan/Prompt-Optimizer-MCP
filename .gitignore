@@ -22,3 +22,6 @@ Thumbs.db
 
 # Smithery build artifacts
 .smithery/
+
+# How I Built This (kept local, HTML version on GitHub Pages is the public artifact)
+HOW-I-BUILT-THIS.md
