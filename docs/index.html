@@ -54,6 +54,81 @@
     .nav-links a { color: var(--text-muted); }
     .nav-links a:hover { color: var(--text); }
 
+    /* ── Hero Demo ─────────────────────────────────── */
+    .hero-demo {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 48px;
+      text-align: left;
+    }
+    .demo-panel {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .demo-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .demo-dot.red { background: #ff5f57; }
+    .demo-dot.yellow { background: #febc2e; }
+    .demo-dot.green { background: #28c840; }
+    .demo-label { margin-left: 8px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .demo-body {
+      padding: 16px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      min-height: 160px;
+    }
+    .demo-body.compiled { color: var(--text); }
+    .demo-dim { color: var(--text-muted); }
+    .demo-cursor {
+      display: inline-block;
+      animation: blink 1s step-end infinite;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .demo-score {
+      margin-top: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .demo-score.bad { background: rgba(239,68,68,0.15); color: #f87171; }
+    .demo-score.good { background: rgba(52,211,153,0.15); color: #34d399; }
+    .demo-issues { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .demo-tag {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      background: rgba(251,146,60,0.12);
+      color: var(--orange);
+    }
+    .xml-tag { color: var(--accent); }
+    .indent { padding-left: 16px; color: var(--text-muted); }
+    .demo-arrow {
+      font-size: 28px;
+      color: var(--accent);
+      flex-shrink: 0;
+      font-weight: bold;
+    }
+    @media (max-width: 640px) {
+      .hero-demo { flex-direction: column; }
+      .demo-arrow { transform: rotate(90deg); }
+    }
+
     /* ── Hero ────────────────────────────────────── */
     .hero {
       padding: 80px 0 64px;
@@ -363,6 +438,46 @@
         <a href="https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP" class="btn btn-primary">Install Free</a>
         <a href="#pricing" class="btn btn-secondary">See Pricing</a>
       </div>
+
+      <!-- Hero Demo -->
+      <div class="hero-demo">
+        <div class="demo-panel">
+          <div class="demo-header">
+            <span class="demo-dot red"></span>
+            <span class="demo-dot yellow"></span>
+            <span class="demo-dot green"></span>
+            <span class="demo-label">Your prompt</span>
+          </div>
+          <div class="demo-body">
+            <span class="demo-dim">&gt;</span> Make the code better and fix all the bugs<span class="demo-cursor">|</span>
+            <div class="demo-score bad">Score: <strong>38</strong>/100</div>
+            <div class="demo-issues">
+              <span class="demo-tag">&#x26a0; vague_objective</span>
+              <span class="demo-tag">&#x26a0; missing_constraints</span>
+              <span class="demo-tag">&#x26a0; scope_explosion</span>
+            </div>
+          </div>
+        </div>
+        <div class="demo-arrow">&#x2192;</div>
+        <div class="demo-panel">
+          <div class="demo-header">
+            <span class="demo-dot red"></span>
+            <span class="demo-dot yellow"></span>
+            <span class="demo-dot green"></span>
+            <span class="demo-label">Compiled output</span>
+          </div>
+          <div class="demo-body compiled">
+            <div><span class="xml-tag">&lt;role&gt;</span>Senior TypeScript engineer<span class="xml-tag">&lt;/role&gt;</span></div>
+            <div><span class="xml-tag">&lt;goal&gt;</span>Fix failing tests in auth module<span class="xml-tag">&lt;/goal&gt;</span></div>
+            <div><span class="xml-tag">&lt;constraints&gt;</span></div>
+            <div class="indent">- Preserve existing API contracts</div>
+            <div class="indent">- No new dependencies</div>
+            <div><span class="xml-tag">&lt;/constraints&gt;</span></div>
+            <div class="demo-score good">Score: <strong>91</strong>/100</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
