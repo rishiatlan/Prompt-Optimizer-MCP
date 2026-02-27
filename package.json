@@ -1,6 +1,6 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "type": "module",
   "description": "Turn sloppy prompts into structured AI instructions — scores, compiles, and optimizes prompts for any LLM via MCP. Free tier included.",
   "main": "dist/src/index.js",
