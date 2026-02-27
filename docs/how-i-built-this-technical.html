@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How I Built This (Technical) — Prompt Optimizer MCP</title>
+  <meta name="description" content="A technical deep-dive into building, monetizing, and distributing an MCP server from zero to production. Architecture decisions, Ed25519 licensing, deterministic pipeline, and 21 commits in 49 hours.">
+  <meta property="og:title" content="How I Built the Prompt Optimizer MCP — Technical Deep-Dive">
+  <meta property="og:description" content="Architecture, decisions, and distribution of a deterministic prompt compiler built as an MCP server. Ed25519 licensing, freemium engine, 129 tests, 2 dependencies, 0 AI calls.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/how-i-built-this-technical.html">
+  <meta property="article:author" content="Rishi Banerjee">
+  <meta property="article:published_time" content="2026-02-28">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #1e1e2e;
+      --text: #e4e4ed;
+      --text-muted: #8888a0;
+      --accent: #7c5cfc;
+      --accent-hover: #9178ff;
+      --green: #34d399;
+      --orange: #fb923c;
+      --blue: #60a5fa;
+      --red: #f87171;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    /* ── Nav ─────────────────────────────────────── */
+    nav {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10, 10, 15, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    nav .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 24px; font-size: 14px; }
+    .nav-links a { color: var(--text-muted); }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Layout ──────────────────────────────────── */
+    .page-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 48px;
+    }
+
+    @media (max-width: 960px) {
+      .page-layout {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+
+    /* ── Hero ────────────────────────────────────── */
+    .article-hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 64px 24px 48px;
+    }
+    .article-hero .hero-label {
+      display: inline-block;
+      padding: 4px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .article-hero .hero-label strong { color: var(--green); }
+    .article-hero h1 {
+      font-size: clamp(28px, 4.5vw, 44px);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      max-width: 760px;
+    }
+    .article-hero h1 .highlight { color: var(--accent); }
+    .article-hero .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 680px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      font-size: 14px;
+      color: var(--text-muted);
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .article-meta strong { color: var(--text); font-weight: 600; }
+
+    /* ── Sidebar TOC ─────────────────────────────── */
+    .toc-sidebar {
+      position: sticky;
+      top: 80px;
+      align-self: start;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding: 24px 0;
+    }
+    .toc-sidebar::-webkit-scrollbar { width: 3px; }
+    .toc-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .toc-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .toc-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .toc-sidebar ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .toc-sidebar li { margin-bottom: 2px; }
+    .toc-sidebar a {
+      display: block;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-left: 2px solid transparent;
+      border-radius: 0;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+    .toc-sidebar a:hover {
+      color: var(--text);
+      border-left-color: var(--border);
+    }
+    .toc-sidebar a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: rgba(124, 92, 252, 0.05);
+    }
+
+    /* ── Mobile TOC ──────────────────────────────── */
+    .toc-mobile {
+      display: none;
+      margin-bottom: 32px;
+    }
+    .toc-toggle {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .toc-toggle .arrow { transition: transform 0.2s; }
+    .toc-toggle.open .arrow { transform: rotate(180deg); }
+    .toc-mobile-list {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+    }
+    .toc-mobile-list.open { max-height: 600px; }
+    .toc-mobile-list ol {
+      list-style: none;
+      padding: 12px 18px;
+    }
+    .toc-mobile-list li { margin-bottom: 4px; }
+    .toc-mobile-list a {
+      display: block;
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .toc-mobile-list a:hover { color: var(--text); }
+
+    @media (max-width: 960px) {
+      .toc-sidebar { display: none; }
+      .toc-mobile { display: block; }
+    }
+
+    /* ── Article Body ────────────────────────────── */
+    .article-body {
+      max-width: 760px;
+      padding: 24px 0 80px;
+    }
+
+    .article-body h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 56px 0 16px;
+      padding-left: 16px;
+      border-left: 3px solid var(--accent);
+      line-height: 1.25;
+    }
+
+    .article-body h3 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 40px 0 12px;
+      color: var(--text);
+    }
+
+    .article-body h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 28px 0 8px;
+      color: var(--text);
+    }
+
+    .article-body p {
+      font-size: 16.5px;
+      line-height: 1.75;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .article-body ul, .article-body ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+    .article-body li {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .article-body strong { color: #fff; font-weight: 600; }
+    .article-body em { color: var(--text-muted); font-style: italic; }
+
+    .article-body > hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    /* ── Inline code ─────────────────────────────── */
+    .article-body code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: rgba(124, 92, 252, 0.1);
+      color: var(--accent-hover);
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    /* ── Code Blocks ─────────────────────────────── */
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 20px 0 24px;
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-dot.red { background: #ff5f57; }
+    .code-dot.yellow { background: #febc2e; }
+    .code-dot.green { background: #28c840; }
+    .code-lang {
+      margin-left: auto;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .code-block pre {
+      padding: 16px 20px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text);
+      margin: 0;
+    }
+    .code-block pre code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+      border-radius: 0;
+    }
+
+    /* Syntax highlighting classes */
+    .kw { color: #c792ea; }           /* keywords: const, let, function, interface, import, export, try, finally, if, return, class, new, await */
+    .ty { color: #82aaff; }           /* types: string, number, boolean, void, Promise, Record */
+    .str { color: #c3e88d; }          /* strings */
+    .num { color: #f78c6c; }          /* numbers */
+    .cm { color: #546e7a; font-style: italic; }  /* comments */
+    .fn { color: #82aaff; }           /* function names */
+    .op { color: #89ddff; }           /* operators, brackets */
+    .pr { color: #f07178; }           /* properties */
+    .dc { color: #ffcb6b; }           /* decorators, special */
+    .xml { color: var(--accent); }    /* XML tags */
+    .tag-val { color: var(--text); }  /* XML content */
+    .indent-code { padding-left: 20px; }
+
+    /* ── Architecture Diagram ────────────────────── */
+    .arch-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 24px 0;
+      overflow: hidden;
+    }
+    .arch-diagram .code-header { border-bottom: 1px solid var(--border); }
+    .arch-diagram pre {
+      padding: 20px 24px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--text);
+      white-space: pre;
+    }
+
+    /* ── TL;DR Callouts ──────────────────────────── */
+    .tldr {
+      background: rgba(124, 92, 252, 0.06);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+    }
+    .tldr strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── Tables ──────────────────────────────────── */
+    .article-table-wrap {
+      overflow-x: auto;
+      margin: 20px 0 24px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .article-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .article-table th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      font-weight: 600;
+    }
+    .article-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .article-table tr:last-child td { border-bottom: none; }
+    .article-table tr:nth-child(even) td {
+      background: rgba(255,255,255,0.015);
+    }
+    .article-table tr:hover td {
+      background: rgba(124, 92, 252, 0.04);
+    }
+    .article-table code {
+      font-size: 12px;
+    }
+
+    /* ── Type Cards (interfaces) ─────────────────── */
+    .type-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 20px 0 24px;
+      overflow: hidden;
+    }
+    .type-card-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(124, 92, 252, 0.06);
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .type-card pre {
+      padding: 16px 20px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text);
+      margin: 0;
+    }
+    .type-card pre code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    /* ── Timeline ────────────────────────────────── */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+      margin: 24px 0 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+    .session-divider {
+      position: relative;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 32px 0 8px -28px;
+      padding-left: 28px;
+    }
+    .session-divider:first-child { margin-top: 0; }
+    .session-divider::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translateY(-50%);
+    }
+    .session-sub {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-bottom: 12px;
+    }
+    .commit-log {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 8px 0 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.7;
+      overflow-x: auto;
+    }
+    .commit-log .hash { color: var(--text-muted); }
+    .commit-log .time { color: var(--text-muted); }
+    .commit-log .feat { color: var(--green); }
+    .commit-log .docs { color: var(--blue); }
+    .commit-log .fix { color: var(--orange); }
+    .commit-log .chore { color: #9ca3af; }
+    .commit-log .sleep { color: var(--text-muted); font-style: italic; }
+
+    .key-decision {
+      background: rgba(124, 92, 252, 0.06);
+      border: 1px solid rgba(124, 92, 252, 0.15);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 12px 0 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .key-decision-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    /* ── Velocity Metrics Grid ───────────────────── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .metric-card .metric-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+    .metric-card .metric-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Invariant ID Badges ─────────────────────── */
+    .invariant-id {
+      display: inline-block;
+      background: rgba(124, 92, 252, 0.12);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    /* ── Problem/Fix Cards ───────────────────────── */
+    .problem-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 16px 0;
+    }
+    .problem-card-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(248, 113, 113, 0.12);
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .problem-card h4 {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: var(--text);
+    }
+    .problem-card p {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .problem-card .fix-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .problem-card .fix-text {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Package Card ────────────────────────────── */
+    .package-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 20px 0 24px;
+      overflow: hidden;
+    }
+    .package-card-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(52, 211, 153, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .package-card-header .icon { font-size: 18px; }
+    .package-card-header .label {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--green);
+    }
+    .package-card pre {
+      padding: 16px 20px;
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: var(--text);
+      margin: 0;
+    }
+    .package-card pre code {
+      background: none;
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    /* ── Status Tags ─────────────────────────────── */
+    .status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-live { background: rgba(52,211,153,0.12); color: var(--green); }
+    .status-blocked { background: rgba(248,113,113,0.12); color: var(--red); }
+    .status-auto { background: rgba(96,165,250,0.12); color: var(--blue); }
+    .status-submitted { background: rgba(251,146,60,0.12); color: var(--orange); }
+
+    /* ── Cross-link Banner ───────────────────────── */
+    .cross-link {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 32px 0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 15px;
+    }
+    .cross-link .icon { font-size: 24px; flex-shrink: 0; }
+
+    /* ── Footer ──────────────────────────────────── */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    footer a { color: var(--text-muted); }
+    footer a:hover { color: var(--text); }
+    footer .footer-links {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 640px) {
+      .article-hero { padding: 40px 16px 32px; }
+      .article-hero h1 { font-size: 26px; }
+      .page-layout { padding: 0 16px; }
+      .article-body h2 { font-size: 22px; }
+      .article-body h3 { font-size: 18px; }
+      .code-block pre, .type-card pre, .package-card pre { font-size: 12px; padding: 12px 14px; }
+      .arch-diagram pre { font-size: 10.5px; padding: 12px 10px; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { gap: 14px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-inner">
+      <a href="index.html" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <div class="nav-links">
+        <a href="index.html">Main Site</a>
+        <a href="how-i-built-this.html">Non-Technical</a>
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Article Hero -->
+  <header class="article-hero">
+    <div class="hero-label">Technical Deep-Dive &middot; <strong>~20 min read</strong></div>
+    <h1>Building a Prompt Optimizer MCP: <span class="highlight">Architecture, Decisions, and Distribution</span></h1>
+    <p class="hero-subtitle">A technical deep-dive into building, monetizing, and distributing an MCP server from zero to production.</p>
+    <div class="article-meta">
+      <span>By <strong>Rishi Banerjee</strong></span>
+      <span>Published <strong>February 28, 2026</strong></span>
+      <span><strong>21</strong> commits &middot; <strong>49</strong> hours &middot; <strong>129</strong> tests</span>
+    </div>
+  </header>
+
+  <!-- Page Layout: TOC + Article -->
+  <div class="page-layout">
+
+    <!-- Sidebar TOC (desktop) -->
+    <aside class="toc-sidebar">
+      <div class="toc-title">Contents</div>
+      <ol>
+        <li><a href="#problem-statement">Problem Statement</a></li>
+        <li><a href="#architecture-overview">Architecture Overview</a></li>
+        <li><a href="#deterministic-pipeline">The Deterministic Pipeline</a></li>
+        <li><a href="#type-system">Type System and Contracts</a></li>
+        <li><a href="#freemium-engine">Freemium Engine</a></li>
+        <li><a href="#ed25519-license">Ed25519 License System</a></li>
+        <li><a href="#multi-llm-compilation">Multi-LLM Compilation</a></li>
+        <li><a href="#storage-abstraction">Storage Abstraction</a></li>
+        <li><a href="#testing-strategy">Testing Strategy</a></li>
+        <li><a href="#programmatic-api">Programmatic API</a></li>
+        <li><a href="#distribution-pipeline">Distribution Pipeline</a></li>
+        <li><a href="#build-invariants">Build Invariants</a></li>
+        <li><a href="#build-timeline">Build Timeline</a></li>
+        <li><a href="#what-went-wrong">What Went Wrong</a></li>
+        <li><a href="#stack-dependencies">Stack and Dependencies</a></li>
+        <li><a href="#what-id-do-differently">What I'd Do Differently</a></li>
+      </ol>
+    </aside>
+
+    <!-- Main Article Content -->
+    <main class="article-body">
+
+      <!-- Mobile TOC -->
+      <div class="toc-mobile">
+        <button class="toc-toggle" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+          Table of Contents <span class="arrow">&#9660;</span>
+        </button>
+        <div class="toc-mobile-list">
+          <ol>
+            <li><a href="#problem-statement">Problem Statement</a></li>
+            <li><a href="#architecture-overview">Architecture Overview</a></li>
+            <li><a href="#deterministic-pipeline">The Deterministic Pipeline</a></li>
+            <li><a href="#type-system">Type System and Contracts</a></li>
+            <li><a href="#freemium-engine">Freemium Engine</a></li>
+            <li><a href="#ed25519-license">Ed25519 License System</a></li>
+            <li><a href="#multi-llm-compilation">Multi-LLM Compilation</a></li>
+            <li><a href="#storage-abstraction">Storage Abstraction</a></li>
+            <li><a href="#testing-strategy">Testing Strategy</a></li>
+            <li><a href="#programmatic-api">Programmatic API</a></li>
+            <li><a href="#distribution-pipeline">Distribution Pipeline</a></li>
+            <li><a href="#build-invariants">Build Invariants</a></li>
+            <li><a href="#build-timeline">Build Timeline</a></li>
+            <li><a href="#what-went-wrong">What Went Wrong</a></li>
+            <li><a href="#stack-dependencies">Stack and Dependencies</a></li>
+            <li><a href="#what-id-do-differently">What I'd Do Differently</a></li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- PROBLEM STATEMENT -->
+      <!-- ============================================ -->
+      <h2 id="problem-statement">Problem Statement</h2>
+
+      <p>LLM prompts fail predictably. "Make the code better" gives Claude no constraints, no success criteria, and no target. The result: hallucinated scope, wasted tokens, and 3&ndash;4 rounds of clarification.</p>
+
+      <p>The insight: <strong>prompt quality is a deterministic, measurable property.</strong> You don't need AI to detect that a prompt is missing a role definition, has no constraints, or contains multiple unrelated tasks. A rules engine can score, restructure, and compile prompts &mdash; zero LLM calls, zero latency, zero cost.</p>
+
+      <p>MCP (Model Context Protocol) is the ideal delivery mechanism: it sits inside the AI conversation, intercepts prompts before execution, and returns structured output that the host Claude can present as a review step.</p>
+
+      <div class="tldr">
+        <strong>TL;DR:</strong> Prompt quality is measurable. MCP is the delivery channel. The optimizer is a deterministic compiler, not another AI wrapper.
+      </div>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- ARCHITECTURE OVERVIEW -->
+      <!-- ============================================ -->
+      <h2 id="architecture-overview">Architecture Overview</h2>
+
+      <div class="arch-diagram">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">Architecture</span>
+        </div>
+<pre>
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474;                     Host Claude                      &#9474;
+&#9474;                                                      &#9474;
+&#9474;  User: "fix the login bug"                          &#9474;
+&#9474;         &#9474;                                            &#9474;
+&#9474;         &#9660;                                            &#9474;
+&#9474;  Claude calls optimize_prompt tool via MCP           &#9474;
+&#9474;         &#9474;                                            &#9474;
+&#9474;         &#9660;                                            &#9474;
+&#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;       &#9474;
+&#9474;  &#9474;        Prompt Optimizer MCP Server        &#9474;       &#9474;
+&#9474;  &#9474;                                           &#9474;       &#9474;
+&#9474;  &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9474;Analyzer &#9474;&#8594; &#9474;Scorer  &#9474;&#8594; &#9474;Compiler  &#9474;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9474;         &#9474;  &#9474;        &#9474;  &#9474;          &#9474;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9474;Intent   &#9474;  &#9474;5-dim   &#9474;  &#9474;XML/OAI/  &#9474;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9474;decomp   &#9474;  &#9474;&#215;20pts  &#9474;  &#9474;Markdown  &#9474;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474;       &#9474;
+&#9474;  &#9474;       &#9474;            &#9474;            &#9474;         &#9474;       &#9474;
+&#9474;  &#9474;       &#9660;            &#9660;            &#9660;         &#9474;       &#9474;
+&#9474;  &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9474;Checklist &#9474;  &#9474;Cost Estimator        &#9474;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9474;9-item    &#9474;  &#9474;8 models &#215; 3 providers&#9474;  &#9474;       &#9474;
+&#9474;  &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;  &#9474;       &#9474;
+&#9474;  &#9474;                                           &#9474;       &#9474;
+&#9474;  &#9474;  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;&#9474;       &#9474;
+&#9474;  &#9474;  &#9474; Freemium Gate &#9474; Storage &#9474; Rate Limit &#9474;&#9474;       &#9474;
+&#9474;  &#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;&#9474;       &#9474;
+&#9474;  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;       &#9474;
+&#9474;         &#9474;                                            &#9474;
+&#9474;         &#9660;                                            &#9474;
+&#9474;  Claude presents PreviewPack to user                 &#9474;
+&#9474;  User approves &#8594; Claude uses compiled prompt         &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</pre>
+      </div>
+
+      <p>Key architectural decisions:</p>
+
+      <ol>
+        <li><strong>Pure functions throughout.</strong> Every pipeline stage is a pure function: <code>(input) &rarr; output</code>. No side effects, no I/O, no globals. This makes every function independently testable and composable.</li>
+        <li><strong><code>ExecutionContext</code> pattern.</strong> Every tool handler receives <code>{ requestId, storage, logger, config, rateLimiter, tier }</code>. This is the Phase B migration bridge &mdash; in Phase B, <code>tier</code> comes from API key auth instead of local storage, but tool handlers don't change.</li>
+        <li><strong><code>StorageInterface</code> abstraction.</strong> All file I/O goes through an async interface. Phase A: local filesystem (<code>~/.prompt-optimizer/</code>). Phase B: Cloudflare Workers KV or Supabase. Same interface, different implementation.</li>
+      </ol>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- THE DETERMINISTIC PIPELINE -->
+      <!-- ============================================ -->
+      <h2 id="deterministic-pipeline">The Deterministic Pipeline</h2>
+
+      <h3>Stage 1: Analyzer (<code>src/analyzer.ts</code>)</h3>
+
+      <p>Decomposes raw prompts into <code>IntentSpec</code> using three-layer task detection:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="cm">// Layer 1: Intent-first (output type keywords)</span>
+<span class="cm">// "Write a post about my MCP" &rarr; writing (not code)</span>
+<span class="cm">// "Create a REST API" &rarr; create (not writing)</span>
+
+<span class="cm">// Layer 2: Full-prompt pattern matching</span>
+<span class="cm">// "refactor", "debug", "fix" &rarr; code tasks</span>
+<span class="cm">// "blog", "email", "tweet" &rarr; writing tasks</span>
+
+<span class="cm">// Layer 3: Fallback heuristics</span>
+<span class="cm">// Default to "other" with generic scoring</span></code></pre>
+      </div>
+
+      <p>The intent-first layer is critical. Without it, "Write a post about my MCP" classifies as code because "MCP" sounds technical. The analyzer looks for output-format signals (<code>post</code>, <code>article</code>, <code>tweet</code>) before content signals.</p>
+
+      <p><strong>Output:</strong> <code>IntentSpec</code> containing task type, risk level, detected inputs/outputs, blocking questions, assumptions, and definition of done.</p>
+
+      <h3>Stage 2: Scorer (<code>src/scorer.ts</code>)</h3>
+
+      <p>Scores 0&ndash;100 across 5 dimensions (20 points each):</p>
+
+      <div class="article-table-wrap">
+        <table class="article-table">
+          <thead>
+            <tr><th>Dimension</th><th>Measures</th><th>Deductions</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Clarity</strong></td>
+              <td>Goal specificity, unambiguous language</td>
+              <td>-4 per vague term ("make it better", "fix it", "somehow")</td>
+            </tr>
+            <tr>
+              <td><strong>Specificity</strong></td>
+              <td>Named files, concrete values, measurable criteria</td>
+              <td>-6 if no specific targets</td>
+            </tr>
+            <tr>
+              <td><strong>Completeness</strong></td>
+              <td>Role, inputs, outputs, success criteria</td>
+              <td>-4 per missing element</td>
+            </tr>
+            <tr>
+              <td><strong>Constraints</strong></td>
+              <td>Explicit do/don't rules, preservation instructions</td>
+              <td>+2 bonus for "keep existing", "maintain"</td>
+            </tr>
+            <tr>
+              <td><strong>Efficiency</strong></td>
+              <td>Conciseness, no repetition, right-sized</td>
+              <td>+2 bonus for &lt;1000 tokens + no repetition</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><code>scoring_version: 2</code> &mdash; max 100/100 achievable (v1 capped at 96 due to missing bonus categories).</p>
+
+      <p><code>generateChecklist()</code> is a separate function that checks 9 structural elements (Role, Goal, Constraints, Inputs, Outputs, Success Criteria, Workflow, Uncertainty Policy, Domain Context) of the <strong>compiled</strong> output &mdash; not the raw prompt. This distinction matters: the score measures the raw prompt's quality, the checklist measures the compiled output's completeness.</p>
+
+      <h3>Stage 3: Compiler (<code>src/compiler.ts</code>)</h3>
+
+      <p>Compiles <code>IntentSpec</code> into structured output for three targets:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">XML &mdash; Claude Target</span>
+        </div>
+<pre><code><span class="xml">&lt;role&gt;</span><span class="tag-val">Senior backend engineer specializing in authentication systems</span><span class="xml">&lt;/role&gt;</span>
+<span class="xml">&lt;goal&gt;</span><span class="tag-val">Fix the login bug causing session timeouts after OAuth callback</span><span class="xml">&lt;/goal&gt;</span>
+<span class="xml">&lt;constraints&gt;</span>
+  <span class="tag-val">- Do not modify the user model or database schema</span>
+  <span class="tag-val">- Preserve existing session management behavior</span>
+  <span class="tag-val">- All changes must pass existing auth.test.ts</span>
+<span class="xml">&lt;/constraints&gt;</span>
+<span class="xml">&lt;workflow&gt;</span>
+  <span class="tag-val">1. Read src/auth/middleware.ts and identify the session timeout logic</span>
+  <span class="tag-val">2. Trace the OAuth callback flow from routes/auth.ts</span>
+  <span class="tag-val">3. Implement the fix with minimal changes</span>
+  <span class="tag-val">4. Run auth.test.ts and verify all tests pass</span>
+<span class="xml">&lt;/workflow&gt;</span></code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">OpenAI Target</span>
+        </div>
+<pre><code><span class="cm"># OpenAI target</span>
+<span class="dc">[SYSTEM]</span>
+You are a senior backend engineer specializing in authentication systems.
+<span class="dc">[USER]</span>
+<span class="kw">## Goal</span>
+Fix the login bug causing session timeouts after OAuth callback...</code></pre>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">Markdown &mdash; Generic Target</span>
+        </div>
+<pre><code><span class="kw">## Role</span>
+Senior backend engineer specializing in authentication systems
+
+<span class="kw">## Goal</span>
+Fix the login bug causing session timeouts after OAuth callback...</code></pre>
+      </div>
+
+      <p>Platform-specific hints adjust for Slack (short paragraphs, emoji-friendly), LinkedIn (professional tone), and email (subject line + body structure).</p>
+
+      <h3>Stage 4: Checklist (<code>src/scorer.ts &rarr; generateChecklist()</code>)</h3>
+
+      <p>9-item structural coverage check applied to the compiled output:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="kw">const</span> <span class="dc">CHECKLIST_ORDER</span> = [
+  <span class="str">'Role'</span>, <span class="str">'Goal'</span>, <span class="str">'Constraints'</span>, <span class="str">'Inputs'</span>,
+  <span class="str">'Outputs'</span>, <span class="str">'Success Criteria'</span>, <span class="str">'Workflow'</span>,
+  <span class="str">'Uncertainty Policy'</span>, <span class="str">'Domain Context'</span>
+];</code></pre>
+      </div>
+
+      <p>Each item: <code>{ present: boolean, strength: 'strong' | 'weak' | 'absent' }</code>.</p>
+
+      <h3>Stage 5: Cost Estimator (<code>src/estimator.ts</code>)</h3>
+
+      <p>Token estimation + per-provider pricing across 8 models:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="cm">// Pricing data (versioned: 2026-02)</span>
+<span class="kw">const</span> <span class="dc">PRICING_DATA</span> = {
+  <span class="str">'claude-3.5-haiku'</span>:  { <span class="pr">input</span>: <span class="num">0.80</span>,  <span class="pr">output</span>: <span class="num">4.00</span> },
+  <span class="str">'claude-sonnet-4'</span>:   { <span class="pr">input</span>: <span class="num">3.00</span>,  <span class="pr">output</span>: <span class="num">15.00</span> },
+  <span class="str">'claude-opus-4'</span>:     { <span class="pr">input</span>: <span class="num">15.00</span>, <span class="pr">output</span>: <span class="num">75.00</span> },
+  <span class="str">'gpt-4o-mini'</span>:       { <span class="pr">input</span>: <span class="num">0.15</span>,  <span class="pr">output</span>: <span class="num">0.60</span> },
+  <span class="str">'gpt-4o'</span>:            { <span class="pr">input</span>: <span class="num">2.50</span>,  <span class="pr">output</span>: <span class="num">10.00</span> },
+  <span class="str">'o1'</span>:                { <span class="pr">input</span>: <span class="num">15.00</span>, <span class="pr">output</span>: <span class="num">60.00</span> },
+  <span class="str">'gemini-2.0-flash'</span>:  { <span class="pr">input</span>: <span class="num">0.10</span>,  <span class="pr">output</span>: <span class="num">0.40</span> },
+  <span class="str">'gemini-2.0-pro'</span>:    { <span class="pr">input</span>: <span class="num">1.25</span>,  <span class="pr">output</span>: <span class="num">5.00</span> },
+};
+<span class="cm">// All prices per 1M tokens</span></code></pre>
+      </div>
+
+      <p>Returns: estimated tokens, cost per model, cheapest option, recommended model based on task complexity and risk level.</p>
+
+      <div class="tldr">
+        <strong>TL;DR:</strong> Five pure-function stages. Analyzer &rarr; Scorer &rarr; Compiler &rarr; Checklist &rarr; Estimator. Each stage's output is the next stage's input. All deterministic, all testable, all composable.
+      </div>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- TYPE SYSTEM AND CONTRACTS -->
+      <!-- ============================================ -->
+      <h2 id="type-system">Type System and Contracts</h2>
+
+      <h3>PreviewPack (the main response envelope)</h3>
+
+      <div class="type-card">
+        <div class="type-card-header">interface PreviewPack</div>
+<pre><code><span class="kw">interface</span> <span class="ty">PreviewPack</span> {
+  <span class="pr">request_id</span>: <span class="ty">string</span>;           <span class="cm">// UUID v4</span>
+  <span class="pr">quality_before</span>: <span class="ty">QualityScore</span>; <span class="cm">// Raw prompt score</span>
+  <span class="pr">compiled_prompt</span>: <span class="ty">string</span>;      <span class="cm">// Structured output</span>
+  <span class="pr">compilation_checklist</span>: <span class="ty">CompilationChecklist</span>;
+  <span class="pr">cost_estimate</span>: <span class="ty">CostEstimate</span>;
+  <span class="pr">blocking_questions</span>: <span class="ty">string</span>[]; <span class="cm">// Must answer before proceeding</span>
+  <span class="pr">assumptions</span>: <span class="ty">string</span>[];        <span class="cm">// Surfaced for review</span>
+  <span class="pr">changes_made</span>: <span class="ty">string</span>[];       <span class="cm">// What the compiler added</span>
+  <span class="pr">task_type</span>: <span class="ty">TaskType</span>;
+  <span class="pr">risk_level</span>: <span class="ty">RiskLevel</span>;
+  <span class="pr">model_recommendation</span>: <span class="ty">string</span>;
+  <span class="pr">target</span>: <span class="ty">OutputTarget</span>;
+  <span class="pr">format_version</span>: <span class="num">1</span>;
+  <span class="pr">scoring_version</span>: <span class="num">2</span>;
+  <span class="pr">storage_health</span>?: <span class="str">'healthy'</span> | <span class="str">'degraded'</span>;
+}</code></pre>
+      </div>
+
+      <h3>Immutable via contract tests</h3>
+
+      <p><code>test/contracts.test.ts</code> freezes the shape of every response type. If a field is added, removed, or renamed, the test fails. This prevents accidental breaking changes to the API surface.</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- FREEMIUM ENGINE -->
+      <!-- ============================================ -->
+      <h2 id="freemium-engine">Freemium Engine: Gates, Metering, and Rate Limiting</h2>
+
+      <h3>Three Tiers</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="kw">const</span> <span class="dc">PLAN_LIMITS</span>: <span class="ty">Record</span>&lt;<span class="ty">Tier</span>, <span class="ty">TierLimits</span>&gt; = {
+  <span class="pr">free</span>:  { <span class="pr">lifetime</span>: <span class="num">10</span>,       <span class="pr">monthly</span>: <span class="num">10</span>,       <span class="pr">rate_per_minute</span>: <span class="num">5</span>,  <span class="pr">always_on</span>: <span class="kw">false</span> },
+  <span class="pr">pro</span>:   { <span class="pr">lifetime</span>: <span class="ty">Infinity</span>, <span class="pr">monthly</span>: <span class="num">100</span>,      <span class="pr">rate_per_minute</span>: <span class="num">30</span>, <span class="pr">always_on</span>: <span class="kw">false</span> },
+  <span class="pr">power</span>: { <span class="pr">lifetime</span>: <span class="ty">Infinity</span>, <span class="pr">monthly</span>: <span class="ty">Infinity</span>,  <span class="pr">rate_per_minute</span>: <span class="num">60</span>, <span class="pr">always_on</span>: <span class="kw">true</span> },
+};</code></pre>
+      </div>
+
+      <h3>Gate Enforcement</h3>
+
+      <p><code>canUseOptimization(ctx)</code> checks three gates in order:</p>
+
+      <ol>
+        <li><strong>Lifetime</strong> &mdash; free tier: 10 total optimizations ever</li>
+        <li><strong>Monthly</strong> &mdash; pro tier: 100 per calendar month (resets on the 1st)</li>
+        <li><strong>Rate</strong> &mdash; per-minute sliding window (5/30/60 depending on tier)</li>
+      </ol>
+
+      <p><strong>Critical invariant: metering-after-success.</strong> Usage is only incremented after the pipeline completes without errors:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="kw">let</span> success = <span class="kw">false</span>;
+<span class="kw">try</span> {
+  <span class="cm">// ... full pipeline execution ...</span>
+  success = <span class="kw">true</span>;
+} <span class="kw">finally</span> {
+  <span class="kw">if</span> (success) <span class="kw">await</span> storage.<span class="fn">incrementUsage</span>();
+}</code></pre>
+      </div>
+
+      <p>This prevents charging users for failed requests. Enforced by <code>test/e2e.test.ts</code>.</p>
+
+      <h3>Rate Limiter (<code>src/rateLimit.ts</code>)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="kw">class</span> <span class="ty">LocalRateLimiter</span> {
+  <span class="cm">// Separate timestamp arrays per tier</span>
+  <span class="cm">// Counts entries within 60-second window</span>
+  <span class="cm">// Returns { allowed, retry_after_seconds }</span>
+}</code></pre>
+      </div>
+
+      <p>No global state. No singletons. Each MCP server instance gets its own rate limiter. This is correct for Phase A (local) and Phase B (per-worker isolation).</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- ED25519 OFFLINE LICENSE SYSTEM -->
+      <!-- ============================================ -->
+      <h2 id="ed25519-license">Ed25519 Offline License System</h2>
+
+      <h3>Why Ed25519?</h3>
+
+      <ul>
+        <li><strong>Asymmetric:</strong> Public key verifies, private key signs. Public key is safe to embed in open-source code.</li>
+        <li><strong>No network required:</strong> Validation is a single <code>crypto.verify()</code> call. Works on planes, behind VPNs, in air-gapped environments.</li>
+        <li><strong>No external dependencies:</strong> Node.js <code>crypto</code> module handles everything.</li>
+        <li><strong>Compact:</strong> Ed25519 signatures are 64 bytes. Entire license key fits in a single string.</li>
+      </ul>
+
+      <h3>Key Format</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">License Key</span>
+        </div>
+<pre><code>po_pro_eyJ0aWVyIjoicHJvIiwiaXNzdWVkX2F0IjoiMjAyNi0wMi0yOCIs
+ImV4cGlyZXNfYXQiOiIyMDI2LTAzLTI4IiwibGljZW5zZV9pZCI6IjU1NT
+U1NTU1LTU1NTUtNTU1NS01NTU1LTU1NTU1NTU1NTU1NSJ9.abcdef...</code></pre>
+      </div>
+
+      <p>Structure: <code>po_{tier}_{base64url({ payload_json, signature_hex })}</code></p>
+
+      <h3>Payload</h3>
+
+      <div class="type-card">
+        <div class="type-card-header">interface LicensePayload</div>
+<pre><code><span class="kw">interface</span> <span class="ty">LicensePayload</span> {
+  <span class="pr">tier</span>: <span class="str">'pro'</span> | <span class="str">'power'</span>;
+  <span class="pr">issued_at</span>: <span class="ty">string</span>;    <span class="cm">// ISO 8601</span>
+  <span class="pr">expires_at</span>: <span class="ty">string</span>;   <span class="cm">// ISO 8601</span>
+  <span class="pr">license_id</span>: <span class="ty">string</span>;   <span class="cm">// UUID (no PII &mdash; no email, no name)</span>
+}</code></pre>
+      </div>
+
+      <h3>Validation Flow</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="kw">function</span> <span class="fn">validateLicenseKey</span>(<span class="pr">key</span>: <span class="ty">string</span>): <span class="ty">LicenseData</span> {
+  <span class="cm">// 1. Strip prefix (po_pro_ or po_power_)</span>
+  <span class="cm">// 2. Base64url decode &rarr; { payload_json, signature_hex }</span>
+  <span class="cm">// 3. Canonicalize payload (sorted keys, no whitespace)</span>
+  <span class="cm">// 4. crypto.verify('ed25519', canonical, publicKey, signature)</span>
+  <span class="cm">// 5. Check expiry (expires_at > now)</span>
+  <span class="cm">// 6. Return LicenseData with valid=true/false</span>
+}</code></pre>
+      </div>
+
+      <p><strong>Tier priority chain:</strong> License key (cryptographically verified) &gt; <code>PROMPT_OPTIMIZER_PRO</code> env var &gt; default free.</p>
+
+      <h3>Key Management</h3>
+
+      <ul>
+        <li><strong>Private key:</strong> <code>scripts/.private-key.pem</code> (gitignored, backed up separately)</li>
+        <li><strong>Public key:</strong> <code>PRODUCTION_PUBLIC_KEY_PEM</code> constant in <code>src/license.ts</code></li>
+        <li><strong>Key generation:</strong> <code>node scripts/keygen.mjs init</code> &mdash; one-time operation</li>
+        <li><strong>License generation:</strong> <code>node scripts/keygen.mjs generate pro 30</code> &mdash; generates a pro key valid for 30 days</li>
+      </ul>
+
+      <p>&#9888;&#65039; <strong>Regenerating the keypair invalidates ALL existing licenses.</strong> This is a one-way door.</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- MULTI-LLM COMPILATION -->
+      <!-- ============================================ -->
+      <h2 id="multi-llm-compilation">Multi-LLM Compilation</h2>
+
+      <p>The compiler produces three output formats from a single <code>IntentSpec</code>:</p>
+
+      <div class="article-table-wrap">
+        <table class="article-table">
+          <thead>
+            <tr><th>Target</th><th>Format</th><th>Markers</th><th>Use Case</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>claude</code></td>
+              <td>XML tags</td>
+              <td><code>&lt;role&gt;</code>, <code>&lt;goal&gt;</code>, <code>&lt;constraints&gt;</code></td>
+              <td>Claude Code, Claude Desktop</td>
+            </tr>
+            <tr>
+              <td><code>openai</code></td>
+              <td>System/User split</td>
+              <td><code>[SYSTEM]</code>, <code>[USER]</code>, <code>## Headers</code></td>
+              <td>GPT-4, o1, via API</td>
+            </tr>
+            <tr>
+              <td><code>generic</code></td>
+              <td>Markdown</td>
+              <td><code>## Role</code>, <code>## Goal</code>, <code>## Constraints</code></td>
+              <td>Any LLM, documentation</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Configuration is persistent via <code>configure_optimizer</code> tool: set <code>target: 'openai'</code> once, and all subsequent compilations use the OpenAI format.</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- STORAGE ABSTRACTION -->
+      <!-- ============================================ -->
+      <h2 id="storage-abstraction">Storage Abstraction: Phase A/B Split</h2>
+
+      <h3>The Interface</h3>
+
+      <div class="type-card">
+        <div class="type-card-header">interface StorageInterface</div>
+<pre><code><span class="kw">interface</span> <span class="ty">StorageInterface</span> {
+  <span class="cm">// Sessions</span>
+  <span class="fn">createSession</span>(<span class="pr">id</span>: <span class="ty">string</span>, <span class="pr">data</span>: <span class="ty">SessionData</span>): <span class="ty">Promise</span>&lt;<span class="ty">void</span>&gt;;
+  <span class="fn">getSession</span>(<span class="pr">id</span>: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;<span class="ty">SessionData</span> | <span class="kw">null</span>&gt;;
+  <span class="fn">deleteSession</span>(<span class="pr">id</span>: <span class="ty">string</span>): <span class="ty">Promise</span>&lt;<span class="ty">void</span>&gt;;
+  <span class="fn">cleanupSessions</span>(): <span class="ty">Promise</span>&lt;<span class="ty">number</span>&gt;;
+
+  <span class="cm">// Usage &amp; Stats</span>
+  <span class="fn">getUsage</span>(): <span class="ty">Promise</span>&lt;<span class="ty">UsageData</span>&gt;;
+  <span class="fn">incrementUsage</span>(): <span class="ty">Promise</span>&lt;<span class="ty">void</span>&gt;;
+  <span class="fn">getStats</span>(): <span class="ty">Promise</span>&lt;<span class="ty">StatsData</span>&gt;;
+  <span class="fn">updateStats</span>(<span class="pr">fn</span>: (<span class="pr">s</span>: <span class="ty">StatsData</span>) =&gt; <span class="ty">StatsData</span>): <span class="ty">Promise</span>&lt;<span class="ty">void</span>&gt;;
+
+  <span class="cm">// License</span>
+  <span class="fn">getLicense</span>(): <span class="ty">Promise</span>&lt;<span class="ty">LicenseData</span> | <span class="kw">null</span>&gt;;
+  <span class="fn">setLicense</span>(<span class="pr">data</span>: <span class="ty">LicenseData</span>): <span class="ty">Promise</span>&lt;<span class="ty">void</span>&gt;;
+
+  <span class="cm">// Config</span>
+  <span class="fn">getConfig</span>(): <span class="ty">Promise</span>&lt;<span class="ty">ConfigData</span>&gt;;
+  <span class="fn">setConfig</span>(<span class="pr">data</span>: <span class="ty">ConfigData</span>): <span class="ty">Promise</span>&lt;<span class="ty">void</span>&gt;;
+
+  <span class="cm">// Health</span>
+  <span class="fn">canUseOptimization</span>(<span class="pr">ctx</span>: <span class="ty">ExecutionContext</span>): <span class="ty">Promise</span>&lt;<span class="ty">EnforcementResult</span>&gt;;
+}</code></pre>
+      </div>
+
+      <h3>Phase A: Local Filesystem</h3>
+
+      <p><code>LocalFsStorage</code> implements this interface using <code>~/.prompt-optimizer/</code>:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">Filesystem</span>
+        </div>
+<pre><code>~/.prompt-optimizer/
+&#9500;&#9472;&#9472; config.json
+&#9500;&#9472;&#9472; usage.json
+&#9500;&#9472;&#9472; stats.json
+&#9500;&#9472;&#9472; license.json
+&#9492;&#9472;&#9472; sessions/
+    &#9500;&#9472;&#9472; {session-id}.json
+    &#9492;&#9472;&#9472; ...</code></pre>
+      </div>
+
+      <p><strong>No-throw invariant:</strong> Every public method catches all errors and returns safe defaults. If the disk is full, the optimizer degrades gracefully (reports <code>storage_health: 'degraded'</code>) instead of crashing.</p>
+
+      <h3>Phase B: Cloud (planned)</h3>
+
+      <p>Same interface, different implementation:</p>
+      <ul>
+        <li><code>CloudflareKVStorage</code> or <code>SupabaseStorage</code></li>
+        <li><code>ExecutionContext</code> gains <code>user_id</code>, <code>api_key_hash</code>, <code>workspace_id</code></li>
+        <li>Rate limiting moves from instance-scoped to distributed</li>
+        <li><strong>Zero tool handler changes.</strong> Only <code>storage/index.ts</code> export swaps.</li>
+      </ul>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- TESTING STRATEGY -->
+      <!-- ============================================ -->
+      <h2 id="testing-strategy">Testing Strategy: 129 Tests, Zero Mocks</h2>
+
+      <h3>129 tests, 9 files, zero mocks</h3>
+
+      <div class="article-table-wrap">
+        <table class="article-table">
+          <thead>
+            <tr><th>File</th><th>Focus</th><th>Count</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>scorer.test.ts</code></td>
+              <td>100/100 ceiling, dimension boundaries, preservation bonus</td>
+              <td>~20</td>
+            </tr>
+            <tr>
+              <td><code>compiler.test.ts</code></td>
+              <td>XML/OpenAI/generic output, format_version, blocking Q exclusion</td>
+              <td>~15</td>
+            </tr>
+            <tr>
+              <td><code>storage.test.ts</code></td>
+              <td>CRUD, session lifecycle, path traversal, cleanup</td>
+              <td>~20</td>
+            </tr>
+            <tr>
+              <td><code>freemium.test.ts</code></td>
+              <td>Lifetime gate, pro bypass, metering-after-success, rate limiter</td>
+              <td>~15</td>
+            </tr>
+            <tr>
+              <td><code>contracts.test.ts</code></td>
+              <td>Output shape freeze (PreviewPack, CostEstimate, LicenseData)</td>
+              <td>~10</td>
+            </tr>
+            <tr>
+              <td><code>security.test.ts</code></td>
+              <td>Input hardening, session ID sanitization, no-throw invariant</td>
+              <td>~10</td>
+            </tr>
+            <tr>
+              <td><code>license.test.ts</code></td>
+              <td>Ed25519 validation, storage CRUD, tier priority chain, file permissions</td>
+              <td>~15</td>
+            </tr>
+            <tr>
+              <td><code>api.test.ts</code></td>
+              <td>Barrel exports, <code>optimize()</code> shape/determinism/targets, packaging</td>
+              <td>~9</td>
+            </tr>
+            <tr>
+              <td><code>e2e.test.ts</code></td>
+              <td>Full pipeline, license&rarr;tier upgrade, gate enforcement, checkout URLs</td>
+              <td>~15</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Key testing patterns:</strong></p>
+
+      <ol>
+        <li><strong>Ed25519 test keypair per suite.</strong> Tests generate their own keypair via <code>crypto.generateKeyPairSync('ed25519')</code> &mdash; never use the production key.</li>
+        <li><strong>Temp directories.</strong> Every test suite creates a temp dir, runs against it, cleans up in <code>afterEach</code>.</li>
+        <li><strong>Contract tests.</strong> <code>contracts.test.ts</code> verifies exact field sets of response types. Adding a field without updating contracts = test failure.</li>
+        <li><strong>Packaging validation.</strong> <code>api.test.ts</code> verifies that <code>dist/src/api.js</code> and <code>dist/src/index.js</code> actually exist at the paths referenced in <code>package.json</code> exports.</li>
+        <li><strong>Metering-after-success.</strong> <code>e2e.test.ts</code> verifies that if the pipeline throws mid-execution, the usage counter is NOT incremented.</li>
+      </ol>
+
+      <p>All tests use <code>node:test</code> (built-in, zero test framework dependency). Run with <code>npm test</code>.</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- PROGRAMMATIC API -->
+      <!-- ============================================ -->
+      <h2 id="programmatic-api">Programmatic API: Dual Entry Points</h2>
+
+      <h3>Dual Entry Points (ESM-only)</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="cm">// Entry 1: Programmatic API (pure functions, no side effects)</span>
+<span class="kw">import</span> { <span class="fn">optimize</span>, <span class="fn">scorePrompt</span>, <span class="fn">compilePrompt</span> } <span class="kw">from</span> <span class="str">'claude-prompt-optimizer-mcp'</span>;
+
+<span class="kw">const</span> result = <span class="fn">optimize</span>(<span class="str">'fix the login bug'</span>, <span class="str">'auth middleware context'</span>);
+<span class="cm">// Returns: { intent, score, compiled, checklist, costEstimate }</span>
+
+<span class="cm">// Entry 2: MCP Server (side-effect import &mdash; starts stdio transport)</span>
+<span class="kw">import</span> <span class="str">'claude-prompt-optimizer-mcp/server'</span>;
+<span class="cm">// Server is now running on stdio</span>
+
+<span class="cm">// Entry 3: CLI</span>
+<span class="cm">// npx claude-prompt-optimizer-mcp</span></code></pre>
+      </div>
+
+      <p><code>package.json</code> exports map:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">JSON</span>
+        </div>
+<pre><code>{
+  <span class="str">"exports"</span>: {
+    <span class="str">"."</span>: { <span class="str">"types"</span>: <span class="str">"./dist/src/api.d.ts"</span>, <span class="str">"import"</span>: <span class="str">"./dist/src/api.js"</span> },
+    <span class="str">"./server"</span>: { <span class="str">"types"</span>: <span class="str">"./dist/src/index.d.ts"</span>, <span class="str">"import"</span>: <span class="str">"./dist/src/index.js"</span> }
+  }
+}</code></pre>
+      </div>
+
+      <p><strong>ESM-only.</strong> No CJS wrapper. <code>"type": "module"</code> in package.json. All imports use <code>.js</code> extensions. CJS consumers get a clear error. This is a deliberate choice &mdash; CJS compatibility adds complexity with zero benefit for the MCP ecosystem.</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- DISTRIBUTION PIPELINE -->
+      <!-- ============================================ -->
+      <h2 id="distribution-pipeline">Distribution Pipeline</h2>
+
+      <h3>Channels</h3>
+
+      <div class="article-table-wrap">
+        <table class="article-table">
+          <thead>
+            <tr><th>Channel</th><th>Submission Method</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>npm</strong></td>
+              <td><code>npm publish --access public</code></td>
+              <td><span class="status status-live">v2.2.2</span></td>
+            </tr>
+            <tr>
+              <td><strong>Official MCP Registry</strong></td>
+              <td><code>mcp-publisher publish</code> CLI + GitHub device auth</td>
+              <td><span class="status status-live">Listed</span></td>
+            </tr>
+            <tr>
+              <td><strong>Glama</strong></td>
+              <td>Web form: name + description + GitHub URL</td>
+              <td><span class="status status-submitted">Submitted</span></td>
+            </tr>
+            <tr>
+              <td><strong>mcp.so</strong></td>
+              <td>GitHub issue on chatmcp/mcpso repo</td>
+              <td><span class="status status-submitted">Submitted</span></td>
+            </tr>
+            <tr>
+              <td><strong>PulseMCP</strong></td>
+              <td>Auto-ingests from Official Registry daily</td>
+              <td><span class="status status-auto">Automatic</span></td>
+            </tr>
+            <tr>
+              <td><strong>awesome-mcp-servers</strong></td>
+              <td>Fork &rarr; branch &rarr; edit README &rarr; PR</td>
+              <td><span class="status status-submitted">PR #2492</span></td>
+            </tr>
+            <tr>
+              <td><strong>Smithery</strong></td>
+              <td>CLI (<code>@smithery/cli mcp publish</code>)</td>
+              <td><span class="status status-blocked">Blocked</span></td>
+            </tr>
+            <tr>
+              <td><strong>GitHub</strong></td>
+              <td>Public repo + GitHub Pages landing page</td>
+              <td><span class="status status-live">Live</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Smithery Incompatibility (technical detail)</h3>
+
+      <p>Smithery's <code>@smithery/cli</code> uses esbuild with <code>format: "cjs"</code> for both the shttp (HTTP gateway) and stdio (scanning) builds. Our server uses ESM-only features:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">TypeScript</span>
+        </div>
+<pre><code><span class="cm">// These cause esbuild CJS errors:</span>
+<span class="kw">import</span>.meta.url          <span class="cm">// "import.meta" not available in CJS</span>
+<span class="kw">await</span> storage.<span class="fn">cleanup</span>(); <span class="cm">// Top-level await not supported in CJS</span>
+<span class="kw">await</span> server.<span class="fn">connect</span>();  <span class="cm">// Top-level await not supported in CJS</span></code></pre>
+      </div>
+
+      <p>The shttp bundle builds successfully (it wraps in an async handler), but the stdio scan step fails. No configuration option to change esbuild's output format. This is a Smithery tooling limitation that affects any ESM-only MCP server using top-level await.</p>
+
+      <h3>MCP Registry Publication Flow</h3>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-lang">Bash</span>
+        </div>
+<pre><code><span class="cm"># 1. Add mcpName to package.json</span>
+<span class="str">"mcpName"</span>: <span class="str">"io.github.rishiatlan/claude-prompt-optimizer"</span>
+
+<span class="cm"># 2. Create server.json metadata file</span>
+<span class="cm"># 3. Publish to npm (mcpName must be in published package)</span>
+npm publish --access public
+
+<span class="cm"># 4. Install publisher CLI</span>
+npm install -g @anthropic-ai/mcp-publisher
+
+<span class="cm"># 5. Authenticate via GitHub device code flow</span>
+mcp-publisher login
+
+<span class="cm"># 6. Publish to registry</span>
+mcp-publisher publish</code></pre>
+      </div>
+
+      <p>Gotcha: The registry validates that <code>mcpName</code> exists in the <em>published</em> npm package, not just locally. This means you must publish to npm <em>before</em> publishing to the registry.</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- BUILD INVARIANTS -->
+      <!-- ============================================ -->
+      <h2 id="build-invariants">Build Invariants</h2>
+
+      <p>These are immutable rules enforced by tests. If implementation drifts from any, it's a bug.</p>
+
+      <div class="article-table-wrap">
+        <table class="article-table">
+          <thead>
+            <tr><th>ID</th><th>Rule</th><th>Enforcement</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="invariant-id">I1</span></td>
+              <td><strong>Deterministic ordering</strong></td>
+              <td><code>src/sort.ts</code> &mdash; all array fields sorted consistently (checklist items, cost entries, issue lists)</td>
+            </tr>
+            <tr>
+              <td><span class="invariant-id">I2</span></td>
+              <td><strong>One response envelope</strong></td>
+              <td>ALL responses include <code>request_id</code> (success AND error)</td>
+            </tr>
+            <tr>
+              <td><span class="invariant-id">I3</span></td>
+              <td><strong>Metering-after-success</strong></td>
+              <td><code>success = true</code> after pipeline completion; <code>if (success) increment</code> in finally</td>
+            </tr>
+            <tr>
+              <td><span class="invariant-id">I4</span></td>
+              <td><strong>Rate limit centralized</strong></td>
+              <td>Only inside <code>canUseOptimization(ctx)</code> &mdash; never duplicated in tool handlers</td>
+            </tr>
+            <tr>
+              <td><span class="invariant-id">I5</span></td>
+              <td><strong>Degraded health explicit</strong></td>
+              <td><code>"storage_health": "degraded"</code> in metered responses when storage unhealthy</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- BUILD TIMELINE -->
+      <!-- ============================================ -->
+      <h2 id="build-timeline">Build Timeline: 21 Commits in 49 Hours</h2>
+
+      <p>The entire project was built in 3 coding sessions totalling ~10 hours of active development. Here's the commit-level breakdown:</p>
+
+      <div class="timeline">
+
+        <!-- Session 1 -->
+        <div class="session-divider">Session 1 &mdash; Feb 26</div>
+        <p class="session-sub">1:18am&ndash;7:01pm IST &mdash; Foundation. 11 commits. ~5h43m active.</p>
+
+        <div class="commit-log">
+<span class="hash">193c01b</span>  <span class="time">01:18</span>  <span class="feat">feat:</span> initial prompt optimizer MCP server
+<span class="hash">2cde5e8</span>  <span class="time">01:28</span>  <span class="docs">docs:</span> add comprehensive README with 6 examples
+<span class="hash">36773fe</span>  <span class="time">01:57</span>  <span class="feat">feat:</span> make MCP universal &mdash; all prompt types
+<span class="hash">373954c</span>  <span class="time">02:03</span>  <span class="docs">docs:</span> align all documentation
+<span class="hash">ac73ab5</span>  <span class="time">02:09</span>  <span class="docs">docs:</span> add non-code examples
+<span class="hash">4f24e20</span>  <span class="time">02:58</span>  <span class="fix">fix:</span> intent-first detection (the "write a post about MCP" bug)
+<span class="hash">fb67b5c</span>  <span class="time">03:01</span>  <span class="docs">docs:</span> align with intent-first changes
+                <span class="sleep">&mdash; sleep &mdash;</span>
+<span class="hash">b13a4a2</span>  <span class="time">15:19</span>  <span class="feat">feat:</span> NPM package + benchmarks + repositioned README
+<span class="hash">4f1aee0</span>  <span class="time">18:52</span>  <span class="feat">feat:</span> v1.2 &mdash; audience/tone/platform, goal enrichment, 10 rules
+<span class="hash">98cd20d</span>  <span class="time">18:57</span>  <span class="docs">docs:</span> align README with v1.2
+<span class="hash">efde9cf</span>  <span class="time">19:01</span>  <span class="docs">docs:</span> credit contributor for PR #1
+        </div>
+
+        <div class="key-decision">
+          <div class="key-decision-label">Key decisions this session</div>
+          Universal prompt support (not code-only), intent-first task detection over keyword matching, publish to npm same day.
+        </div>
+
+        <!-- Session 2 -->
+        <div class="session-divider">Session 2 &mdash; Feb 27</div>
+        <p class="session-sub">8:34pm&ndash;11:28pm IST &mdash; Monetization. 3 commits. ~2h54m active.</p>
+
+        <div class="commit-log">
+<span class="hash">368232f</span>  <span class="time">20:34</span>  <span class="feat">feat:</span> v2.1.0 &mdash; 3-tier freemium, Ed25519, 11 tools, storage
+<span class="hash">b154eeb</span>  <span class="time">21:02</span>  <span class="docs">docs:</span> polish all docs for live v2.1 release
+<span class="hash">061fd39</span>  <span class="time">23:28</span>  <span class="chore">chore:</span> bump to v2.1.1 for npm readme update
+        </div>
+
+        <div class="key-decision">
+          <div class="key-decision-label">Key decisions this session</div>
+          Ed25519 over JWT (offline-first), metering-after-success pattern, <code>StorageInterface</code> abstraction for Phase B migration.
+        </div>
+
+        <!-- Session 3 -->
+        <div class="session-divider">Session 3 &mdash; Feb 28</div>
+        <p class="session-sub">12:27am&ndash;2:16am IST &mdash; API + Distribution. 7 commits. ~1h49m active.</p>
+
+        <div class="commit-log">
+<span class="hash">01ff70d</span>  <span class="time">00:27</span>  <span class="feat">feat:</span> v2.2.0 &mdash; programmatic API, dual entry points, E2E tests
+<span class="hash">460d182</span>  <span class="time">01:10</span>  <span class="feat">feat:</span> landing page, new keypair, CLAUDE.md hidden
+<span class="hash">0cb774a</span>  <span class="time">01:17</span>  <span class="chore">chore:</span> v2.2.1 &mdash; publish new public key to npm
+<span class="hash">50cb324</span>  <span class="time">01:22</span>  <span class="docs">docs:</span> add npm publish instructions to CLAUDE.md
+<span class="hash">20e5960</span>  <span class="time">01:42</span>  <span class="feat">feat:</span> v2.2.2 &mdash; MCP Registry + directory submissions
+<span class="hash">f1e93fc</span>  <span class="time">01:46</span>  <span class="feat">feat:</span> interactive before/after demo on landing page
+<span class="hash">316c514</span>  <span class="time">02:16</span>  <span class="docs">docs:</span> How I Built This writeups + MCP config fix
+        </div>
+
+        <div class="key-decision">
+          <div class="key-decision-label">Key decisions this session</div>
+          ESM-only (no CJS wrapper), barrel export pattern for <code>api.ts</code>, packaging validation tests that check <code>dist/</code> output.
+        </div>
+
+      </div>
+
+      <h3>Velocity Analysis</h3>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value">49h</div>
+          <div class="metric-label">Wall clock time</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~10h</div>
+          <div class="metric-label">Active coding</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">21</div>
+          <div class="metric-label">Total commits</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~14m</div>
+          <div class="metric-label">Avg commit interval</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~4,000</div>
+          <div class="metric-label">Lines of production</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~2,500</div>
+          <div class="metric-label">Lines of tests</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~620</div>
+          <div class="metric-label">LoC per active hour</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">3</div>
+          <div class="metric-label">Coding sessions</div>
+        </div>
+      </div>
+
+      <p>The commit velocity tells the story of AI-assisted development: 14-minute average intervals means the human was making architectural decisions and reviewing output, while Claude Code wrote the implementation and tests. The 3-session structure is natural &mdash; each session had a clear theme (foundation, monetization, distribution) and was self-contained.</p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- WHAT WENT WRONG -->
+      <!-- ============================================ -->
+      <h2 id="what-went-wrong">What Went Wrong</h2>
+
+      <div class="problem-card">
+        <div class="problem-card-num">1</div>
+        <h4>npm Token Type Confusion</h4>
+        <p>npm has three token types: Publish (requires OTP with 2FA), Read-only, and Automation (no OTP). The Automation token is the only one that works in non-interactive environments (CI/CD, scripts, Claude Code sessions). I burned 3 sessions fighting EOTP errors before documenting this permanently.</p>
+        <div class="fix-label">Fix</div>
+        <div class="fix-text">Documented in project CLAUDE.md &mdash; "Never ask for OTP. Just use the Automation token in <code>~/.npmrc</code>."</div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-card-num">2</div>
+        <h4>Ed25519 Key Rotation During Development</h4>
+        <p>Regenerated the keypair mid-development. All pre-generated test licenses became invalid because the public key changed. This is by design &mdash; Ed25519 keypairs are tightly coupled &mdash; but it caught me off guard.</p>
+        <div class="fix-label">Fix</div>
+        <div class="fix-text">Documented in <code>KEYGEN-PROMPT-OPTIMIZER-MCP.md</code> with explicit warnings about the one-way door nature of key regeneration.</div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-card-num">3</div>
+        <h4>MCP Registry mcpName Chicken-and-Egg</h4>
+        <p>The registry validates <code>mcpName</code> against the <em>published</em> npm package. But you only discover this after the publish attempt fails. Required an extra version bump (v2.2.0 &rarr; v2.2.2) just to add metadata.</p>
+        <div class="fix-label">Fix</div>
+        <div class="fix-text">Read the entire registry docs before starting. Version bumps are cheap.</div>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-card-num">4</div>
+        <h4>Smithery ESM Incompatibility</h4>
+        <p>Smithery's CLI bundles everything as CJS via esbuild. Top-level await and <code>import.meta</code> are ESM-only features that physically cannot exist in CJS output. No workaround exists on the server side &mdash; Smithery would need to add ESM output format support.</p>
+        <div class="fix-label">Fix</div>
+        <div class="fix-text">None. Documented as a known limitation. Will retry when Smithery updates their tooling.</div>
+      </div>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- STACK AND DEPENDENCIES -->
+      <!-- ============================================ -->
+      <h2 id="stack-dependencies">Stack and Dependencies</h2>
+
+      <div class="package-card">
+        <div class="package-card-header">
+          <span class="icon">&#128230;</span>
+          <span class="label">package.json &mdash; dependencies</span>
+        </div>
+<pre><code>{
+  <span class="str">"dependencies"</span>: {
+    <span class="str">"@modelcontextprotocol/sdk"</span>: <span class="str">"^1.25.2"</span>,  <span class="cm">// MCP protocol</span>
+    <span class="str">"zod"</span>: <span class="str">"^3.25.0"</span>                          <span class="cm">// Schema validation</span>
+  },
+  <span class="str">"devDependencies"</span>: {
+    <span class="str">"@types/node"</span>: <span class="str">"^22.0.0"</span>,
+    <span class="str">"typescript"</span>: <span class="str">"^5.8.0"</span>
+  }
+}</code></pre>
+      </div>
+
+      <p><strong>Two runtime dependencies.</strong> Everything else (crypto, file I/O, path handling, test runner) comes from Node.js built-ins.</p>
+
+      <div class="article-table-wrap">
+        <table class="article-table">
+          <thead>
+            <tr><th>Technology</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>TypeScript 5.8 (strict mode)</td><td>Type safety for a rules engine</td></tr>
+            <tr><td>MCP SDK</td><td>Protocol implementation (stdio transport)</td></tr>
+            <tr><td>Zod</td><td>Runtime schema validation for tool inputs</td></tr>
+            <tr><td>Node.js crypto</td><td>Ed25519 key generation and verification</td></tr>
+            <tr><td>Node.js <code>node:test</code></td><td>Built-in test runner (no Jest, no Mocha)</td></tr>
+            <tr><td>esbuild (dev)</td><td>Used by Smithery CLI (not in our build)</td></tr>
+            <tr><td>Lemon Squeezy</td><td>Payment processing ($0 upfront)</td></tr>
+            <tr><td>GitHub Pages</td><td>Landing page hosting ($0)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Monthly infrastructure cost: $0.</strong></p>
+
+      <hr>
+
+      <!-- ============================================ -->
+      <!-- WHAT I'D DO DIFFERENTLY -->
+      <!-- ============================================ -->
+      <h2 id="what-id-do-differently">What I'd Do Differently</h2>
+
+      <ol>
+        <li><strong>Start with <code>mcpName</code> in package.json from v1.0.</strong> The registry requirement caused an unnecessary version bump.</li>
+        <li><strong>Wrap top-level await in an async IIFE from the start.</strong> Would have avoided the Smithery incompatibility entirely, with zero functional downside.</li>
+        <li><strong>Add a <code>smithery.yaml</code> build config early.</strong> Even if not publishing to Smithery, having the config ready prevents last-minute scrambling.</li>
+        <li><strong>Generate the landing page from the README.</strong> Currently they're maintained separately. A build step that converts README &rarr; HTML would prevent drift.</li>
+        <li><strong>Add OpenTelemetry tracing from day 1.</strong> Not for the free tier, but for Phase B &mdash; having trace IDs flow through the pipeline would make debugging production issues trivial.</li>
+      </ol>
+
+      <hr>
+
+      <!-- Cross-link -->
+      <div class="cross-link">
+        <span class="icon">&#128196;</span>
+        <span>
+          Prefer a higher-level overview? Read the <a href="how-i-built-this.html">non-technical version</a> &mdash; same story, less code, more strategy and business decisions.
+        </span>
+      </div>
+
+      <p><em>Built with Claude Code in ~10 hours of active coding across 3 sessions. 21 commits in 49 hours. 129 tests. 2 dependencies. 11 tools. 0 AI calls. 0 monthly cost.</em></p>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div>
+      Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a> &middot;
+      <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a> &middot;
+      MIT License
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Main Site</a>
+      <a href="how-i-built-this.html">Non-Technical Version</a>
+      <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+    </div>
+  </footer>
+
+  <!-- Minimal JS: TOC active section highlighting -->
+  <script>
+    (function() {
+      const tocLinks = document.querySelectorAll('.toc-sidebar a');
+      const sections = [];
+
+      tocLinks.forEach(function(link) {
+        const id = link.getAttribute('href').replace('#', '');
+        const el = document.getElementById(id);
+        if (el) sections.push({ id: id, el: el, link: link });
+      });
+
+      function updateActive() {
+        let current = sections[0];
+        const scrollY = window.scrollY + 120;
+
+        for (let i = 0; i < sections.length; i++) {
+          if (sections[i].el.offsetTop <= scrollY) {
+            current = sections[i];
+          }
+        }
+
+        tocLinks.forEach(function(l) { l.classList.remove('active'); });
+        if (current) current.link.classList.add('active');
+      }
+
+      window.addEventListener('scroll', updateActive, { passive: true });
+      updateActive();
+    })();
+  </script>
+
+</body>
+</html>

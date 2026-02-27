@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How I Built Prompt Optimizer MCP — From Idea to Product in 49 Hours</title>
+  <meta name="description" content="The full story of building an MCP server that optimizes AI prompts — from zero to published on npm and 6+ directories in under 2 weeks, with only 10 hours of active coding.">
+  <meta property="og:title" content="How I Built Prompt Optimizer MCP">
+  <meta property="og:description" content="49 hours wall clock, 10 hours active coding, 21 commits. The full story of building a prompt optimization MCP server and turning it into a freemium product.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/how-i-built-this.html">
+  <meta property="article:author" content="Rishi Banerjee">
+  <meta property="article:published_time" content="2026-02-28">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How I Built Prompt Optimizer MCP">
+  <meta name="twitter:description" content="49 hours wall clock, 10 hours active coding, 21 commits. From idea to freemium product with $0 infrastructure.">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --border: #1e1e2e;
+      --text: #e4e4ed;
+      --text-muted: #8888a0;
+      --accent: #7c5cfc;
+      --accent-hover: #9178ff;
+      --green: #34d399;
+      --orange: #fb923c;
+      --blue: #60a5fa;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+
+    /* -- Nav ----------------------------------------- */
+    nav {
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(10, 10, 15, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 24px; font-size: 14px; }
+    .nav-links a { color: var(--text-muted); }
+    .nav-links a:hover { color: var(--text); }
+
+    /* -- Article layout ----------------------------- */
+    .article-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* -- Hero --------------------------------------- */
+    .article-hero {
+      padding: 80px 0 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .article-hero h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+    }
+    .article-hero h1 .highlight { color: var(--accent); }
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+    }
+    .article-meta .separator {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      opacity: 0.5;
+    }
+    .hero-tldr {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+    .hero-tldr strong { color: var(--text); font-weight: 600; }
+
+    /* -- Table of contents -------------------------- */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 48px 0;
+    }
+    .toc-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .toc ol {
+      list-style: none;
+      counter-reset: toc-counter;
+    }
+    .toc li {
+      counter-increment: toc-counter;
+      margin-bottom: 8px;
+    }
+    .toc li a {
+      font-size: 15px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      transition: color 0.15s;
+    }
+    .toc li a::before {
+      content: counter(toc-counter, decimal-leading-zero);
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+    .toc li a:hover { color: var(--text); }
+
+    /* -- Article body ------------------------------- */
+    .article-body {
+      padding: 16px 0 64px;
+    }
+    .article-body h2 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 56px 0 16px;
+      padding-left: 16px;
+      border-left: 3px solid var(--accent);
+    }
+    .article-body h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 36px 0 12px;
+      color: var(--text);
+    }
+    .article-body p {
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .article-body p strong { color: var(--text); font-weight: 600; }
+    .article-body ul, .article-body ol {
+      margin: 0 0 20px 24px;
+      font-size: 17px;
+      line-height: 1.8;
+      color: var(--text-muted);
+    }
+    .article-body li {
+      margin-bottom: 8px;
+    }
+    .article-body li strong { color: var(--text); }
+    .article-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    /* -- TL;DR callout ------------------------------ */
+    .tldr {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 24px 0 28px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+    .tldr-label {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    /* -- Code blocks -------------------------------- */
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 20px 0 28px;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .code-dot.red { background: #ff5f57; }
+    .code-dot.yellow { background: #febc2e; }
+    .code-dot.green { background: #28c840; }
+    .code-label { margin-left: 8px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .code-body {
+      padding: 16px 20px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--green);
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    /* -- Tables ------------------------------------- */
+    .article-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 20px 0 28px;
+    }
+    .article-table th {
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .article-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .article-table tr:hover td {
+      background: rgba(124, 92, 252, 0.03);
+    }
+    .article-table td:first-child {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .article-table td strong { color: var(--text); }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .tag-published { background: rgba(52, 211, 153, 0.1); color: var(--green); }
+    .tag-submitted { background: rgba(251, 146, 60, 0.1); color: var(--orange); }
+
+    /* -- Hardest problems cards ---------------------- */
+    .problem-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin: 20px 0;
+    }
+    .problem-card .problem-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(124, 92, 252, 0.12);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .problem-card h4 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .problem-card p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .problem-card p:last-child { margin-bottom: 0; }
+    .problem-card ul {
+      margin: 8px 0 12px 20px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-muted);
+    }
+    .problem-card strong { color: var(--text); }
+
+    /* -- Timeline ----------------------------------- */
+    .timeline-section {
+      padding: 16px 0;
+    }
+    .timeline-day {
+      margin-bottom: 48px;
+    }
+    .timeline-day-header {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .timeline-day-summary {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      font-style: italic;
+    }
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -33px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      flex-shrink: 0;
+    }
+    .timeline-dot.feature { background: var(--green); box-shadow: 0 0 8px rgba(52, 211, 153, 0.3); }
+    .timeline-dot.docs { background: var(--blue); box-shadow: 0 0 8px rgba(96, 165, 250, 0.3); }
+    .timeline-dot.fix { background: var(--orange); box-shadow: 0 0 8px rgba(251, 146, 60, 0.3); }
+    .timeline-dot.ship { background: var(--accent); box-shadow: 0 0 8px rgba(124, 92, 252, 0.3); }
+    .timeline-dot.sleep { background: var(--text-muted); box-shadow: 0 0 8px rgba(136, 136, 160, 0.2); }
+
+    .timeline-time {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      white-space: nowrap;
+      min-width: 60px;
+      padding-top: 1px;
+    }
+    .timeline-content {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .timeline-content strong { color: var(--text); }
+    .timeline-sleep {
+      position: relative;
+      margin: 16px 0;
+      padding: 12px 0 12px 0;
+      text-align: center;
+    }
+    .timeline-sleep-inner {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .timeline-math {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-top: 40px;
+    }
+    .timeline-math h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* -- Metrics grid ------------------------------- */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 28px 0;
+    }
+    @media (max-width: 540px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .metric-value .accent { color: var(--accent); }
+    .metric-value .green { color: var(--green); }
+    .metric-value .orange { color: var(--orange); }
+    .metric-label {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* -- Blockquote --------------------------------- */
+    .article-body blockquote {
+      border-left: 3px solid var(--border);
+      padding: 4px 0 4px 20px;
+      margin: 20px 0 24px;
+      font-size: 16px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* -- Lesson box --------------------------------- */
+    .lesson {
+      background: rgba(52, 211, 153, 0.05);
+      border: 1px solid rgba(52, 211, 153, 0.15);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0 20px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+    .lesson strong { color: var(--green); }
+
+    /* -- Share section ------------------------------- */
+    .share-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin: 48px 0;
+      text-align: center;
+    }
+    .share-section h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .share-section p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .share-url-box {
+      display: flex;
+      gap: 0;
+      max-width: 520px;
+      margin: 0 auto;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .share-url-input {
+      flex: 1;
+      background: var(--bg);
+      border: none;
+      padding: 12px 16px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      outline: none;
+    }
+    .share-copy-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .share-copy-btn:hover { background: var(--accent-hover); }
+    .share-copy-btn.copied { background: var(--green); }
+
+    /* -- Footer ------------------------------------- */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    footer a { color: var(--text-muted); }
+    footer a:hover { color: var(--text); }
+
+    /* -- Closing line ------------------------------- */
+    .closing-line {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 32px 0 0;
+      border-top: 1px solid var(--border);
+      margin-top: 48px;
+    }
+
+    /* -- Responsive --------------------------------- */
+    @media (max-width: 640px) {
+      .article-hero { padding: 48px 0 32px; }
+      .article-hero h1 { font-size: 26px; }
+      .toc { padding: 20px 24px; }
+      .article-body h2 { font-size: 22px; }
+      .article-body p { font-size: 16px; }
+      .problem-card { padding: 20px; }
+      .timeline { padding-left: 32px; }
+      .timeline-time { min-width: 50px; font-size: 12px; }
+      .metric-value { font-size: 26px; }
+      .nav-links { gap: 16px; font-size: 13px; }
+      .share-url-box { flex-direction: column; }
+      .share-url-input { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <a href="index.html" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <div class="nav-links">
+        <a href="index.html">Main Site</a>
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Article Hero -->
+  <header class="article-hero">
+    <div class="article-container">
+      <h1>How I Created My First MCP and <span class="highlight">Turned It Into a Product</span></h1>
+      <div class="article-meta">
+        <span>By Rishi Banerjee</span>
+        <span class="separator"></span>
+        <span>February 28, 2026</span>
+        <span class="separator"></span>
+        <span>14 min read</span>
+      </div>
+      <div class="hero-tldr">
+        <strong>TL;DR:</strong> I noticed AI tools were wasting time and money because people write vague prompts. I built a tool that automatically turns messy prompts into structured instructions &mdash; no AI needed inside. Shipped it in under 2 weeks, listed it on 6+ directories, and monetized it at $4.99/mo and $9.99/mo using a freemium model. Total infrastructure cost: $0.
+      </div>
+    </div>
+  </header>
+
+  <div class="article-container">
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <div class="toc-title">Table of Contents</div>
+      <ol>
+        <li><a href="#the-problem">The Problem I Kept Running Into</a></li>
+        <li><a href="#aha-moment">The "Aha" Moment</a></li>
+        <li><a href="#what-is-mcp">What Is an MCP, and Why Should You Care?</a></li>
+        <li><a href="#designing">Designing the Product</a></li>
+        <li><a href="#building">Building It &mdash; With AI as My Co-Pilot</a></li>
+        <li><a href="#hardest-problems">The Hardest Problems to Solve</a></li>
+        <li><a href="#monetization">Monetization &mdash; Making It a Real Product</a></li>
+        <li><a href="#distribution">Distribution &mdash; Getting It in Front of People</a></li>
+        <li><a href="#hiccups">Hiccups, Headaches, and Hard Lessons</a></li>
+        <li><a href="#whats-next">What's Next</a></li>
+        <li><a href="#timeline">The Actual Timeline &mdash; 49 Hours, 21 Commits</a></li>
+        <li><a href="#by-the-numbers">By the Numbers</a></li>
+      </ol>
+    </div>
+
+    <!-- Article Body -->
+    <article class="article-body">
+
+      <!-- Section 1: The Problem -->
+      <h2 id="the-problem">The Problem I Kept Running Into</h2>
+
+      <p>I use AI constantly &mdash; for writing, coding, planning, research, emails. Claude is my daily driver. And I kept noticing the same pattern:</p>
+
+      <p><strong>People (including me) are terrible at telling AI what they actually want.</strong></p>
+
+      <p>&ldquo;Make the code better.&rdquo; &ldquo;Fix the login bug.&rdquo; &ldquo;Write me a blog post.&rdquo; These sound reasonable. But they&rsquo;re the AI equivalent of walking into a restaurant and saying &ldquo;give me food.&rdquo; You&rsquo;ll get <em>something</em>, but probably not what you wanted.</p>
+
+      <p>The result? Wasted iterations. Wasted tokens (which cost money). Wasted time going back and forth with the AI trying to clarify what you meant in the first place.</p>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        Vague prompts lead to vague results, which lead to wasted money and time. Everyone knows this, but nobody systematically fixes their prompts before hitting Enter.
+      </div>
+
+      <hr>
+
+      <!-- Section 2: Aha Moment -->
+      <h2 id="aha-moment">The &ldquo;Aha&rdquo; Moment</h2>
+
+      <p>I was reading about <strong>Model Context Protocol (MCP)</strong> &mdash; a new open standard from Anthropic that lets you extend Claude with custom tools. Think of it like plugins for AI: you can give Claude the ability to search databases, control your browser, call APIs, or &mdash; in my case &mdash; analyze and fix prompts before they execute.</p>
+
+      <p>The idea hit me: <strong>what if there was a tool that sat between you and Claude, intercepting your sloppy prompt, scoring it, restructuring it, and compiling it into a professional instruction set &mdash; all before Claude even sees it?</strong></p>
+
+      <p>Like a spellchecker, but for AI prompts. And it would do this with zero AI calls &mdash; pure rules and algorithms. That way it&rsquo;s instant, free to run, and deterministic (same input always gives same output).</p>
+
+      <hr>
+
+      <!-- Section 3: What Is MCP -->
+      <h2 id="what-is-mcp">What Is an MCP, and Why Should You Care?</h2>
+
+      <p>Quick explainer for the non-technical crowd:</p>
+
+      <p><strong>MCP (Model Context Protocol)</strong> is a standard that lets you give AI assistants new abilities. Normally, Claude can only chat with you. With MCP, you can give it &ldquo;tools&rdquo; &mdash; specific capabilities that it can call during a conversation.</p>
+
+      <p>My MCP gives Claude 11 new tools:</p>
+
+      <ul>
+        <li><strong>Optimize</strong> &mdash; the main one. Analyzes your prompt, scores it, and rewrites it</li>
+        <li><strong>Estimate cost</strong> &mdash; tells you exactly how many tokens (and dollars) your prompt will burn</li>
+        <li><strong>Compress context</strong> &mdash; strips out irrelevant code/text you&rsquo;re about to send</li>
+        <li><strong>Check</strong> &mdash; quick pass/fail on whether your prompt is good enough</li>
+        <li>And 7 more for configuration, stats, licensing, etc.</li>
+      </ul>
+
+      <p>When you install my MCP, Claude can automatically use these tools. You type a vague prompt, Claude calls the optimizer, and you get back a structured, professional-grade prompt &mdash; before any work begins.</p>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        An MCP is a plugin system for AI. Mine adds prompt quality control. Install it once, and Claude automatically upgrades your prompts.
+      </div>
+
+      <hr>
+
+      <!-- Section 4: Designing the Product -->
+      <h2 id="designing">Designing the Product</h2>
+
+      <h3>Core Principles</h3>
+
+      <p>I set three non-negotiable rules before writing a single line of code:</p>
+
+      <ol>
+        <li><strong>Zero AI calls inside.</strong> The optimizer itself makes no API calls. All intelligence comes from rules, patterns, and scoring algorithms. This means it&rsquo;s instant, free to operate, and never produces hallucinated advice.</li>
+        <li><strong>Works for any LLM.</strong> The same prompt compiles to different formats: Claude gets XML tags (<code>&lt;role&gt;</code>, <code>&lt;goal&gt;</code>, <code>&lt;constraints&gt;</code>), OpenAI gets system/user splits, and generic targets get Markdown headers. One prompt, three outputs.</li>
+        <li><strong>Freemium from day one.</strong> Free users get 10 lifetime optimizations &mdash; enough to see the value. Pro at $4.99/mo gets 100/month. Power at $9.99/mo gets unlimited.</li>
+      </ol>
+
+      <h3>The Pipeline</h3>
+
+      <p>Every prompt goes through a 5-stage pipeline:</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-label">Pipeline</span>
+        </div>
+        <div class="code-body">Your prompt &#x2192; ANALYZE &#x2192; SCORE &#x2192; COMPILE &#x2192; CHECKLIST &#x2192; COST ESTIMATE</div>
+      </div>
+
+      <ol>
+        <li><strong>Analyze</strong> &mdash; What does the user actually want? Is this a coding task, a writing task, research, planning? What are the implicit assumptions? Are there blocking questions?</li>
+        <li><strong>Score</strong> &mdash; Rate the prompt 0&ndash;100 across 5 dimensions: Clarity, Specificity, Completeness, Constraints, Efficiency</li>
+        <li><strong>Compile</strong> &mdash; Restructure it with a role definition, success criteria, safety constraints, workflow steps, and uncertainty policies</li>
+        <li><strong>Checklist</strong> &mdash; 9-point structural coverage check (does it have a goal? constraints? inputs? outputs?)</li>
+        <li><strong>Cost Estimate</strong> &mdash; Exact token counts and dollar costs across 8 models from 3 providers</li>
+      </ol>
+
+      <p>Average improvement: <strong>+32 points.</strong> A vague prompt scoring 48/100 comes out at 90/100 after compilation.</p>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        Five deterministic stages turn any prompt from amateur to professional. No AI used in the process &mdash; pure pattern matching and rules.
+      </div>
+
+      <hr>
+
+      <!-- Section 5: Building It -->
+      <h2 id="building">Building It &mdash; With AI as My Co-Pilot</h2>
+
+      <p>Here&rsquo;s the irony: I built a prompt optimization tool <em>using</em> the AI it&rsquo;s designed to help.</p>
+
+      <p>The entire project was built with <strong>Claude Code</strong> &mdash; Anthropic&rsquo;s AI coding agent. I wrote the architecture, designed the interfaces, and specified what each module should do. Claude wrote the implementation, tests, and documentation.</p>
+
+      <h3>The Stack</h3>
+
+      <ul>
+        <li><strong>TypeScript</strong> &mdash; type safety for a rules engine is non-negotiable</li>
+        <li><strong>MCP SDK</strong> &mdash; the official Anthropic library for building MCP servers</li>
+        <li><strong>Zod</strong> &mdash; runtime schema validation for all tool inputs</li>
+        <li><strong>Node.js crypto</strong> &mdash; Ed25519 signatures for license keys (zero external dependencies)</li>
+        <li><strong>No database.</strong> Local file storage in <code>~/.prompt-optimizer/</code></li>
+      </ul>
+
+      <p>That&rsquo;s it. Two runtime dependencies: the MCP SDK and Zod. Everything else is Node.js built-ins.</p>
+
+      <h3>Timeline</h3>
+
+      <p>Here&rsquo;s the actual git log &mdash; the real story is that this was built in 3 intense sessions, not 2 weeks:</p>
+
+      <ul>
+        <li><strong>Session 1 (Feb 26, 1am&ndash;7pm):</strong> 11 commits. Started at 1:18am with the initial server. By 3am, the full pipeline worked. After a break, came back at 3pm to ship the npm package and publish v1.2.</li>
+        <li><strong>Session 2 (Feb 27, 8pm&ndash;11pm):</strong> 3 commits. The big one &mdash; v2.1.0 landed with the 3-tier freemium model, Ed25519 license system, 11 tools, persistent storage.</li>
+        <li><strong>Session 3 (Feb 28, 12am&ndash;2am):</strong> 7 commits. Programmatic API, E2E tests, landing page, MCP Registry publication, directory submissions, and these writeup docs.</li>
+      </ul>
+
+      <p><strong>Elapsed time:</strong> 49 hours from first commit to last. <strong>Active coding:</strong> ~10 hours across 3 sessions. The rest was sleeping, eating, and living life.</p>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        49 hours wall clock, ~10 hours active. 21 commits. Two dependencies, zero infrastructure cost. Built with Claude Code as my pair programmer.
+      </div>
+
+      <hr>
+
+      <!-- Section 6: Hardest Problems -->
+      <h2 id="hardest-problems">The Hardest Problems to Solve</h2>
+
+      <div class="problem-card">
+        <div class="problem-number">1</div>
+        <h4>Detecting What People Actually Mean</h4>
+        <p>&ldquo;Write a post about my MCP&rdquo; &mdash; is that a coding task or a writing task? The word &ldquo;post&rdquo; could mean a blog post, a social media post, or a POST API endpoint.</p>
+        <p>I built a three-layer detection system:</p>
+        <ul>
+          <li>First, look for <strong>output type</strong> keywords (&ldquo;post&rdquo;, &ldquo;article&rdquo;, &ldquo;tweet&rdquo; &#x2192; writing)</li>
+          <li>Then, run <strong>full-prompt pattern</strong> matching for code/debug/refactor signals</li>
+          <li>Finally, <strong>fallback heuristics</strong> that catch edge cases</li>
+        </ul>
+        <p>The intent-first approach handles conversational prompts that keyword matchers miss.</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">2</div>
+        <h4>Scoring Without Being Arbitrary</h4>
+        <p>It would be easy to slap a score on a prompt and call it a day. But people would immediately ask &ldquo;why did I get a 48?&rdquo; and you&rsquo;d better have a real answer.</p>
+        <p>Each score breaks down into <strong>5 dimensions &times; 20 points</strong>. Every point deducted has a specific reason. &ldquo;Vague objective&rdquo; costs you clarity points. &ldquo;No constraints specified&rdquo; costs you constraint points. The math is transparent and reproducible.</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">3</div>
+        <h4>Offline License Validation</h4>
+        <p>Most products phone home to check if you&rsquo;ve paid. I didn&rsquo;t want that. My users might be on planes, behind corporate VPNs, or philosophically opposed to telemetry.</p>
+        <p>Solution: <strong>Ed25519 cryptographic signatures.</strong> I sign each license key with a private key (kept secret). The optimizer verifies the signature using only the public key (embedded in the code). No internet required. No server to maintain. No external dependency.</p>
+        <p>The trade-off: if I ever lose the private key, I can&rsquo;t generate new licenses. And if I regenerate the key pair, all existing licenses become invalid. High stakes, but clean design.</p>
+      </div>
+
+      <div class="problem-card">
+        <div class="problem-number">4</div>
+        <h4>The Freemium Gate</h4>
+        <p>How do you meter usage fairly without a server? Local file storage tracks usage counts, but what stops someone from deleting the file?</p>
+        <p>Answer: nothing. And that&rsquo;s fine. The free tier is a funnel, not a prison. If someone wants to hack around the limit, they&rsquo;re technical enough to have opinions about the product. The license system handles the actual paywall for Pro/Power features.</p>
+      </div>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        Intent detection, transparent scoring, offline licensing, and honest freemium design. Each one was harder than it looks.
+      </div>
+
+      <hr>
+
+      <!-- Section 7: Monetization -->
+      <h2 id="monetization">Monetization &mdash; Making It a Real Product</h2>
+
+      <h3>Pricing</h3>
+
+      <table class="article-table">
+        <thead>
+          <tr><th>Tier</th><th>Price</th><th>What You Get</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Free</strong></td><td>$0</td><td>10 lifetime optimizations</td></tr>
+          <tr><td><strong>Pro</strong></td><td>$4.99/mo</td><td>100/month, 30 requests/min</td></tr>
+          <tr><td><strong>Power</strong></td><td>$9.99/mo</td><td>Unlimited, 60 requests/min, always-on mode</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Payment Infrastructure</h3>
+
+      <p>I used <strong>Lemon Squeezy</strong> as the payment processor &mdash; it handles subscriptions, tax compliance, and checkout pages. Total cost: $0 until someone pays (they take a percentage of sales, no upfront fee).</p>
+
+      <h3>The Purchase Flow</h3>
+
+      <ol>
+        <li>User hits the free tier limit &#x2192; the optimizer shows upgrade options with direct checkout links</li>
+        <li>User completes checkout on Lemon Squeezy</li>
+        <li>I generate a signed license key (a cryptographic string)</li>
+        <li>User enters the license key in Claude &#x2192; <code>set_license</code> tool validates it offline</li>
+        <li>Tier upgrades instantly &mdash; no server round-trip, no &ldquo;checking your subscription&rdquo; delay</li>
+      </ol>
+
+      <p>The entire activation happens locally. The license key contains the tier, expiration date, and a cryptographic signature. Nothing else &mdash; no email, no name, no tracking.</p>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        $0 infrastructure. Lemon Squeezy handles payments. License keys validate offline with cryptography. Privacy-first: no email or name in the key.
+      </div>
+
+      <hr>
+
+      <!-- Section 8: Distribution -->
+      <h2 id="distribution">Distribution &mdash; Getting It in Front of People</h2>
+
+      <p>Building the product is half the job. Distribution is the other half.</p>
+
+      <h3>Where It&rsquo;s Listed (as of launch)</h3>
+
+      <table class="article-table">
+        <thead>
+          <tr><th>Channel</th><th>Type</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>npm</strong></td><td>Package registry</td><td><span class="tag tag-published">Published</span></td></tr>
+          <tr><td><strong>Official MCP Registry</strong></td><td>Anthropic&rsquo;s official directory</td><td><span class="tag tag-published">Published</span></td></tr>
+          <tr><td><strong>Glama</strong></td><td>MCP server directory (17,000+ servers)</td><td><span class="tag tag-submitted">Submitted</span></td></tr>
+          <tr><td><strong>mcp.so</strong></td><td>Community directory</td><td><span class="tag tag-submitted">Submitted</span></td></tr>
+          <tr><td><strong>PulseMCP</strong></td><td>MCP news/directory</td><td><span class="tag tag-published">Published</span></td></tr>
+          <tr><td><strong>awesome-mcp-servers</strong></td><td>GitHub curated list (most popular)</td><td><span class="tag tag-submitted">Submitted</span></td></tr>
+          <tr><td><strong>GitHub</strong></td><td>Source code + landing page</td><td><span class="tag tag-published">Published</span></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Install Methods</h3>
+
+      <p>Four ways to install, from simplest to most control:</p>
+
+      <ol>
+        <li><strong>MCP Config</strong> &mdash; paste 5 lines of JSON into your settings file</li>
+        <li><strong>npx</strong> &mdash; <code>npx -y claude-prompt-optimizer-mcp</code> (one command, no install)</li>
+        <li><strong>npm global</strong> &mdash; <code>npm install -g claude-prompt-optimizer-mcp</code></li>
+        <li><strong>curl</strong> &mdash; <code>curl -fsSL .../install.sh | bash</code> (detects your OS, prints config)</li>
+      </ol>
+
+      <h3>Landing Page</h3>
+
+      <p>A dark-themed landing page on GitHub Pages with an interactive before/after demo showing a vague prompt (score: 38) being compiled into structured XML (score: 91). Pure HTML/CSS, no JavaScript framework. Loads in under 1 second.</p>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        Listed on 6+ directories, 4 install methods, a landing page, and zero hosting costs (GitHub Pages is free).
+      </div>
+
+      <hr>
+
+      <!-- Section 9: Hiccups -->
+      <h2 id="hiccups">Hiccups, Headaches, and Hard Lessons</h2>
+
+      <h3>The npm Token Saga</h3>
+
+      <p>Every. Single. Time. I tried to publish to npm, the auth token would fail with a cryptic &ldquo;one-time password required&rdquo; error. The issue? npm has three types of tokens &mdash; Publish (needs OTP), Read-only, and Automation (no OTP). I kept accidentally using the wrong one across sessions.</p>
+
+      <div class="lesson">
+        <strong>Lesson learned:</strong> I documented the exact token type and recovery steps in the project docs so no future session makes the same mistake.
+      </div>
+
+      <h3>The Key Rotation Emergency</h3>
+
+      <p>I regenerated my Ed25519 key pair during development... forgetting that I&rsquo;d already generated test license keys with the old pair. Suddenly no licenses validated. The private key signs, the public key verifies, and they must match. New key pair = all old keys are dead.</p>
+
+      <div class="lesson">
+        <strong>Lesson learned:</strong> Key management is a one-way door. Document it, back it up, and never regenerate casually.
+      </div>
+
+      <h3>Smithery&rsquo;s ESM Incompatibility</h3>
+
+      <p>Smithery (one of the major MCP directories) uses an internal bundler that forces all code into an older JavaScript format (CommonJS). My project uses the modern format (ESM) with features like top-level <code>await</code> that physically can&rsquo;t run in CJS. Build error. No workaround.</p>
+
+      <div class="lesson">
+        <strong>Lesson learned:</strong> Not every distribution channel will support your tech choices. Ship what you can, document the rest.
+      </div>
+
+      <h3>The MCP Registry&rsquo;s mcpName Requirement</h3>
+
+      <p>The Official MCP Registry requires a special field (<code>mcpName</code>) in your npm package. But you have to publish to npm <em>first</em> with that field, <em>then</em> publish to the registry. I discovered this after multiple failed attempts. Had to bump to v2.2.2 just to add one metadata field.</p>
+
+      <div class="lesson">
+        <strong>Lesson learned:</strong> Read the entire docs before starting a submission pipeline. Version bumps are cheap; frustration is expensive.
+      </div>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        npm tokens are confusing, key rotation is irreversible, not all directories support modern JavaScript, and always RTFM before submitting to registries.
+      </div>
+
+      <hr>
+
+      <!-- Section 10: What's Next -->
+      <h2 id="whats-next">What&rsquo;s Next</h2>
+
+      <ul>
+        <li><strong>Phase B:</strong> Move storage from local files to the cloud (Cloudflare Workers + Supabase). Same tool interfaces, just swap the storage layer. Already architected with an abstract interface for this exact purpose.</li>
+        <li><strong>More integrations:</strong> Cline, Cursor, Windsurf &mdash; anywhere MCP is supported.</li>
+        <li><strong>Competitive moat:</strong> The deterministic rules engine gets better with every edge case I discover. The scoring dimensions, compiler templates, and ambiguity detectors are the product&rsquo;s compound knowledge.</li>
+      </ul>
+
+      <hr>
+
+      <!-- Section 11: Timeline -->
+      <h2 id="timeline">The Actual Timeline &mdash; 49 Hours, 21 Commits</h2>
+
+      <p>Most &ldquo;how I built this&rdquo; posts hand-wave the timeline. Here&rsquo;s the actual git history &mdash; every commit, timestamped.</p>
+
+      <div class="timeline-section">
+
+        <!-- Day 1 -->
+        <div class="timeline-day">
+          <div class="timeline-day-header">Day 1 &mdash; Feb 26: From Zero to Published</div>
+          <div class="timeline-day-summary">11 commits &middot; 5 hours 43 minutes active &middot; Went from zero to a published npm package</div>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot feature"></div>
+              <div class="timeline-time">1:18am</div>
+              <div class="timeline-content"><strong>First commit.</strong> Initial MCP server with the 5-stage pipeline.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">1:28am</div>
+              <div class="timeline-content">Full README with 6 examples and tool documentation.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot feature"></div>
+              <div class="timeline-time">1:57am</div>
+              <div class="timeline-content">Made the optimizer <strong>universal</strong> &mdash; supports all prompt types, not just code.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">2:03am</div>
+              <div class="timeline-content">Docs alignment pass.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot feature"></div>
+              <div class="timeline-time">2:09am</div>
+              <div class="timeline-content">Added non-code examples: writing, research, planning showcases.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot fix"></div>
+              <div class="timeline-time">2:58am</div>
+              <div class="timeline-content"><strong>Fixed the big bug:</strong> intent-first detection so &ldquo;write a post about my MCP&rdquo; doesn&rsquo;t misclassify as code.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">3:01am</div>
+              <div class="timeline-content">Docs alignment. Then&hellip;</div>
+            </div>
+          </div>
+
+          <div class="timeline-sleep">
+            <div class="timeline-sleep-inner">&#x1f4a4; &nbsp;Sleep break &mdash; 12 hours &nbsp;&#x1f4a4;</div>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot ship"></div>
+              <div class="timeline-time">3:19pm</div>
+              <div class="timeline-content"><strong>Published to npm.</strong> Added benchmarks. Repositioned README.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot feature"></div>
+              <div class="timeline-time">6:52pm</div>
+              <div class="timeline-content"><strong>v1.2</strong> &mdash; audience/tone/platform detection, goal enrichment, new rules.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">6:57pm</div>
+              <div class="timeline-content">README aligned with v1.2.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">7:01pm</div>
+              <div class="timeline-content">Credited a contributor for PR #1.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Day 2 -->
+        <div class="timeline-day">
+          <div class="timeline-day-header">Day 2 &mdash; Feb 27: The Freemium &amp; License System</div>
+          <div class="timeline-day-summary">3 commits &middot; 2 hours 54 minutes &middot; The entire monetization layer in one sitting</div>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot feature"></div>
+              <div class="timeline-time">8:34pm</div>
+              <div class="timeline-content"><strong>The monster commit: v2.1.0.</strong> 3-tier freemium, Ed25519 license keys, 11 tools, persistent storage, rate limiting. All in one session.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">9:02pm</div>
+              <div class="timeline-content">Polished all docs for the live release.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot ship"></div>
+              <div class="timeline-time">11:28pm</div>
+              <div class="timeline-content">Version bump to <strong>v2.1.1</strong> for npm README update.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Day 3 -->
+        <div class="timeline-day">
+          <div class="timeline-day-header">Day 3 &mdash; Feb 28: API, Distribution, and Launch</div>
+          <div class="timeline-day-summary">7 commits &middot; 1 hour 49 minutes &middot; Programmatic API, tests, landing page, 6 directory submissions</div>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot feature"></div>
+              <div class="timeline-time">12:27am</div>
+              <div class="timeline-content"><strong>v2.2.0</strong> &mdash; programmatic API, dual entry points, curl installer, E2E tests (129 total).</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot ship"></div>
+              <div class="timeline-time">1:10am</div>
+              <div class="timeline-content"><strong>Landing page live</strong> on GitHub Pages. New keypair generated.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot fix"></div>
+              <div class="timeline-time">1:17am</div>
+              <div class="timeline-content"><strong>v2.2.1</strong> &mdash; published new Ed25519 public key to npm.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">1:22am</div>
+              <div class="timeline-content">Added npm publish instructions to CLAUDE.md (so future sessions don&rsquo;t fight token issues).</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot ship"></div>
+              <div class="timeline-time">1:42am</div>
+              <div class="timeline-content"><strong>v2.2.2</strong> &mdash; MCP Registry listing + directory submissions to 6 platforms.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot feature"></div>
+              <div class="timeline-time">1:46am</div>
+              <div class="timeline-content">Added interactive before/after demo to the landing page.</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot docs"></div>
+              <div class="timeline-time">2:16am</div>
+              <div class="timeline-content"><strong>These &ldquo;How I Built This&rdquo; docs.</strong> MCP config fixes. Done.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Math -->
+        <div class="timeline-math">
+          <h4>The Math</h4>
+          <table class="article-table" style="margin-bottom: 0;">
+            <thead>
+              <tr><th>Metric</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>First commit</td><td>Feb 26, 2026 at 1:18am IST</td></tr>
+              <tr><td>Last commit</td><td>Feb 28, 2026 at 2:16am IST</td></tr>
+              <tr><td>Wall clock elapsed</td><td>~49 hours</td></tr>
+              <tr><td>Active coding sessions</td><td>3</td></tr>
+              <tr><td>Total active time</td><td>~10 hours 26 minutes</td></tr>
+              <tr><td>Total commits</td><td>21</td></tr>
+              <tr><td>Avg time between commits</td><td>~14 minutes (during active sessions)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p style="margin-top: 28px;">Three late-night sessions. Ten hours of actual work. One AI pair programmer. Zero infrastructure cost.</p>
+
+      </div>
+
+      <div class="tldr">
+        <div class="tldr-label">TL;DR</div>
+        49 hours from first keystroke to &ldquo;listed on 6 directories.&rdquo; But only ~10 hours of that was active coding. The rest was sleep, food, and life. Claude Code wrote the implementation; I designed the architecture and made the decisions.
+      </div>
+
+      <hr>
+
+      <!-- Section 12: By the Numbers -->
+      <h2 id="by-the-numbers">By the Numbers</h2>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value">~10 <span class="accent">hrs</span></div>
+          <div class="metric-label">Active coding time (49 hrs wall clock)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">~4,000</div>
+          <div class="metric-label">Lines of TypeScript</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value"><span class="green">129</span></div>
+          <div class="metric-label">Tests across 9 files</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">2</div>
+          <div class="metric-label">Runtime dependencies (MCP SDK + Zod)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value"><span class="green">$0</span></div>
+          <div class="metric-label">Monthly infrastructure cost</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">11</div>
+          <div class="metric-label">MCP tools</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">5 &times; 20</div>
+          <div class="metric-label">Scoring dimensions (100 max)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">3</div>
+          <div class="metric-label">Output targets (Claude, OpenAI, Generic)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">8</div>
+          <div class="metric-label">Cost models across 3 providers</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">4</div>
+          <div class="metric-label">Install methods</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value"><span class="accent">6+</span></div>
+          <div class="metric-label">Directory listings</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value"><span class="orange">+32</span></div>
+          <div class="metric-label">Average score improvement (points)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">21</div>
+          <div class="metric-label">Total commits</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value"><span class="green">0</span></div>
+          <div class="metric-label">AI calls made by the optimizer</div>
+        </div>
+      </div>
+
+      <!-- Closing -->
+      <p class="closing-line">Built with Claude Code in ~10 hours of active coding across 3 late-night sessions. 21 commits. Shipped on npm. Listed on 6+ directories. Total cost: $0.</p>
+
+    </article>
+
+    <!-- Share -->
+    <div class="share-section">
+      <h3>Share this article</h3>
+      <p>If you found this useful, share it with someone building their first MCP.</p>
+      <div class="share-url-box">
+        <input type="text" class="share-url-input" value="https://rishiatlan.github.io/Prompt-Optimizer-MCP/how-i-built-this.html" readonly id="share-url">
+        <button class="share-copy-btn" id="copy-btn" onclick="copyUrl()">Copy URL</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>
+        Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a> &middot;
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a> &middot;
+        MIT License
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    function copyUrl() {
+      var input = document.getElementById('share-url');
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value).then(function() {
+        var btn = document.getElementById('copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy URL';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
