@@ -1,6 +1,6 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "type": "module",
   "description": "Turn sloppy prompts into structured AI instructions — scores, compiles, and optimizes prompts for any LLM via MCP. Free tier included.",
   "main": "dist/src/api.js",
@@ -55,6 +55,7 @@
   "bugs": {
     "url": "https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP/issues"
   },
+  "mcpName": "io.github.rishiatlan/claude-prompt-optimizer",
   "author": "Rishi Banerjee",
   "license": "MIT",
   "dependencies": {
