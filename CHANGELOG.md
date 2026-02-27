@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.2.2] - 2026-02-28
+
+### Added
+- **Human-in-the-loop approval documentation**: Documented the mandatory approval gate (`optimize_prompt` → `refine_prompt` → `approve_prompt`) across README, landing page, and How I Built This articles. The gate was always enforced in code — now it's prominently documented.
+- **How I Built This**: Non-technical article published in both Markdown and HTML (GitHub Pages), with real git-log timeline and build narrative.
+- **Interactive before/after demo**: Landing page hero section now shows a live quality transformation example.
+- **Acknowledgments section**: Credited @aish-varya for PR #1 contributions in How I Built This docs.
+- **MCP Registry listing**: `server.json` added for MCP Registry publication + submitted to 6+ directories.
+
+### Changed
+- **Repository renamed**: `Claude-Prompt-Optimizer` → `Prompt-Optimizer-MCP` (npm package name unchanged).
+- **MCP Registry identifier**: Fixed from `claude-prompt-optimizer` to `prompt-optimizer-mcp` in `server.json`.
+- **Technical How I Built This removed**: Kept non-technical version only to protect product IP.
+
+## [2.2.1] - 2026-02-27
+
+### Changed
+- Republished with new Ed25519 public key to npm.
+- Added npm publish workflow documentation to CLAUDE.md.
+
+## [2.2.0] - 2026-02-27
+
+### Added
+- **Programmatic API**: `import { createOptimizer } from 'claude-prompt-optimizer-mcp'` for direct integration.
+- **Dual entry points**: MCP server (stdio) + programmatic API from single package.
+- **Curl installer**: `curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash`
+- **E2E tests**: End-to-end tests covering the full optimize → refine → approve flow.
+- **Landing page**: GitHub Pages product site with interactive demo and pricing.
+
 ## [2.1.0] - 2026-02-27
 
 ### Added
