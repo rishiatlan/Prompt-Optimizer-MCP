@@ -18,6 +18,7 @@
 - [Distribution — Getting It in Front of People](#distribution--getting-it-in-front-of-people)
 - [Hiccups, Headaches, and Hard Lessons](#hiccups-headaches-and-hard-lessons)
 - [What's Next](#whats-next)
+- [The Actual Timeline — 49 Hours, 21 Commits](#the-actual-timeline--49-hours-21-commits)
 - [By the Numbers](#by-the-numbers)
 
 ---
@@ -115,14 +116,15 @@ That's it. Two runtime dependencies: the MCP SDK and Zod. Everything else is Nod
 
 ### Timeline
 
-- **Days 1-3:** Architecture and core pipeline (analyzer, scorer, compiler, estimator)
-- **Days 4-6:** MCP tool layer, freemium gating, storage
-- **Days 7-8:** License system (Ed25519 cryptographic validation)
-- **Days 9-10:** Programmatic API, dual entry points, testing (129 tests)
-- **Days 11-12:** Landing page, distribution, directory submissions
-- **Days 13-14:** Polish, pricing setup on Lemon Squeezy, go-live
+Here's the actual git log — the real story is that this was built in 3 intense sessions, not 2 weeks:
 
-> **TL;DR:** Two weeks, two dependencies, zero infrastructure cost. Built with Claude Code as my pair programmer.
+- **Session 1 (Feb 26, 1am–7pm):** 11 commits. Started at 1:18am with the initial server. By 3am, the full pipeline (analyzer, scorer, compiler, estimator) worked and could handle any prompt type. After a break, came back at 3pm to ship the npm package, add audience/tone/platform detection, and publish v1.2.
+- **Session 2 (Feb 27, 8pm–11pm):** 3 commits. The big one — v2.1.0 landed with the 3-tier freemium model, Ed25519 license system, 11 tools, persistent storage. Polished docs and pushed the live release to npm.
+- **Session 3 (Feb 28, 12am–2am):** 7 commits. Programmatic API, dual entry points, E2E tests, landing page, MCP Registry publication, directory submissions to 6+ platforms, and these writeup docs.
+
+**Elapsed time:** 49 hours from first commit to last. **Active coding:** ~10 hours across 3 sessions. The rest was sleeping, eating, and living life.
+
+> **TL;DR:** 49 hours wall clock, ~10 hours active. 21 commits. Two dependencies, zero infrastructure cost. Built with Claude Code as my pair programmer.
 
 ---
 
@@ -262,11 +264,75 @@ The Official MCP Registry requires a special field (`mcpName`) in your npm packa
 
 ---
 
+## The Actual Timeline — 49 Hours, 21 Commits
+
+Most "how I built this" posts hand-wave the timeline. Here's the actual git history — every commit, timestamped.
+
+### Day 1 — Feb 26: From Zero to Published (11 commits)
+
+| Time (IST) | What Happened |
+|------------|---------------|
+| **1:18am** | First commit. Initial MCP server with the 5-stage pipeline. |
+| **1:28am** | Full README with 6 examples and tool documentation. |
+| **1:57am** | Made the optimizer universal — supports all prompt types, not just code. |
+| **2:03am** | Docs alignment pass. |
+| **2:09am** | Added non-code examples: writing, research, planning showcases. |
+| **2:58am** | Fixed the big bug: intent-first detection so "write a post about my MCP" doesn't misclassify as code. |
+| **3:01am** | Docs alignment. Then **went to sleep.** |
+| **3:19pm** | Woke up. Published to npm. Added benchmarks. Repositioned README. |
+| **6:52pm** | v1.2 — audience/tone/platform detection, goal enrichment, new rules. |
+| **6:57pm** | README aligned with v1.2. |
+| **7:01pm** | Credited a contributor for PR #1. |
+
+**Day 1 summary:** 5 hours 43 minutes of active work. Went from zero to a published npm package with a full pipeline, 6 examples, and universal prompt support.
+
+### Day 2 — Feb 27: The Freemium & License System (3 commits)
+
+| Time (IST) | What Happened |
+|------------|---------------|
+| **8:34pm** | The monster commit: v2.1.0. 3-tier freemium, Ed25519 license keys, 11 tools, persistent storage, rate limiting. All in one session. |
+| **9:02pm** | Polished all docs for the live release. |
+| **11:28pm** | Version bump to v2.1.1 for npm README update. |
+
+**Day 2 summary:** 2 hours 54 minutes. The entire monetization layer — from metering to cryptographic license validation — built in a single sitting.
+
+### Day 3 — Feb 28: API, Distribution, and Launch (7 commits)
+
+| Time (IST) | What Happened |
+|------------|---------------|
+| **12:27am** | v2.2.0 — programmatic API, dual entry points, curl installer, E2E tests (129 total). |
+| **1:10am** | Landing page live on GitHub Pages. New keypair generated. |
+| **1:17am** | v2.2.1 — published new Ed25519 public key to npm. |
+| **1:22am** | Added npm publish instructions to CLAUDE.md (so future sessions don't fight token issues). |
+| **1:42am** | v2.2.2 — MCP Registry listing + directory submissions to 6 platforms. |
+| **1:46am** | Added interactive before/after demo to the landing page. |
+| **2:16am** | These "How I Built This" docs. MCP config fixes. Done. |
+
+**Day 3 summary:** 1 hour 49 minutes. Programmatic API, E2E test suite, landing page, published to the Official MCP Registry, submitted to 6 directories, and wrote the retrospective.
+
+### The Math
+
+| Metric | Value |
+|--------|-------|
+| **First commit** | Feb 26, 2026 at 1:18am IST |
+| **Last commit** | Feb 28, 2026 at 2:16am IST |
+| **Wall clock elapsed** | ~49 hours |
+| **Active coding sessions** | 3 |
+| **Total active time** | ~10 hours 26 minutes |
+| **Total commits** | 21 |
+| **Avg time between commits** | ~14 minutes (during active sessions) |
+
+Three late-night sessions. Ten hours of actual work. One AI pair programmer. Zero infrastructure cost.
+
+> **TL;DR:** 49 hours from first keystroke to "listed on 6 directories." But only ~10 hours of that was active coding. The rest was sleep, food, and life. Claude Code wrote the implementation; I designed the architecture and made the decisions.
+
+---
+
 ## By the Numbers
 
 | Metric | Value |
 |--------|-------|
-| **Time to build** | ~2 weeks |
+| **Time to build** | ~10 hours active across 3 sessions (49 hours wall clock) |
 | **Lines of code** | ~4,000 (TypeScript) |
 | **Test suite** | 129 tests across 9 files |
 | **Runtime dependencies** | 2 (MCP SDK + Zod) |
@@ -282,4 +348,4 @@ The Official MCP Registry requires a special field (`mcpName`) in your npm packa
 
 ---
 
-*Built with Claude Code. Shipped on npm. Listed everywhere. Total cost: $0 and two weekends of focus.*
+*Built with Claude Code in ~10 hours of active coding across 3 late-night sessions. 21 commits. Shipped on npm. Listed on 6+ directories. Total cost: $0.*

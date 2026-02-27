@@ -3,7 +3,7 @@
   "name": "io.github.rishiatlan/claude-prompt-optimizer",
   "description": "Scores, compiles & optimizes prompts for any LLM. Zero AI calls inside. Freemium.",
   "repository": {
-    "url": "https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP",
+    "url": "https://github.com/rishiatlan/Prompt-Optimizer-MCP",
     "source": "github"
   },
   "version": "2.2.2",

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Claude Prompt Optimizer MCP — Quick Installer
-# Usage: curl -fsSL https://rishiatlan.github.io/Claude-Prompt-Optimizer-MCP/install.sh | bash
+# Usage: curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash
 
 set -euo pipefail
 

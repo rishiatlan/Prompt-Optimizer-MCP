@@ -64,7 +64,7 @@ Quick setup (any MCP-compatible client):
     }
   }
 
-More info: https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP`);
+More info: https://github.com/rishiatlan/Prompt-Optimizer-MCP`);
   process.exit(0);
 }
 

@@ -49,11 +49,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP.git"
+    "url": "git+https://github.com/rishiatlan/Prompt-Optimizer-MCP.git"
   },
-  "homepage": "https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP#readme",
+  "homepage": "https://github.com/rishiatlan/Prompt-Optimizer-MCP#readme",
   "bugs": {
-    "url": "https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP/issues"
+    "url": "https://github.com/rishiatlan/Prompt-Optimizer-MCP/issues"
   },
   "mcpName": "io.github.rishiatlan/claude-prompt-optimizer",
   "author": "Rishi Banerjee",

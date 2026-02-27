@@ -20,6 +20,7 @@ By Rishi Banerjee
 - [Programmatic API: Dual Entry Points](#programmatic-api)
 - [Distribution Pipeline](#distribution-pipeline)
 - [Build Invariants](#build-invariants)
+- [Build Timeline: 21 Commits in 49 Hours](#build-timeline-21-commits-in-49-hours)
 - [What Went Wrong](#what-went-wrong)
 - [Stack and Dependencies](#stack-and-dependencies)
 - [What I'd Do Differently](#what-id-do-differently)
@@ -540,6 +541,76 @@ These are immutable rules enforced by tests. If implementation drifts from any, 
 
 ---
 
+## Build Timeline: 21 Commits in 49 Hours
+
+The entire project was built in 3 coding sessions totalling ~10 hours of active development. Here's the commit-level breakdown:
+
+### Session 1 — Feb 26 (1:18am–7:01pm IST) — Foundation
+
+**11 commits. ~5h43m active.**
+
+```
+193c01b  01:18  feat: initial prompt optimizer MCP server
+2cde5e8  01:28  docs: add comprehensive README with 6 examples
+36773fe  01:57  feat: make MCP universal — all prompt types
+373954c  02:03  docs: align all documentation
+ac73ab5  02:09  docs: add non-code examples
+4f24e20  02:58  fix: intent-first detection (the "write a post about MCP" bug)
+fb67b5c  03:01  docs: align with intent-first changes
+                ── sleep ──
+b13a4a2  15:19  feat: NPM package + benchmarks + repositioned README
+4f1aee0  18:52  feat: v1.2 — audience/tone/platform, goal enrichment, 10 rules
+98cd20d  18:57  docs: align README with v1.2
+efde9cf  19:01  docs: credit contributor for PR #1
+```
+
+**Key decisions this session:** Universal prompt support (not code-only), intent-first task detection over keyword matching, publish to npm same day.
+
+### Session 2 — Feb 27 (8:34pm–11:28pm IST) — Monetization
+
+**3 commits. ~2h54m active.**
+
+```
+368232f  20:34  feat: v2.1.0 — 3-tier freemium, Ed25519, 11 tools, storage
+b154eeb  21:02  docs: polish all docs for live v2.1 release
+061fd39  23:28  chore: bump to v2.1.1 for npm readme update
+```
+
+**Key decisions this session:** Ed25519 over JWT (offline-first), metering-after-success pattern, `StorageInterface` abstraction for Phase B migration.
+
+### Session 3 — Feb 28 (12:27am–2:16am IST) — API + Distribution
+
+**7 commits. ~1h49m active.**
+
+```
+01ff70d  00:27  feat: v2.2.0 — programmatic API, dual entry points, E2E tests
+460d182  01:10  feat: landing page, new keypair, CLAUDE.md hidden
+0cb774a  01:17  chore: v2.2.1 — publish new public key to npm
+50cb324  01:22  docs: add npm publish instructions to CLAUDE.md
+20e5960  01:42  feat: v2.2.2 — MCP Registry + directory submissions
+f1e93fc  01:46  feat: interactive before/after demo on landing page
+316c514  02:16  docs: How I Built This writeups + MCP config fix
+```
+
+**Key decisions this session:** ESM-only (no CJS wrapper), barrel export pattern for `api.ts`, packaging validation tests that check `dist/` output.
+
+### Velocity Analysis
+
+| Metric | Value |
+|--------|-------|
+| First commit → last commit | 49 hours wall clock |
+| Active coding time | ~10h 26min |
+| Total commits | 21 |
+| Avg commit interval (active) | ~14 minutes |
+| Lines of production code | ~4,000 |
+| Lines of test code | ~2,500 |
+| LoC per active hour | ~620 (production + tests) |
+| Features per session | Session 1: core pipeline + npm. Session 2: freemium + licensing. Session 3: API + distribution. |
+
+The commit velocity tells the story of AI-assisted development: 14-minute average intervals means the human was making architectural decisions and reviewing output, while Claude Code wrote the implementation and tests. The 3-session structure is natural — each session had a clear theme (foundation → monetization → distribution) and was self-contained.
+
+---
+
 ## What Went Wrong
 
 ### 1. npm Token Type Confusion
@@ -614,4 +685,4 @@ Smithery's CLI bundles everything as CJS via esbuild. Top-level await and `impor
 
 ---
 
-*Built with Claude Code. 129 tests. 2 dependencies. 11 tools. 0 AI calls. 0 monthly cost. Shipped in 2 weeks.*
+*Built with Claude Code in ~10 hours of active coding across 3 sessions. 21 commits in 49 hours. 129 tests. 2 dependencies. 11 tools. 0 AI calls. 0 monthly cost.*

@@ -212,7 +212,7 @@ Changes Made:
 | **MCP Config** (recommended) | Add to `.mcp.json` or `~/.claude/settings.json` — see below |
 | **npx** | `npx -y claude-prompt-optimizer-mcp` |
 | **npm global** | `npm install -g claude-prompt-optimizer-mcp` |
-| **curl** | `curl -fsSL https://rishiatlan.github.io/Claude-Prompt-Optimizer-MCP/install.sh \| bash` |
+| **curl** | `curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh \| bash` |
 
 ### MCP Config (Claude Code / Claude Desktop)
 
@@ -265,7 +265,7 @@ Then use in your MCP config:
 <summary><strong>Curl installer (installs globally + prints MCP config)</strong></summary>
 
 ```bash
-curl -fsSL https://rishiatlan.github.io/Claude-Prompt-Optimizer-MCP/install.sh | bash
+curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash
 ```
 
 Checks Node.js ≥ 18, installs the package globally, and prints the MCP config JSON for your platform.
@@ -276,8 +276,8 @@ Checks Node.js ≥ 18, installs the package globally, and prints the MCP config 
 <summary><strong>From source (for contributors)</strong></summary>
 
 ```bash
-git clone https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP.git
-cd Claude-Prompt-Optimizer-MCP
+git clone https://github.com/rishiatlan/Prompt-Optimizer-MCP.git
+cd Prompt-Optimizer-MCP
 npm install && npm run build
 ```
 
@@ -287,7 +287,7 @@ Then use in your MCP config:
   "mcpServers": {
     "prompt-optimizer": {
       "command": "node",
-      "args": ["/absolute/path/to/Claude-Prompt-Optimizer-MCP/dist/src/index.js"]
+      "args": ["/absolute/path/to/Prompt-Optimizer-MCP/dist/src/index.js"]
     }
   }
 }
@@ -383,7 +383,7 @@ Free tier gives you 10 optimizations to experience the full pipeline. No credit 
 
 ### Activate a License
 
-1. Purchase at the [Prompt Optimizer store](https://rishiatlan.github.io/Claude-Prompt-Optimizer-MCP/)
+1. Purchase at the [Prompt Optimizer store](https://rishiatlan.github.io/Prompt-Optimizer-MCP/)
 2. You receive a license key starting with `po_pro_...`
 3. Tell Claude: "Use set_license with key: po_pro_YOUR_KEY_HERE"
 4. Done — your tier upgrades instantly. Verify with `license_status`.
@@ -937,7 +937,7 @@ Reason:         Balanced task — Sonnet offers the best
 
 ## Contributors
 
-- [@aish-varya](https://github.com/aish-varya) — audience/tone/platform detection, goal enrichment, `generic_vague_ask` rule, CLI flags ([PR #1](https://github.com/rishiatlan/Claude-Prompt-Optimizer-MCP/pull/1))
+- [@aish-varya](https://github.com/aish-varya) — audience/tone/platform detection, goal enrichment, `generic_vague_ask` rule, CLI flags ([PR #1](https://github.com/rishiatlan/Prompt-Optimizer-MCP/pull/1))
 
 ## Credits
 
