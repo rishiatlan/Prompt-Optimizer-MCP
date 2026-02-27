@@ -4,28 +4,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-An MCP (Model Context Protocol) server that optimizes prompts for maximum impact and minimum cost with Claude. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle with a sign-off gate before execution.
+An MCP (Model Context Protocol) server that optimizes prompts for maximum impact and minimum cost. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle.
+
+**v2.1: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, and 11 tools.
 
 **Zero LLM calls inside the MCP.** All intelligence comes from the host Claude. The MCP provides structure, rules, and discipline.
 
-## Build & Run
+## Build & Test
 
 ```bash
 npm run build    # tsc → dist/
-npm run start    # node dist/index.js
+npm test         # node --test dist/test/*.test.js (7 test files, 98 tests)
+npm run start    # node dist/src/index.js
 ```
 
-No test suite, no linter. The project is validated by manual JSON-RPC testing (see Testing section below).
+**ESM module** — `"type": "module"` in package.json. All imports use `.js` extensions. `rootDir` is `"."` (both `src/` and `test/` compile to `dist/`).
 
 ## Distribution
 
-Published to npm as `claude-prompt-optimizer-mcp`. End users install via `npx` — no cloning needed.
+Published to npm as `claude-prompt-optimizer-mcp`. End users install via `npx`.
 
-- `bin/cli.js` is the shebang entry point, importing `dist/index.js`
+- `bin/cli.js` is the shebang entry point, importing `dist/src/index.js`
 - `package.json` has `bin` pointing to `bin/cli.js`, `files` whitelist ships only `dist/`, `bin/`, `README.md`, `LICENSE`
 - `prepublishOnly` script runs `npm run build` before publish
-- `src/index.ts` handles `--version` and `--help` flags before starting the server
-- Version is read from `package.json` at runtime (single source of truth)
+
+## Environment Variables
+
+| Var | Default | Purpose |
+|-----|---------|---------|
+| `PROMPT_OPTIMIZER_PRO` | unset | Set to `true` to enable pro tier (env var override). Tier priority: license key > env var > default free. |
+| `PROMPT_OPTIMIZER_LOG_LEVEL` | `info` | Log verbosity: debug, info, warn, error |
+| `PROMPT_OPTIMIZER_LOG_PROMPTS` | unset (false) | Set to `true` to enable raw prompt logging. **Never enable in shared environments.** |
 
 ## Architecture
 
@@ -42,111 +51,145 @@ User prompt → Host Claude → [calls MCP tools] → Deterministic analysis
                                            compiled prompt as guide
 ```
 
-### Key Architectural Pattern: Task-Type Polymorphism
+### Phase A / Phase B Split
 
-The entire pipeline adapts behavior based on `TaskType`. Every module branches on whether the prompt is code, prose, research, etc:
+- **Phase A (current):** Local file-based storage (`~/.prompt-optimizer/`), env var tier override, instance-scoped rate limiting
+- **Phase B (future):** Cloudflare Worker + Supabase + Stripe. Same `StorageInterface`, same tool contracts, only implementation swaps
 
-- **analyzer.ts** — three-layer detection with intent-first opener check (see below). Structured audience detection (19 labeled patterns), platform detection (9 platforms), tone detection. All surfaced on IntentSpec.
-- **rules.ts** — each rule has an `applies_to` field (`'code' | 'prose' | 'all'`). Code-only rules (vague_objective, missing_target, scope_explosion) skip for writing tasks. `extractBlockingQuestions` accepts `answeredIds` to skip already-answered questions in refine flow.
-- **scorer.ts** — code tasks reward file paths; prose tasks reward audience/tone/platform/length. Compiled prompt scoring rewards `<audience>`, `<tone>`, `<platform_guidelines>` tags.
-- **compiler.ts** — code tasks get "Do not modify files outside scope"; prose tasks get "Match the intended tone and audience". Goal enrichment per task type (prose gets audience/tone/platform pins, code gets file paths, research/analysis get structure guidance). Platform-specific guidelines (Slack, LinkedIn, Email, etc.).
-- **estimator.ts** — output token estimates and model recommendations vary by task type
-- **templates.ts** — role descriptions and workflow steps are task-type specific
+The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requires zero tool handler changes. Enforced by `test/contracts.test.ts`.
 
-The helpers `isCodeTask()` and `isProseTask()` in `types.ts` drive this branching.
+## 11 MCP Tools
 
-### Three-Layer Task Detection (analyzer.ts)
+| # | Tool | Free/Metered | Purpose |
+|---|------|-------------|---------|
+| 1 | `optimize_prompt` | **Metered** | Main entry: analyze → score → compile → estimate cost → return PreviewPack |
+| 2 | `refine_prompt` | **Metered** | Iterative: answer questions, add edits → updated PreviewPack |
+| 3 | `approve_prompt` | Free | Sign-off gate: returns final compiled prompt + quality_score_before |
+| 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google) |
+| 5 | `compress_context` | Free | Prune irrelevant context, report token savings |
+| 6 | `check_prompt` | Free | Lightweight pass/fail + score + top 2 issues |
+| 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode, session limits |
+| 8 | `get_usage` | Free | Usage count, limits, remaining, tier info |
+| 9 | `prompt_stats` | Free | Aggregates: total, avg score, top task types, cost savings |
+| 10 | `set_license` | Free | Activate Pro license key (Ed25519 offline validation) |
+| 11 | `license_status` | Free | Check license status, tier, expiry. Shows purchase link if no license. |
 
-Detection uses a three-layer strategy to prevent topic-vs-task confusion (e.g., "Write me a LinkedIn post about my MCP server" must be `writing`, not `create`):
+### Output Targets
 
-1. **Layer 1: Intent-first opener** (`detectIntentFromOpener`) — examines the first sentence (≤150 chars) for strong intent signals. Opening verb phrase is the strongest signal of user intent. If found, short-circuits before full-prompt analysis.
-   - Writing: `WRITING_VERBS` + `PROSE_OUTPUT_RE` (40+ prose output types) or `PLATFORM_SIGNALS`
-   - Research: `RESEARCH_VERBS` at sentence start
-   - Planning: create/build/design + `PLANNING_NOUNS` (without `CODE_ARTIFACT_NOUNS`)
-2. **Layer 2: Full-prompt patterns** (`TASK_TYPE_PATTERNS`) — non-code patterns checked FIRST (writing before debug) to prevent misclassification
-3. **Layer 3: Fallback** — returns `'other'`
+- **claude** (default): XML-tagged (`<role>`, `<goal>`, `<constraints>`, etc.)
+- **openai**: System/user message split (`[SYSTEM]...[USER]...`)
+- **generic**: Markdown with `## Headers`
 
-### 13 Task Types
+## Build-Mode Invariants
 
-Code: `code_change`, `question`, `review`, `debug`, `create`, `refactor`
-Non-code: `writing`, `research`, `planning`, `analysis`, `communication`, `data`
-Fallback: `other`
+These are immutable coding rules. If implementation drifts from any, it's a bug.
 
-## 5 MCP Tools
-
-| Tool | Purpose | Stateful? |
-|------|---------|-----------|
-| `optimize_prompt` | Main entry: analyze → score → compile → estimate cost → return PreviewPack | Creates session |
-| `refine_prompt` | Iterative: answer questions, add edits → updated PreviewPack | Updates session |
-| `approve_prompt` | Sign-off gate: returns final compiled prompt. **Refuses** if blocking questions remain. | Finalizes session |
-| `estimate_cost` | Standalone token + cost estimator for any text | No |
-| `compress_context` | Prune irrelevant context, report token savings | No |
+| ID | Rule | Enforcement |
+|----|------|-------------|
+| I1 | Deterministic ordering | `src/sort.ts` — all array fields sorted consistently |
+| I2 | One response envelope | ALL responses include `request_id` (success AND error) |
+| I3 | Metering-after-success | `let success = false; try { ...; success = true; } finally { if (success) increment; }` |
+| I4 | Rate limit centralized | Only inside `canUseOptimization(ctx)` — never in tool handlers |
+| I5 | Degraded health explicit | `"storage_health": "degraded"` in metered responses when storage unhealthy |
 
 ## File Roles
 
 | File | Role |
 |------|------|
-| `src/index.ts` | Entry point — shebang, CLI flags (--version, --help), MCP server + stdio transport wiring |
-| `src/tools.ts` | 5 MCP tool registrations with Zod schemas (thin wiring layer) |
-| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer intent-first task detection, structured audience/tone/platform detection, task-aware constraint extraction. |
-| `src/compiler.ts` | Prompt compilation: IntentSpec → XML-tagged prompt. Goal enrichment, platform hints, task-type-aware constraints. |
-| `src/estimator.ts` | Token counting (`ceil(len/4)`), per-model cost estimation, task-aware model recommendations |
-| `src/scorer.ts` | Quality scoring (0-100, 5 dimensions × 20 points). Task-type-aware specificity scoring. |
+| `src/index.ts` | Entry point — CLI flags, MCP server + stdio transport, wires storage + rate limiter |
+| `src/tools.ts` | 11 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
+| `src/types.ts` | All interfaces: TierLimits, PLAN_LIMITS, PreviewPack, ExecutionContext, StorageInterface, OutputTarget, LicenseData |
+| `src/license.ts` | Ed25519 offline license key validation (public key only, zero npm deps) |
+| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer task detection. |
+| `src/compiler.ts` | Multi-LLM compilation: IntentSpec → claude/openai/generic output with format_version |
+| `src/estimator.ts` | Multi-provider cost estimation (Anthropic, OpenAI, Google), target-aware recommendations |
+| `src/scorer.ts` | Quality scoring (0-100, 5 dimensions × 20 points, scoring_version: 2). `generateChecklist()` for structural coverage. |
 | `src/rules.ts` | 10 deterministic ambiguity detection rules with `applies_to` field |
-| `src/templates.ts` | `Record<TaskType, string>` for roles and workflows — must include ALL 13 task types |
-| `src/session.ts` | In-memory `Map<string, Session>` with 30min TTL |
-| `src/types.ts` | All TypeScript interfaces + `isCodeTask()`/`isProseTask()` helpers |
+| `src/templates.ts` | `Record<TaskType, string>` for roles and workflows |
+| `src/session.ts` | Async session management delegating to StorageInterface |
+| `src/logger.ts` | Structured logging with levels, request ID correlation, prompt logging gate |
+| `src/rateLimit.ts` | `LocalRateLimiter` — instance-scoped, tier-keyed sliding window |
+| `src/sort.ts` | Deterministic ordering helpers: CHECKLIST_ORDER, sortCountsDescKeyAsc, sortIssues, sortCostEntries |
+| `src/storage/interface.ts` | StorageInterface type, defaults (DEFAULT_CONFIG, DEFAULT_USAGE, DEFAULT_STATS) |
+| `src/storage/localFs.ts` | File-based StorageInterface implementation (`~/.prompt-optimizer/`) |
+| `src/storage/index.ts` | Re-export — Phase B swaps one line |
 
-## Ambiguity Rules (10 deterministic checks)
+## Test Files
 
-| Rule | Applies To | Severity | Trigger |
-|------|-----------|----------|---------|
-| `vague_objective` | code | BLOCKING | Vague terms without a specific target |
-| `missing_target` | code | BLOCKING | Code task with no file/function/module reference |
-| `scope_explosion` | code | BLOCKING | "all", "everything", "entire" without scoping nouns (25-char lookahead window) |
-| `high_risk_domain` | code | NON-BLOCKING | Auth, payment, database, production keywords |
-| `no_constraints_high_risk` | code | BLOCKING | High-risk task with zero constraints |
-| `format_ambiguity` | all | NON-BLOCKING | Mentions JSON/YAML but no schema |
-| `multi_task_overload` | all | NON-BLOCKING | 3+ task indicators in one prompt |
-| `generic_vague_ask` | all | BLOCKING | Extremely vague prompt with no actionable specifics |
-| `missing_audience` | prose | NON-BLOCKING | No target audience specified |
-| `no_clear_ask` | prose | NON-BLOCKING | No clear communication goal |
+| File | Tests |
+|------|-------|
+| `test/scorer.test.ts` | 100/100 ceiling, checklist generation, dimension boundaries, preservation bonus |
+| `test/compiler.test.ts` | XML/openai/generic output, format_version, blocking questions exclusion |
+| `test/storage.test.ts` | CRUD, session lifecycle, path traversal, session cleanup, stats |
+| `test/freemium.test.ts` | Lifetime gate, pro bypass, metering-after-success, rate limiter, PLAN_LIMITS |
+| `test/contracts.test.ts` | Output shape freeze (PreviewPack, CostEstimate, LicenseData), deterministic ordering |
+| `test/security.test.ts` | Input hardening, session ID sanitization, no-throw invariant, UUID format |
+| `test/license.test.ts` | Ed25519 validation, storage CRUD, tier priority chain, file permissions |
 
-Hard caps: max 3 blocking questions, max 5 assumptions per cycle.
+## Key Type Contracts
 
-## Key Design Decisions
+### TierLimits & PLAN_LIMITS
+```typescript
+{ lifetime: number, monthly: number, rate_per_minute: number, always_on: boolean }
+// free:  { lifetime: 10,       monthly: 10,       rate_per_minute: 5,  always_on: false }
+// pro:   { lifetime: Infinity, monthly: 100,      rate_per_minute: 30, always_on: false }
+// power: { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 60, always_on: true }
+```
 
-1. **Deterministic only** — No LLM calls inside the MCP. Rules, regex, heuristics.
-2. **Sign-off gate** — `approve_prompt` refuses if blocking questions remain unanswered.
-3. **Task-type polymorphism** — Every module adapts behavior via `isCodeTask()`/`isProseTask()`.
-4. **Intent-first detection** — Opening verb phrase is the strongest signal. Prevents topic-vs-task confusion where technical keywords in the body contaminate classification.
-5. **Answered question carry-forward** — Refine flow passes `answeredIds` from `session.answers` through to `extractBlockingQuestions`, preventing already-answered blocking questions from being regenerated.
-6. **XML-tagged output** — Anthropic-optimized prompt structure (role, goal, constraints, workflow).
-7. **Session-based state** — In-memory Map, 30min TTL, single-client stdio transport.
-8. **Goal enrichment** — Compiler enriches goals per task type: prose gets audience/tone/platform pins, code gets file path pins, research/analysis get structure guidance.
-9. **Platform-aware compilation** — 9 platforms (Slack, LinkedIn, Email, etc.) get specific writing guidelines compiled into `<platform_guidelines>` XML sections.
+### ExecutionContext
+```typescript
+{ requestId, storage, logger, config, rateLimiter, tier }
+// Phase B adds: user_id?, api_key_hash?, workspace_id?, ip?
+```
+
+### EnforcementResult
+```typescript
+{ allowed, enforcement: 'lifetime'|'monthly'|'rate'|'always_on'|null, usage, limits, remaining, retry_after_seconds? }
+```
+
+### LicenseData
+```typescript
+{ schema_version: 1, tier, issued_at, expires_at, license_id, activated_at, valid, validation_error? }
+```
+
+## License System
+
+- **Ed25519 asymmetric signatures** — public key in `src/license.ts`, private key never in repo
+- **License key format:** `po_pro_<base64url({ payload, signature_hex })>`
+- **Payload:** `{ tier, issued_at, expires_at, license_id }` — no PII, no email
+- **Tier priority chain:** license key (cryptographically verified) > `PROMPT_OPTIMIZER_PRO` env var > default free
+- **`getLicense()` re-checks expiry** on every read; marks `valid=false` + `validation_error='expired'` if newly expired
+- **`setLicense()` sets chmod 600** on POSIX (best-effort, skip on Windows)
+- **Gate responses** include `purchase_url` + `next_step` when tier limit is hit (not on rate limits)
+- **Production key:** Replace `PRODUCTION_PUBLIC_KEY_PEM` placeholder before first npm publish
+
+## Scoring
+
+- **scoring_version: 2** — max 100/100 achievable (v1 capped at 96)
+- 5 dimensions × 20 points: Specificity, Constraints, Structure, Efficiency, Context Fit
+- Constraints: +2 for preservation instructions ("preserve", "keep existing", "maintain")
+- Efficiency: +2 bonus for concise prompts (<1000 tokens + no repetition)
+- `generateChecklist()` returns 9-item structural coverage (separate from numeric score)
 
 ## Common Pitfalls
 
-- **Adding a new TaskType**: You must update `types.ts` (union + helper functions), `templates.ts` (both `ROLES` and `WORKFLOWS` are `Record<TaskType, string>` — TypeScript will error if a key is missing), `analyzer.ts` (detection patterns + `detectIntentFromOpener` if applicable), `estimator.ts` (output token estimate + model recommendation), and `analyzer.ts` `extractDefinitionOfDone` (default DoD).
-- **Topic-vs-task confusion**: A prompt ABOUT a technical topic but requesting a WRITING task (e.g., "Write a LinkedIn post about my MCP server") must classify as `writing`. The intent-first opener check handles this — if you add new patterns to Layer 2, ensure they don't override Layer 1's opener detection.
-- **Regex false positives**: The `scope_explosion` rule uses a 25-char lookahead window to allow "all existing tests" while catching "fix all". If adjusting, test with both "refactor all the code" (should trigger) and "pass all existing tests in auth.test.ts" (should NOT trigger).
-- **Detection order matters**: Layer 1 (opener) beats Layer 2 (full-prompt). Within Layer 2, `TASK_TYPE_PATTERNS` is evaluated top-to-bottom, first match wins. Non-code patterns (writing, communication, planning, research) must appear before code patterns.
-- **Refine re-analysis**: `refine_prompt` re-runs the full analyzer on enriched prompts. Always pass `answeredIds` to prevent blocking question regeneration.
+- **Adding a new TaskType**: Update `types.ts`, `templates.ts` (both ROLES and WORKFLOWS), `analyzer.ts`, `estimator.ts`, `analyzer.ts` `extractDefinitionOfDone`
+- **Topic-vs-task confusion**: "Write a post about my MCP" must classify as `writing`. Intent-first opener handles this.
+- **scope_explosion lookahead**: Uses 50-char window. Test with "refactor all the code" (trigger) vs "pass all existing tests in auth.test.ts" (no trigger).
+- **Phase B migration**: Only `storage/index.ts` export changes. All tool handler code, test contracts, and interfaces stay identical.
+- **Metering integrity**: The `success = true` line in tools.ts MUST be after ALL pipeline work. Any throw before it prevents metering.
+- **Rate limiter isolation**: `LocalRateLimiter` is instance-scoped. Never use global mutable state for rate limiting.
+- **`canUseOptimization` uses `ctx.tier`**: Tier comes from ExecutionContext (set by tools layer), NOT from storage. This is correct for Phase B where tier comes from API key auth.
+- **License key validation is synchronous**: `validateLicenseKey()` is a pure function (no I/O). Storage methods are async but validation itself is sync crypto.
+- **Production key**: `PRODUCTION_PUBLIC_KEY_PEM` contains the live Ed25519 public key. Regenerating the keypair (scripts/keygen.mjs init) invalidates ALL existing license keys.
 
-## Testing
+## Breaking Changes (v1 → v2)
 
-No test framework. Manual testing via JSON-RPC over stdin:
-
-```bash
-# Single prompt test
-printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}\n{"jsonrpc":"2.0","method":"notifications/initialized"}\n{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"optimize_prompt","arguments":{"raw_prompt":"YOUR PROMPT HERE"}}}\n' | node dist/index.js 2>/dev/null | tail -1 | python3 -c "import sys,json; d=json.loads(json.loads(sys.stdin.read())['result']['content'][0]['text']); print('type:', d['intent_spec']['task_type'], '| risk:', d['intent_spec']['risk_level'], '| BQs:', len(d['blocking_questions']), '| score:', d['quality_before']['total'], '→', d['quality_after']['total'])"
-```
-
-Key test cases to verify after changes:
-- Writing task: `"Write a Slack post for my team"` → type=writing, risk=low, 0 blocking questions
-- Code task: `"Add validation to src/routes/users.ts"` → type=code_change, risk=medium
-- Vague task: `"make it better"` → blocking questions fired
-- Data task: `"Transform this CSV to group by department"` → type=data, model=haiku
-
-Each `printf | node` invocation creates a new process (sessions don't persist across runs). For multi-step flows (refine/approve), use Python `subprocess.Popen` to keep one process alive.
+- `quality_after` → `compilation_checklist` (CompilationChecklist, not a numeric score)
+- `PreviewPack` now includes `request_id`, `target`, `format_version: 1`, `scoring_version: 2`, `storage_health?`
+- All responses include `request_id` (success and error)
+- `CostEstimate.costs` now includes OpenAI + Google models (was Anthropic-only)
+- `compilePrompt()` takes `target: OutputTarget` parameter
+- 4 new tools: `check_prompt`, `configure_optimizer`, `get_usage`, `prompt_stats`
+- Sessions backed by async StorageInterface (was sync in-memory Map)
+- Scoring max changed from 96 to 100 (scoring_version: 2)

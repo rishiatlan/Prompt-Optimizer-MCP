@@ -192,7 +192,7 @@ const TASK_TYPE_PATTERNS: Array<{ type: TaskType; patterns: RegExp[] }> = [
   },
 ];
 
-function detectTaskType(prompt: string): TaskType {
+export function detectTaskType(prompt: string): TaskType {
   // Layer 1: Opening intent — strongest signal, prevents topic contamination
   const openerIntent = detectIntentFromOpener(prompt);
   if (openerIntent) return openerIntent;

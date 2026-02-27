@@ -1,4 +1,5 @@
-// types.ts — All TypeScript interfaces for the prompt optimizer.
+// types.ts — All TypeScript interfaces for the prompt optimizer v2.0.
+// This is the interface contract: Phase B must not change these shapes.
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,27 @@ export type SessionState = 'ANALYZING' | 'COMPILED' | 'APPROVED';
 export type RuleSeverity = 'blocking' | 'non_blocking';
 
 export type ModelTier = 'haiku' | 'sonnet' | 'opus';
+
+// ─── Output Target (multi-LLM) ───────────────────────────────────────────────
+
+export type OutputTarget = 'claude' | 'openai' | 'generic';
+
+// ─── Tier System ──────────────────────────────────────────────────────────────
+
+export interface TierLimits {
+  lifetime: number;          // total uses ever (free=10, pro/power=Infinity)
+  monthly: number;           // per calendar month (free=10, pro=100, power=Infinity)
+  rate_per_minute: number;   // sliding window rate limit (free=5, pro=30, power=60)
+  always_on: boolean;        // can use always-on mode (free/pro=false, power=true)
+}
+
+export const PLAN_LIMITS: Record<string, TierLimits> = {
+  free:  { lifetime: 10,       monthly: 10,       rate_per_minute: 5,  always_on: false },
+  pro:   { lifetime: Infinity, monthly: 100,      rate_per_minute: 30, always_on: false },
+  power: { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 60, always_on: true },
+};
+
+export type Tier = 'free' | 'pro' | 'power';
 
 // ─── Ambiguity Rules ──────────────────────────────────────────────────────────
 
@@ -101,10 +123,24 @@ export interface QualityScore {
   dimensions: QualityDimension[];
 }
 
+// ─── Compilation Checklist (replaces quality_after) ──────────────────────────
+
+export interface ChecklistItem {
+  name: string;
+  present: boolean;
+  note?: string;
+}
+
+export interface CompilationChecklist {
+  items: ChecklistItem[];
+  summary: string;
+}
+
 // ─── Cost Estimation ──────────────────────────────────────────────────────────
 
 export interface ModelCost {
-  model: ModelTier;
+  model: string;
+  provider: string;
   input_tokens: number;
   estimated_output_tokens: number;
   input_cost_usd: number;
@@ -116,24 +152,29 @@ export interface CostEstimate {
   input_tokens: number;
   estimated_output_tokens: number;
   costs: ModelCost[];
-  recommended_model: ModelTier;
+  recommended_model: string;
   recommendation_reason: string;
 }
 
 // ─── Preview Pack ─────────────────────────────────────────────────────────────
 
 export interface PreviewPack {
+  request_id: string;
   session_id: string;
   state: SessionState;
   intent_spec: IntentSpec;
   quality_before: QualityScore;
   compiled_prompt: string;
-  quality_after: QualityScore;
+  compilation_checklist: CompilationChecklist;
   blocking_questions: Question[];
   assumptions: Assumption[];
   cost_estimate: CostEstimate;
-  model_recommendation: ModelTier;
+  model_recommendation: string;
   changes_made: string[];
+  target: OutputTarget;
+  format_version: 1;
+  scoring_version: 2;
+  storage_health?: 'ok' | 'degraded';
 }
 
 // ─── Session ──────────────────────────────────────────────────────────────────
@@ -145,10 +186,11 @@ export interface Session {
   last_accessed: number;
   raw_prompt: string;
   context?: string;
+  target: OutputTarget;
   intent_spec: IntentSpec;
   compiled_prompt: string;
   quality_before: QualityScore;
-  quality_after: QualityScore;
+  compilation_checklist: CompilationChecklist;
   cost_estimate: CostEstimate;
   answers: Record<string, string>;
 }
@@ -162,4 +204,137 @@ export interface CompressionResult {
   savings_percent: number;
   compressed_context: string;
   removed_sections: string[];
+}
+
+// ─── License Data ─────────────────────────────────────────────────────────────
+
+export interface LicenseData {
+  schema_version: 1;
+  tier: Tier;
+  issued_at: string;          // ISO 8601
+  expires_at: string;         // ISO 8601 or "never"
+  license_id: string;         // short ID for support (first 8 chars of key hash)
+  activated_at: string;       // ISO 8601 — when set_license was called
+  valid: boolean;             // cached validation result
+  validation_error?: string;  // present when valid=false
+}
+
+// ─── Usage Data ─────────────────────────────────────────────────────────────────
+
+export interface UsageData {
+  schema_version: 1;
+  total_optimizations: number;
+  current_period_start?: string;     // ISO 8601 — unused Phase A, ready for Phase B
+  period_optimizations?: number;     // unused Phase A, ready for Phase B
+  first_used_at: string;
+  last_used_at: string;
+  tier: Tier;
+}
+
+// ─── Optimizer Config ─────────────────────────────────────────────────────────
+
+export interface OptimizerConfig {
+  schema_version: 1;
+  mode: 'manual' | 'always_on';
+  threshold: number;                 // 0-100, default 60
+  strictness: 'relaxed' | 'standard' | 'strict';
+  auto_compile: boolean;
+  default_target: OutputTarget;
+  ephemeral_mode: boolean;           // true = no session persistence to disk
+  max_sessions: number;              // default 200
+  max_session_size_kb: number;       // default 50
+  max_session_dir_mb: number;        // default 20 — absolute cap on session directory size
+}
+
+// ─── Stats Data ───────────────────────────────────────────────────────────────
+
+export interface StatsData {
+  schema_version: 1;
+  scoring_version: 2;
+  total_optimized: number;
+  total_approved: number;
+  score_sum_before: number;          // numeric pre-compile scores ONLY
+  task_type_counts: Record<string, number>;
+  blocking_question_counts: Record<string, number>;
+  estimated_cost_savings_usd: number;
+}
+
+// ─── Stats Event (for updateStats) ───────────────────────────────────────────
+
+export interface StatsEvent {
+  type: 'optimize' | 'approve';
+  score_before?: number;
+  task_type?: string;
+  blocking_questions?: string[];
+  cost_savings_usd?: number;
+}
+
+// ─── Enforcement Result ───────────────────────────────────────────────────────
+
+export interface EnforcementResult {
+  allowed: boolean;
+  enforcement: 'lifetime' | 'monthly' | 'rate' | 'always_on' | null;
+  usage: UsageData;
+  limits: TierLimits;
+  remaining: {
+    lifetime: number;
+    monthly: number;
+  };
+  retry_after_seconds?: number;      // present ONLY when enforcement='rate'
+}
+
+// ─── Rate Limiter Interface ───────────────────────────────────────────────────
+
+export interface RateLimiter {
+  check(tier: string): { allowed: boolean; retry_after_seconds?: number };
+}
+
+// ─── Logger Interface ─────────────────────────────────────────────────────────
+
+export interface Logger {
+  debug: (requestId: string, ...args: unknown[]) => void | boolean;
+  info: (requestId: string, ...args: unknown[]) => void | boolean;
+  warn: (requestId: string, ...args: unknown[]) => void | boolean;
+  error: (requestId: string, ...args: unknown[]) => void | boolean;
+  prompt: (requestId: string, label: string, content: string) => void | boolean;
+}
+
+// ─── Execution Context ────────────────────────────────────────────────────────
+
+export interface ExecutionContext {
+  requestId: string;
+  storage: StorageInterface;
+  logger: Logger;
+  config: OptimizerConfig;
+  rateLimiter: RateLimiter;
+  tier: Tier;
+  // Phase B extensions (added without interface change):
+  // user_id?: string;
+  // api_key_hash?: string;
+  // workspace_id?: string;
+  // ip?: string;
+}
+
+// ─── Storage Interface (async — Phase B ready) ───────────────────────────────
+// SECURITY INVARIANT: No method on this interface may throw an error that
+// exposes internal file paths, stack traces, or implementation details.
+// All errors must be caught internally and returned as safe defaults.
+
+export interface StorageInterface {
+  health(): Promise<'ok' | 'degraded'>;
+  getUsage(): Promise<UsageData>;
+  incrementUsage(): Promise<UsageData>;
+  canUseOptimization(ctx: ExecutionContext): Promise<EnforcementResult>;
+  isProTier(): Promise<boolean>;
+  getConfig(): Promise<OptimizerConfig>;
+  setConfig(config: Partial<OptimizerConfig>): Promise<OptimizerConfig>;
+  saveSession(session: Session): Promise<void>;
+  loadSession(id: string): Promise<Session | undefined>;
+  deleteSession(id: string): Promise<void>;
+  cleanupSessions(): Promise<void>;
+  getStats(): Promise<StatsData>;
+  updateStats(event: StatsEvent): Promise<void>;
+  getLicense(): Promise<LicenseData | null>;
+  setLicense(data: LicenseData): Promise<void>;
+  clearLicense(): Promise<void>;
 }

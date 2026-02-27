@@ -1,9 +1,11 @@
-// scorer.ts — Prompt quality scoring (0-100). Pure function, no MCP imports.
+// scorer.ts — Prompt quality scoring (0-100, scoring_version: 2).
 // Task-type aware: code tasks reward file paths, prose tasks reward audience/tone.
+// Max score 100/100 is achievable (v1 capped at 96).
 
-import type { IntentSpec, QualityScore, QualityDimension } from './types.js';
+import type { IntentSpec, QualityScore, QualityDimension, CompilationChecklist, ChecklistItem } from './types.js';
 import { isCodeTask, isProseTask } from './types.js';
 import { estimateTokens } from './estimator.js';
+import { sortChecklist } from './sort.js';
 
 // ─── Vague terms that reduce clarity ──────────────────────────────────────────
 
@@ -166,6 +168,14 @@ function scoreConstraints(spec: IntentSpec): QualityDimension {
     notes.push('Time budget specified (+3)');
   }
 
+  // +2 for preservation instructions (makes 20/20 achievable)
+  const preservationPattern = /\b(preserve|keep\s+existing|maintain|backward\s+compatible|don'?t\s+break|backwards?\s+compat)/i;
+  const allConstraintText = [...spec.constraints.scope, ...spec.constraints.forbidden].join(' ');
+  if (preservationPattern.test(allConstraintText) || preservationPattern.test(spec.user_intent)) {
+    score += 2;
+    notes.push('Preservation instructions present (+2)');
+  }
+
   // Penalize high risk with no constraints
   if (spec.risk_level === 'high' && spec.constraints.scope.length === 0 && spec.constraints.forbidden.length === 0) {
     score -= 5;
@@ -180,7 +190,7 @@ function scoreConstraints(spec: IntentSpec): QualityDimension {
 }
 
 function scoreEfficiency(prompt: string, context?: string): QualityDimension {
-  let score = 18; // Start high, penalize bloat
+  let score = 18; // Start at 18, can earn +2 for concise prompts (makes 20/20 achievable)
   const notes: string[] = [];
 
   const totalText = prompt + (context || '');
@@ -202,9 +212,16 @@ function scoreEfficiency(prompt: string, context?: string): QualityDimension {
   // Penalize repetition (crude: check for duplicate sentences)
   const sentences = totalText.split(/[.!?\n]/).map(s => s.trim().toLowerCase()).filter(s => s.length > 20);
   const uniqueSentences = new Set(sentences);
-  if (sentences.length - uniqueSentences.size > 2) {
+  const hasDuplicates = sentences.length - uniqueSentences.size > 2;
+  if (hasDuplicates) {
     score -= 4;
     notes.push('Repetitive content detected (-4)');
+  }
+
+  // +2 bonus for concise prompts (<1000 tokens + no repetition)
+  if (tokens < 1000 && !hasDuplicates) {
+    score += 2;
+    notes.push('Concise and non-repetitive (+2)');
   }
 
   return { name: 'Efficiency', score: Math.max(0, Math.min(20, score)), max: 20, notes };
@@ -229,67 +246,58 @@ export function scorePrompt(spec: IntentSpec, context?: string): QualityScore {
   };
 }
 
-/** Score a compiled prompt (uses a synthetic IntentSpec optimized for max score). */
-export function scoreCompiledPrompt(compiledPrompt: string): QualityScore {
-  // Compiled prompts are structured by design, so score the structural completeness
-  const dimensions: QualityDimension[] = [];
+/** Generate a compilation checklist showing structural coverage of the compiled prompt.
+ * This replaces the old scoreCompiledPrompt which was dishonest (always ~90).
+ * Checklist is a separate concept from numeric score — never enters aggregates. */
+export function generateChecklist(compiledPrompt: string): CompilationChecklist {
+  const items: ChecklistItem[] = [
+    {
+      name: 'Role',
+      present: /<role>/.test(compiledPrompt) || /^(You are|## Role)/m.test(compiledPrompt),
+    },
+    {
+      name: 'Goal',
+      present: /<goal>/.test(compiledPrompt) || /^## (Goal|Task)/m.test(compiledPrompt),
+    },
+    {
+      name: 'Definition of Done',
+      present: /<definition_of_done>/.test(compiledPrompt) || /^## (Definition of Done|Success Criteria)/m.test(compiledPrompt),
+    },
+    {
+      name: 'Constraints',
+      present: /<constraints>/.test(compiledPrompt) || /^## Constraints/m.test(compiledPrompt),
+    },
+    {
+      name: 'Workflow',
+      present: /<workflow>/.test(compiledPrompt) || /^## (Workflow|Steps)/m.test(compiledPrompt),
+    },
+    {
+      name: 'Output Format',
+      present: /<output_format>/.test(compiledPrompt) || /^## Output/m.test(compiledPrompt),
+    },
+    {
+      name: 'Uncertainty Policy',
+      present: /<uncertainty_policy>/.test(compiledPrompt) || /^## Uncertainty/m.test(compiledPrompt),
+    },
+    {
+      name: 'Audience',
+      present: /<audience>/.test(compiledPrompt) || /^## Audience/m.test(compiledPrompt),
+      note: 'Optional — only present when audience was detected',
+    },
+    {
+      name: 'Platform Guidelines',
+      present: /<platform_guidelines/.test(compiledPrompt) || /^## Platform/m.test(compiledPrompt),
+      note: 'Optional — only present when platform was detected',
+    },
+  ];
 
-  // Clarity: compiled prompts always have a clear goal
-  const hasGoal = /<goal>/.test(compiledPrompt);
-  dimensions.push({
-    name: 'Clarity',
-    score: hasGoal ? 19 : 12,
-    max: 20,
-    notes: hasGoal ? ['Explicit goal tag present'] : ['No goal tag found'],
-  });
-
-  // Specificity: check for context, role, audience, tone, platform
-  const hasRole = /<role>/.test(compiledPrompt);
-  const hasContext = /<context>/.test(compiledPrompt);
-  const hasAudience = /<audience>/.test(compiledPrompt);
-  const hasTone = /<tone>/.test(compiledPrompt);
-  const hasPlatform = /<platform_guidelines/.test(compiledPrompt);
-  let specScore = 10;
-  const specNotes: string[] = [];
-  if (hasRole) { specScore += 3; specNotes.push('Role defined (+3)'); }
-  if (hasContext) { specScore += 3; specNotes.push('Context provided (+3)'); }
-  if (hasAudience) { specScore += 4; specNotes.push('Audience specified (+4)'); }
-  if (hasTone) { specScore += 3; specNotes.push('Tone specified (+3)'); }
-  if (hasPlatform) { specScore += 3; specNotes.push('Platform guidelines included (+3)'); }
-  dimensions.push({ name: 'Specificity', score: Math.min(20, specScore), max: 20, notes: specNotes });
-
-  // Completeness: check for DoD, workflow, output format
-  const hasDod = /<definition_of_done>/.test(compiledPrompt);
-  const hasWorkflow = /<workflow>/.test(compiledPrompt);
-  const hasFormat = /<output_format>/.test(compiledPrompt);
-  let compScore = 5;
-  const compNotes: string[] = [];
-  if (hasDod) { compScore += 6; compNotes.push('Definition of done present (+6)'); }
-  if (hasWorkflow) { compScore += 5; compNotes.push('Workflow steps defined (+5)'); }
-  if (hasFormat) { compScore += 4; compNotes.push('Output format specified (+4)'); }
-  dimensions.push({ name: 'Completeness', score: Math.min(20, compScore), max: 20, notes: compNotes });
-
-  // Constraints: check for constraints and uncertainty policy
-  const hasConstraints = /<constraints>/.test(compiledPrompt);
-  const hasUncertainty = /<uncertainty_policy>/.test(compiledPrompt);
-  let conScore = 5;
-  const conNotes: string[] = [];
-  if (hasConstraints) { conScore += 8; conNotes.push('Constraints defined (+8)'); }
-  if (hasUncertainty) { conScore += 5; conNotes.push('Uncertainty policy set (+5)'); }
-  dimensions.push({ name: 'Constraints', score: Math.min(20, conScore), max: 20, notes: conNotes });
-
-  // Efficiency: compiled prompts are structured, start high
-  const tokens = estimateTokens(compiledPrompt);
-  dimensions.push({
-    name: 'Efficiency',
-    score: tokens > 3000 ? 14 : 18,
-    max: 20,
-    notes: [`~${tokens} tokens in compiled prompt`],
-  });
+  // Sort in canonical order (deterministic)
+  const sorted = sortChecklist(items);
+  const presentCount = sorted.filter(i => i.present).length;
+  const totalCount = sorted.length;
 
   return {
-    total: dimensions.reduce((sum, d) => sum + d.score, 0),
-    max: 100,
-    dimensions,
+    items: sorted,
+    summary: `${presentCount}/${totalCount} structural elements present`,
   };
 }

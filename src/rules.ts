@@ -35,8 +35,8 @@ const CODE_REF_PATTERNS = [
 ];
 
 const SCOPE_EXPLOSION_CODE = [
-  /\b(everything|entire|whole)\b(?![\w\s]{0,25}\b(files?|functions?|class(?:es)?|tests?|modules?|components?|endpoints?|routes?)\b)/i,
-  /\b(all|every)\b(?![\w\s]{0,25}\b(files?|functions?|class(?:es)?|tests?|modules?|components?|endpoints?|routes?|the)\b)/i,
+  /\b(everything|entire|whole)\b(?![\w\s]{0,50}\b(files?|functions?|class(?:es)?|tests?|modules?|components?|endpoints?|routes?)\b)/i,
+  /\b(all|every)\b(?![\w\s]{0,50}\b(files?|functions?|class(?:es)?|tests?|modules?|components?|endpoints?|routes?|the)\b)/i,
   /\bacross\s+the\s+(codebase|project|repo)\b/i,
 ];
 

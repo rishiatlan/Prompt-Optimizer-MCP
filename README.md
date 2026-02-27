@@ -1,6 +1,6 @@
-# Claude Prompt Optimizer MCP
+# Prompt Optimizer MCP
 
-Open-source prompt compiler that reduces Claude API cost by 30–60% — deterministic analysis, model routing, and context compression via MCP.
+Turn sloppy prompts into structured AI instructions — scores, compiles, and optimizes prompts for any LLM via MCP. Free tier included.
 
 [![npm version](https://img.shields.io/npm/v/claude-prompt-optimizer-mcp)](https://www.npmjs.com/package/claude-prompt-optimizer-mcp)
 ![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
@@ -219,7 +219,7 @@ Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global acces
 }
 ```
 
-Restart Claude Code. The 5 tools appear automatically.
+Restart Claude Code. All 11 tools appear automatically. Free tier gives you 10 optimizations to try it out.
 
 ### Alternative setups
 
@@ -280,7 +280,7 @@ Then use in your MCP config:
   "mcpServers": {
     "prompt-optimizer": {
       "command": "node",
-      "args": ["/absolute/path/to/Claude-Prompt-Optimizer-MCP/dist/index.js"]
+      "args": ["/absolute/path/to/Claude-Prompt-Optimizer-MCP/dist/src/index.js"]
     }
   }
 }
@@ -297,74 +297,46 @@ Then use in your MCP config:
 | Approve and proceed | Say "approve" — Claude calls `approve_prompt` and uses the compiled prompt |
 | Estimate cost for any text | Ask Claude: "Use estimate_cost on this prompt: [text]" |
 | Compress context before sending | Ask Claude: "Use compress_context on this code for [intent]" |
+| Quick quality check | Ask Claude: "Use check_prompt on: [your prompt]" — lightweight pass/fail |
+| Check usage & limits | Ask Claude: "Use get_usage to check my remaining optimizations" |
+| View stats | Ask Claude: "Use prompt_stats to see my optimization history" |
+| Activate Pro license | Ask Claude: "Use set_license with key: po_pro_..." |
+| Check license status | Ask Claude: "Use license_status" |
 
-## 5 MCP Tools
+## 11 MCP Tools
 
-### `optimize_prompt`
+| # | Tool | Free/Metered | Purpose |
+|---|------|-------------|---------|
+| 1 | `optimize_prompt` | **Metered** | Main entry: analyze, score, compile, estimate cost, return PreviewPack |
+| 2 | `refine_prompt` | **Metered** | Iterative: answer questions, add edits, get updated PreviewPack |
+| 3 | `approve_prompt` | Free | Sign-off gate: returns final compiled prompt |
+| 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google) |
+| 5 | `compress_context` | Free | Prune irrelevant context, report token savings |
+| 6 | `check_prompt` | Free | Lightweight pass/fail + score + top 2 issues |
+| 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode |
+| 8 | `get_usage` | Free | Usage count, limits, remaining, tier info |
+| 9 | `prompt_stats` | Free | Aggregates: total optimized, avg score, top task types, cost savings |
+| 10 | `set_license` | Free | Activate a Pro or Power license key (Ed25519 offline validation) |
+| 11 | `license_status` | Free | Check license status, tier, expiry. Shows purchase link if free tier. |
 
-The main entry point. Analyzes a raw prompt, detects ambiguities, compiles an XML-tagged optimized version, scores quality before/after, and estimates cost.
+## Pricing
 
-**Input:**
-- `raw_prompt` (required) — the raw user prompt
-- `context` (optional) — repo info, file contents, preferences
+| | Free | Pro | Power |
+|---|------|-----|-------|
+| **Price** | $0 | $4.99/mo | $9.99/mo |
+| **Optimizations** | 10 lifetime | 100/month | Unlimited |
+| **Rate limit** | 5/min | 30/min | 60/min |
+| **Always-on mode** | — | — | ✓ |
+| **All 11 tools** | ✓ | ✓ | ✓ |
 
-**Returns a PreviewPack:**
-- `session_id` — UUID for follow-up calls
-- `intent_spec` — decomposed intent (goal, task type, constraints, risk level)
-- `quality_before` / `quality_after` — 0-100 score with 5-dimension breakdown
-- `compiled_prompt` — XML-tagged, Anthropic-optimized prompt
-- `blocking_questions` — must be answered before approval (max 3)
-- `assumptions` — shown for review (max 5)
-- `cost_estimate` — token count + per-model cost breakdown
-- `model_recommendation` — Haiku, Sonnet, or Opus with reasoning
-- `changes_made` — exactly what the compiler added (full transparency)
+Free tier gives you 10 optimizations to experience the full pipeline. No credit card required.
 
-### `refine_prompt`
+### Activate a License
 
-Iterative refinement. Provide answers to blocking questions or manual edits. Re-runs the full analysis pipeline and returns an updated PreviewPack.
-
-**Input:**
-- `session_id` (required) — from `optimize_prompt`
-- `answers` (optional) — `{ question_id: answer }` map
-- `edits` (optional) — additional context or overrides
-
-### `approve_prompt`
-
-Sign-off gate. Returns the final compiled prompt ready for use. **Refuses** if blocking questions remain unanswered.
-
-**Input:**
-- `session_id` (required) — from `optimize_prompt`
-
-**Returns:**
-- Final compiled prompt
-- Quality score and improvement delta
-- Cost estimate and model recommendation
-
-### `estimate_cost`
-
-Standalone cost estimator. Works on any text, no session needed.
-
-**Input:**
-- `prompt_text` (required) — any text to estimate
-- `model` (optional) — specific model, or all three if omitted
-
-**Returns:**
-- Input/output token estimates
-- Cost breakdown per model (Haiku, Sonnet, Opus)
-- Model recommendation with reasoning
-
-### `compress_context`
-
-Context pruner. Strips irrelevant sections from code or docs based on the stated intent.
-
-**Input:**
-- `context` (required) — code, documentation, or other text
-- `intent` (required) — what the task is about
-
-**Returns:**
-- Compressed context
-- List of what was removed and why
-- Token savings (count and percentage)
+1. Purchase at the [Prompt Optimizer store](https://rishiatlan.github.io/Claude-Prompt-Optimizer-MCP/)
+2. You receive a license key starting with `po_pro_...`
+3. Tell Claude: "Use set_license with key: po_pro_YOUR_KEY_HERE"
+4. Done — your tier upgrades instantly. Verify with `license_status`.
 
 ## How It Works
 
@@ -505,9 +477,9 @@ Pricing is hardcoded from published Anthropic rates and versioned in `src/estima
 </details>
 
 <details>
-<summary><strong>Session Management</strong></summary>
+<summary><strong>Session & Storage</strong></summary>
 
-Sessions are stored in an in-memory `Map<string, Session>` with a 30-minute TTL. Since the MCP uses stdio transport (single client), this is sufficient. Sessions auto-cleanup on access.
+Sessions and usage data are persisted to `~/.prompt-optimizer/` (file-based storage). Sessions have a 30-minute TTL and auto-cleanup on access.
 
 Each session tracks:
 - Raw prompt and context
@@ -517,6 +489,12 @@ Each session tracks:
 - Cost estimate
 - User answers to questions
 - State (ANALYZING → COMPILED → APPROVED)
+
+Storage also tracks:
+- Usage counters (lifetime + monthly with calendar-month reset)
+- License data (Ed25519 validated, tier, expiry)
+- Configuration (mode, threshold, strictness, target)
+- Aggregate statistics (total optimized, score averages, cost savings)
 
 </details>
 
@@ -863,10 +841,10 @@ Reason:         Balanced task — Sonnet offers the best
 
 ## Roadmap
 
-- [x] Core prompt optimizer with 5 MCP tools
-- [x] 9 deterministic ambiguity detection rules (task-type aware)
-- [x] Quality scoring (0-100) with before/after delta
-- [x] Cost estimation with per-model breakdown
+- [x] Core prompt optimizer with 5 MCP tools (v1.0)
+- [x] 10 deterministic ambiguity detection rules (task-type aware)
+- [x] Quality scoring (0-100, scoring_version: 2) with before/after delta
+- [x] Cost estimation with per-model breakdown (Anthropic, OpenAI, Google)
 - [x] Context compression
 - [x] Session-based state with sign-off gate
 - [x] Universal task type support — 13 types (code, writing, research, planning, analysis, communication, data)
@@ -874,16 +852,21 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] Intent-first detection — prevents topic-vs-task misclassification for technical writing prompts
 - [x] Answered question carry-forward — refine flow no longer regenerates already-answered blocking questions
 - [x] NPM package — `npx claude-prompt-optimizer-mcp` for zero-friction install
-- [x] Structured audience/tone/platform detection — 19 audience patterns, 9 platforms, tone signals threaded through entire pipeline
-- [x] Goal enrichment — task-type-aware goal enrichment (prose, code, research, analysis, data)
-- [x] Platform-specific guidelines — Slack, LinkedIn, Email, Blog, Twitter/X, and more
-- [x] `generic_vague_ask` rule — catches ultra-vague prompts ("make it better", "just fix it") across all task types
-- [x] CLI flags — `--version` and `--help` for NPM distribution
+- [x] Structured audience/tone/platform detection — 19 audience patterns, 9 platforms, tone signals
+- [x] Multi-LLM output targets — Claude (XML), OpenAI (system/user), Generic (Markdown)
+- [x] Persistent file-based storage (`~/.prompt-optimizer/`) with async StorageInterface
+- [x] 3-tier freemium system — Free (10 lifetime), Pro ($4.99/mo, 100/mo), Power ($9.99/mo, unlimited)
+- [x] Ed25519 offline license key activation — no phone-home, no backend
+- [x] Monthly usage enforcement with calendar-month reset
+- [x] Rate limiting — tier-keyed sliding window (5/30/60 per minute)
+- [x] 11 MCP tools including `check_prompt`, `configure_optimizer`, `get_usage`, `prompt_stats`, `set_license`, `license_status`
+- [x] Usage metering, statistics tracking, and cost savings aggregation
 - [ ] Optional Haiku pass for nuanced ambiguity detection
 - [ ] Prompt template library (common patterns)
 - [ ] History/export of past sessions
 - [ ] Custom rule definitions via config file
 - [ ] Integration with Claude Code hooks for auto-trigger on complex tasks
+- [ ] Always-on mode for Power tier (auto-optimize every prompt)
 
 ## Contributors
 

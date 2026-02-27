@@ -1,4 +1,17 @@
-node_modules/
+# Build output
 dist/
-*.tsbuildinfo
+node_modules/
+
+# Private key — NEVER commit this
+scripts/.private-key.pem
+scripts/keys-*.txt
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+.idea/
+.vscode/
