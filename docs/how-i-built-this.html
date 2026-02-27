@@ -704,11 +704,12 @@
 
       <h3>Core Principles</h3>
 
-      <p>I set three non-negotiable rules before writing a single line of code:</p>
+      <p>I set four non-negotiable rules before writing a single line of code:</p>
 
       <ol>
         <li><strong>Zero AI calls inside.</strong> The optimizer itself makes no API calls. All intelligence comes from rules, patterns, and scoring algorithms. This means it&rsquo;s instant, free to operate, and never produces hallucinated advice.</li>
         <li><strong>Works for any LLM.</strong> The same prompt compiles to different formats: Claude gets XML tags (<code>&lt;role&gt;</code>, <code>&lt;goal&gt;</code>, <code>&lt;constraints&gt;</code>), OpenAI gets system/user splits, and generic targets get Markdown headers. One prompt, three outputs.</li>
+        <li><strong>Nothing ships without user approval.</strong> The MCP never silently finalizes a prompt. If your input is ambiguous, it asks blocking questions first. You review the compiled result, see the quality score and cost estimate, and explicitly approve before anything executes. <code>approve_prompt</code> hard-fails if unanswered questions remain &mdash; the gate is enforced in code, not convention.</li>
         <li><strong>Freemium from day one.</strong> Free users get 10 lifetime optimizations &mdash; enough to see the value. Pro at $4.99/mo gets 100/month. Power at $9.99/mo gets unlimited.</li>
       </ol>
 

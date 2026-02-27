@@ -71,13 +71,15 @@ When you install my MCP, Claude can automatically use these tools. You type a va
 
 ### Core Principles
 
-I set three non-negotiable rules before writing a single line of code:
+I set four non-negotiable rules before writing a single line of code:
 
 1. **Zero AI calls inside.** The optimizer itself makes no API calls. All intelligence comes from rules, patterns, and scoring algorithms. This means it's instant, free to operate, and never produces hallucinated advice.
 
 2. **Works for any LLM.** The same prompt compiles to different formats: Claude gets XML tags (`<role>`, `<goal>`, `<constraints>`), OpenAI gets system/user splits, and generic targets get Markdown headers. One prompt, three outputs.
 
-3. **Freemium from day one.** Free users get 10 lifetime optimizations — enough to see the value. Pro at $4.99/mo gets 100/month. Power at $9.99/mo gets unlimited.
+3. **Nothing ships without user approval.** The MCP never silently finalizes a prompt. If your input is ambiguous, it asks blocking questions first. You review the compiled result, see the quality score and cost estimate, and explicitly approve before anything executes. `approve_prompt` hard-fails if unanswered questions remain — the gate is enforced in code, not convention.
+
+4. **Freemium from day one.** Free users get 10 lifetime optimizations — enough to see the value. Pro at $4.99/mo gets 100/month. Power at $9.99/mo gets unlimited.
 
 ### The Pipeline
 
