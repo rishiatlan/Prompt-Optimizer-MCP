@@ -2,8 +2,9 @@
 dist/
 node_modules/
 
-# Private key — NEVER commit this
+# License keys — NEVER commit these
 scripts/.private-key.pem
+scripts/.public-key.pem
 scripts/keys-*.txt
 
 # OS

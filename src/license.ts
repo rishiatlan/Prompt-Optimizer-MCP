@@ -23,7 +23,7 @@ export type LicenseValidationResult =
 // Private key: scripts/.private-key.pem (gitignored, never committed)
 
 export const PRODUCTION_PUBLIC_KEY_PEM = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAgvvlQeRSgm3EoBanBKQ2OYCIeMsEdu6n2+DaV0Y9fio=
+MCowBQYDK2VwAyEAJzmf726WMU0NJXnqbJfOdY0HwwyNtWDjZGK+8JAogv8=
 -----END PUBLIC KEY-----`;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
