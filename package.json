@@ -1,8 +1,8 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "type": "module",
-  "description": "Turn sloppy prompts into structured AI instructions — scores, compiles, and optimizes prompts for any LLM via MCP. Free tier included.",
+  "description": "The prompt linter for LLM applications — scores, analyzes, and standardizes prompts for any LLM via MCP. Free tier included.",
   "main": "dist/src/api.js",
   "types": "dist/src/api.d.ts",
   "exports": {
@@ -16,7 +16,8 @@
     }
   },
   "bin": {
-    "claude-prompt-optimizer-mcp": "./bin/cli.js"
+    "claude-prompt-optimizer-mcp": "./bin/cli.js",
+    "prompt-lint": "./bin/lint.js"
   },
   "files": [
     "dist",
@@ -45,13 +46,16 @@
     "model-routing",
     "freemium",
     "prompt-scoring",
-    "multi-llm"
+    "multi-llm",
+    "prompt-linter",
+    "lint",
+    "prompt-quality"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rishiatlan/Prompt-Optimizer-MCP.git"
   },
-  "homepage": "https://github.com/rishiatlan/Prompt-Optimizer-MCP#readme",
+  "homepage": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/",
   "bugs": {
     "url": "https://github.com/rishiatlan/Prompt-Optimizer-MCP/issues"
   },
@@ -60,6 +64,7 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
+    "fast-glob": "^3.3.3",
     "zod": "^3.25.0"
   },
   "devDependencies": {

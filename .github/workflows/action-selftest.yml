@@ -1,0 +1,61 @@
+name: Action Self-Test
+on: [push]
+jobs:
+  # Job 1: Success path — good prompt passes at threshold 50
+  pass:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          files: 'test/fixtures/good-prompt.txt'
+          threshold: 50
+
+  # Job 2: Fail path — bad prompt fails at threshold 90
+  fail:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        id: lint
+        continue-on-error: true
+        with:
+          files: 'test/fixtures/bad-prompt.txt'
+          threshold: 90
+      - name: Assert lint failed
+        if: steps.lint.outcome != 'failure'
+        run: |
+          echo "::error::Expected lint to fail at threshold 90 but it passed"
+          exit 1
+
+  # Job 3: Strictness wiring — strict preset works without threshold
+  strictness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        id: strict-lint
+        continue-on-error: true
+        with:
+          files: 'test/fixtures/bad-prompt.txt'
+          strictness: strict
+      - name: Assert strict lint failed
+        if: steps.strict-lint.outcome != 'failure'
+        run: |
+          echo "::error::Expected strict lint to fail but it passed"
+          exit 1
+
+  # Job 4: Packaging — verify bin/lint.js ships in npm tarball
+  packaging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci && npm run build
+      - run: npm pack
+      - run: |
+          tar -xzf claude-prompt-optimizer-mcp-*.tgz
+          test -f package/bin/lint.js || (echo "::error::bin/lint.js missing from npm tarball" && exit 1)
+          node package/bin/lint.js --version

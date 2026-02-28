@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-An MCP (Model Context Protocol) server that optimizes prompts for maximum impact and minimum cost. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle.
+A prompt linter for LLM applications — deterministic scoring, analysis, and standardization of AI prompts. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle. Ships as an MCP server, programmatic API, CLI linter (`prompt-lint`), and GitHub Action.
 
 **v2.2: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 11 tools, programmatic API (`import { optimize }`), and dual entry points (API + MCP server).
 
@@ -14,7 +14,7 @@ An MCP (Model Context Protocol) server that optimizes prompts for maximum impact
 
 ```bash
 npm run build    # tsc → dist/
-npm test         # node --test dist/test/*.test.js (9 test files, 129 tests)
+npm test         # node --test dist/test/*.test.js (10 test files, 158 tests)
 npm run start    # node dist/src/index.js
 ```
 
@@ -37,8 +37,9 @@ Published to npm as `claude-prompt-optimizer-mcp`. Four install channels:
 - `npx claude-prompt-optimizer-mcp` → CLI (unchanged, uses `bin/cli.js`)
 
 **Package internals:**
-- `bin/cli.js` is the shebang entry point, importing `dist/src/index.js`
-- `package.json` has `bin` pointing to `bin/cli.js`, `files` whitelist ships only `dist/`, `bin/`, `README.md`, `LICENSE`
+- `bin/cli.js` is the MCP server entry point, importing `dist/src/index.js`
+- `bin/lint.js` is the `prompt-lint` CLI entry point, importing `dist/src/lint-cli.js`
+- `package.json` has `bin` pointing to both `bin/cli.js` and `bin/lint.js`, `files` whitelist ships only `dist/`, `bin/`, `README.md`, `LICENSE`
 - `prepublishOnly` script runs `npm run build` before publish
 - `exports["."]` → `dist/src/api.js` (barrel export), `exports["./server"]` → `dist/src/index.js` (MCP server)
 
@@ -128,6 +129,7 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `src/storage/interface.ts` | StorageInterface type, defaults (DEFAULT_CONFIG, DEFAULT_USAGE, DEFAULT_STATS) |
 | `src/storage/localFs.ts` | File-based StorageInterface implementation (`~/.prompt-optimizer/`) |
 | `src/storage/index.ts` | Re-export — Phase B swaps one line |
+| `src/lint-cli.ts` | Standalone CLI linter (`prompt-lint` binary). No MCP dependency — reuses `api.ts` functions directly. |
 
 ## Test Files
 
@@ -142,6 +144,7 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `test/license.test.ts` | Ed25519 validation, storage CRUD, tier priority chain, file permissions |
 | `test/api.test.ts` | Barrel exports, `optimize()` shape/determinism/context/targets, packaging validation |
 | `test/e2e.test.ts` | Full pipeline, license→tier upgrade, gate enforcement, checkout URL wiring, config & stats |
+| `test/lint-cli.test.ts` | CLI tests — spawns `node bin/lint.js` as child process, tests all flags, exit codes, JSON output, file/stdin/glob input |
 
 ## Key Type Contracts
 

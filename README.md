@@ -1,6 +1,6 @@
 # Prompt Optimizer MCP
 
-Turn sloppy prompts into structured AI instructions — scores, compiles, and optimizes prompts for any LLM via MCP. Free tier included.
+Lint, score, and standardize prompt quality — the ESLint for LLM applications. Free tier included.
 
 [![npm version](https://img.shields.io/npm/v/claude-prompt-optimizer-mcp)](https://www.npmjs.com/package/claude-prompt-optimizer-mcp)
 ![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
@@ -13,12 +13,11 @@ Turn sloppy prompts into structured AI instructions — scores, compiles, and op
 
 ## Why This Exists
 
-- **Vague prompts waste tokens and iterations.** "Make the code better" gives Claude no constraints, no success criteria, and no target — leading to unpredictable results and wasted compute.
-- **Nobody structures prompts consistently.** Even experienced engineers skip success criteria, constraints, and workflow steps. This MCP enforces structure every time.
-- **Cost is invisible.** Most users have no idea how many tokens their prompt will consume. The optimizer shows exact cost breakdowns across 8 models from Anthropic, OpenAI, and Google before you commit.
+- **Prompts run without any quality check.** "Make the code better" gives Claude no constraints, no success criteria, and no target — leading to unpredictable results and wasted compute.
+- **No structure scoring, no ambiguity detection.** Even experienced engineers skip success criteria, constraints, and workflow steps. This linter flags structural gaps before you send.
+- **Cost is invisible until after you've spent it.** Most users have no idea how many tokens their prompt will consume. The linter shows cost breakdowns across 8 models from Anthropic, OpenAI, and Google before you commit. Cost estimates are approximate — validate for billing-critical workflows.
 - **Context bloat is the hidden cost multiplier.** Sending 500 lines of code when 50 are relevant burns tokens on irrelevant context. The compressor strips what doesn't matter.
-- **There's no sign-off gate.** Claude starts working immediately on whatever you type. This MCP makes you review the compiled prompt — with extracted assumptions, blocking questions, and constraint injection — before anything executes.
-- **Human-in-the-loop approval.** The MCP asks blocking questions when your prompt is ambiguous, requires you to answer them before proceeding, and only finalizes the compiled prompt after you explicitly approve. No prompt ships without your sign-off — the gate is enforced in code, not convention.
+- **Human-in-the-loop approval.** The MCP asks blocking questions when your prompt is ambiguous, requires you to answer them before proceeding, and only finalizes the compiled prompt after you explicitly approve. No prompt runs without your sign-off — the gate is enforced in code, not convention.
 
 ## Benchmarks
 
@@ -296,9 +295,54 @@ Then use in your MCP config:
 
 </details>
 
+## CI Integration
+
+Lint prompts in your CI/CD pipeline with the `prompt-lint` CLI.
+
+```bash
+# Lint a single prompt
+prompt-lint "Write a REST API for user management"
+
+# Lint files
+prompt-lint --file "prompts/**/*.txt"
+
+# Strict mode (threshold 75)
+prompt-lint --strict --file "prompts/**/*.txt"
+
+# JSON output for CI parsing
+prompt-lint --json --file "prompts/**/*.txt"
+```
+
+**Exit codes:** `0` = all pass, `1` = at least one fail, `2` = invalid input or no files matched.
+
+### GitHub Action
+
+```yaml
+# .github/workflows/prompt-lint.yml
+name: Prompt Lint
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rishiatlan/Prompt-Optimizer-MCP@v2
+        with:
+          files: 'prompts/**/*.txt'
+          threshold: 70
+```
+
+> This action expects your repo to be checked out (`actions/checkout`). Without it, file globs will match nothing.
+
+**Notes:**
+- Exit code 2 means no files matched or invalid input — not "all passed." Zero matched files is always an error.
+- On Windows runners, prefer single quotes or escape glob wildcards in PowerShell.
+- Markdown files are linted as raw text (no fenced-block extraction) in v1.
+- Rule IDs (e.g., `vague_objective`, `missing_constraints`) are stable — treat as a public contract.
+
 ## Programmatic API
 
-Use the optimizer as a library in your own Node.js code — no MCP server needed.
+Use the linter as a library in your own Node.js code — no MCP server needed.
 
 ```typescript
 import { optimize } from 'claude-prompt-optimizer-mcp';

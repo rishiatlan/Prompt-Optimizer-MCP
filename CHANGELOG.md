@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.3.0] - 2026-02-28
+
+### Added
+- **`prompt-lint` CLI binary**: Standalone CLI linter for AI prompts. Reuses the existing scoring/rules engine with no MCP dependency. Supports `--file`, `--threshold`, `--strict`, `--relaxed`, `--json`, and stdin input. Exit codes: 0 (pass), 1 (fail), 2 (invalid input).
+- **GitHub Action** (`action.yml`): Composite action to lint prompt files in CI. Drop `uses: rishiatlan/Prompt-Optimizer-MCP@v2` into any workflow.
+- **CI test fixtures**: `test/fixtures/good-prompt.txt` and `bad-prompt.txt` for action self-testing.
+- **Action self-test workflow**: `.github/workflows/action-selftest.yml` with pass, fail, strictness, and packaging jobs.
+- **29 new CLI tests**: All spawn `node bin/lint.js` as a child process for real exit-code verification.
+
+### Changed
+- **Positioning**: Prompt Optimizer MCP is now positioned as a **prompt linter** — "The Prompt Linter for LLM Applications." Existing functionality is unchanged; the framing better reflects what the tool does (scoring, analysis, standardization).
+- **Landing page**: Hero, SEO meta tags, use cases, and comparison section updated to linter framing. Added "For CI/CD pipelines" use case with real workflow snippet.
+- **README**: Tagline, "Why This Exists", and new CI Integration section with CLI + GitHub Action examples.
+- **package.json**: Updated description, keywords (`prompt-linter`, `lint`, `prompt-quality`), homepage → GitHub Pages URL.
+- **server.json**: Description updated to linter framing.
+
+### Migration
+- No breaking changes. All 11 MCP tools, programmatic API, and install commands are unchanged.
+- New `prompt-lint` binary ships alongside existing `claude-prompt-optimizer-mcp` binary.
+- New dependency: `fast-glob` (for CLI file globbing in CI environments).
+
 ## [2.2.3] - 2026-02-28
 
 ### Changed

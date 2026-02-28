@@ -1,0 +1,1 @@
+Write a REST API for user management with authentication using JWT tokens, rate limiting at 100 requests per minute, input validation with Zod schemas, and PostgreSQL for storage. Return JSON responses with proper HTTP status codes. Include error handling for duplicate emails and invalid credentials.
