@@ -891,6 +891,7 @@ export function registerTools(
         log.info(requestId, `classify_task: type=${taskType}, complexity=${complexityResult.complexity}, risk=${riskScore.level}`);
         return jsonResponse({
           request_id: requestId,
+          schema_version: 1,
           taskType,
           complexity: complexityResult.complexity,
           complexityConfidence: complexityResult.confidence,
@@ -988,6 +989,7 @@ export function registerTools(
         log.info(requestId, `route_model: ${resolvedComplexity} → ${recommendation.primary.provider}/${recommendation.primary.model}`);
         return jsonResponse({
           request_id: requestId,
+          schema_version: 1,
           ...recommendation,
         });
       } catch (err) {
@@ -1106,6 +1108,7 @@ export function registerTools(
         log.info(requestId, `pre_flight: ${complexityResult.complexity}/${riskScoreResult.level} → ${recommendation.primary.model}`);
         return jsonResponse({
           request_id: requestId,
+          schema_version: 1,
           classification: {
             taskType,
             complexity: complexityResult.complexity,

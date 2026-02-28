@@ -481,6 +481,8 @@ The MCP is a **co-pilot for the co-pilot**. It does the structural work (decompo
 
 ### Pre-Flight Pipeline
 
+All v3 outputs are **deterministic, offline, and reproducible** — no LLM calls are made inside the MCP. Risk score (0–100) drives routing decisions; `riskLevel` (`low` / `medium` / `high`) is derived for display only.
+
 The `pre_flight` tool runs the full decision pipeline in a single call — classify your prompt, assess risk, route to the optimal model, and score quality. No compilation, no approval loop — just instant intelligence about what your prompt needs.
 
 ```
@@ -507,7 +509,7 @@ Input: "Build a REST API with authentication, rate limiting,
 → Quality Score: 52/100
 ```
 
-`pre_flight` counts as 1 metered use. `classify_task` and `route_model` are always free.
+`pre_flight` counts as 1 metered optimization use (same quota as `optimize_prompt`). It does **not** call `optimize_prompt` internally — no double-metering. `classify_task` and `route_model` are always free and unlimited.
 
 ### Model Routing
 
@@ -529,7 +531,9 @@ The `route_model` tool recommends the optimal model using a 2-step deterministic
 - `latencySensitivity=high` → prefer smaller models within tier
 - Research intent detected → recommend Perplexity (Sonar / Sonar Pro)
 
-Every decision is recorded in `decision_path` for full auditability.
+Perplexity is included in **pricing and routing recommendations only** — it is not a compile/output target. Perplexity-routed prompts use `generic` (Markdown) format.
+
+Every decision is recorded in `decision_path` for full auditability. All tool outputs include `schema_version: 1` for forward-compatible versioning.
 
 ### Optimization Profiles
 

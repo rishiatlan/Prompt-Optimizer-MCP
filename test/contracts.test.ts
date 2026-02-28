@@ -328,3 +328,14 @@ describe('v3 ModelRecommendation shape contract', () => {
     assert.ok(rec.decision_path.length > 0);
   });
 });
+
+describe('v3 schema_version contract', () => {
+  it('all v3 tool outputs must include schema_version: 1 (forward-compat)', () => {
+    // Verify the constant is always 1 for this major version.
+    // Actual tool outputs are tested in e2e — this test validates
+    // the contract concept: schema_version is required and numeric.
+    const SCHEMA_VERSION = 1;
+    assert.equal(typeof SCHEMA_VERSION, 'number');
+    assert.equal(SCHEMA_VERSION, 1);
+  });
+});

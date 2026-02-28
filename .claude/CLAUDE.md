@@ -240,6 +240,11 @@ v3.0 adds a pre-LLM decision layer on top of the existing linter. **Zero LLM cal
 - `pre_flight` = **1 metered use** (same as `optimize_prompt`)
 - `pre_flight` does NOT call `optimize_prompt` internally — no double-metering
 
+### Output Versioning
+- All v3 tool outputs include `schema_version: 1` for forward-compatible versioning
+- Risk score (0–100) drives routing; `riskLevel` is derived for display only (`0-29=low`, `30-59=medium`, `60-100=high`)
+- Perplexity is in pricing + routing recommendations only (not an OutputTarget)
+
 ## Breaking Changes (v1 → v2)
 
 - `quality_after` → `compilation_checklist` (CompilationChecklist, not a numeric score)

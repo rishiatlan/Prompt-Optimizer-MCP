@@ -7,7 +7,7 @@
 - **Optimization Profiles** (`src/profiles.ts`): 5 frozen presets — `cost_minimizer`, `balanced`, `quality_first`, `creative`, `enterprise_safe`. Each provides defaults for model tier, temperature, max tokens, and sensitivity settings.
 - **Model Routing Engine** (`routeModel`): 2-step deterministic routing — (1) pick tier from complexity + risk, (2) apply budget/latency overrides. Returns `ModelRecommendation` with `decision_path` audit trail, structured `savings_vs_default`, confidence score, and fallback model.
 - **Risk Scoring** (`computeRiskScore`): Dimensional risk scoring across 4 axes (underspec, hallucination, scope, constraint). Score 0-100 drives routing decisions. Explicit `RISK_WEIGHTS` mapping with blocking multipliers.
-- **Perplexity in PRICING_DATA**: `sonar` and `sonar-pro` models added for cost estimation and routing. Recommendation-only — not an OutputTarget (uses `generic` format). Strict research-intent regex (G15) prevents false positives.
+- **Perplexity in PRICING_DATA**: `sonar` and `sonar-pro` models added for cost estimation and routing. Included in pricing + routing recommendations only (not a compile/output target — Perplexity prompts use `generic` format). Strict research-intent regex (G15) prevents false positives.
 - **`TIER_MODELS` constant**: Explicit frozen mapping of `small`/`mid`/`top` tiers to provider+model+temperature+maxTokens entries across all 4 providers.
 - **3 new MCP tools** (14 total):
   - `classify_task` (FREE): Classify prompt by task type, complexity, risk, and suggested profile.
@@ -21,9 +21,11 @@
 - **API exports** (`src/api.ts`): 15+ new exports including `classifyComplexity`, `routeModel`, `computeRiskScore`, `PROFILES`, `TIER_MODELS`, and all new types.
 
 ### Notes
-- No breaking changes to existing tools, types, or CLI. All 11 original MCP tools, `prompt-lint` CLI, and GitHub Action are unchanged.
-- Architecture constraint preserved: zero LLM calls inside. Deterministic. Offline. Reproducible.
-- `pre_flight` does NOT call `optimize_prompt` internally — no double-metering (G6).
+- **No breaking changes** to existing tools, types, or CLI. All 11 original MCP tools, `prompt-lint` CLI, and GitHub Action are unchanged. Existing linter workflows continue without modification.
+- Architecture constraint preserved: **zero LLM calls inside. Deterministic. Offline. Reproducible.**
+- `pre_flight` does NOT call `optimize_prompt` internally — no double-metering (G6). `classify_task` + `route_model` are free and unlimited.
+- Risk score (0–100) drives routing; `riskLevel` is derived for display only (`0-29=low`, `30-59=medium`, `60-100=high`).
+- All v3 tool outputs include `schema_version: 1` for forward-compatible versioning.
 
 ## [2.3.2] - 2026-02-28
 
