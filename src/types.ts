@@ -291,6 +291,15 @@ export interface Session {
   answers: Record<string, string>;
 }
 
+// ─── Compression Config (v3.1) ───────────────────────────────────────────────
+
+export interface CompressionConfig {
+  mode?: 'standard' | 'aggressive';      // default: 'standard'
+  tokenBudget?: number;                   // for aggressive mode, default: 8000
+  preservePatterns?: string[];            // regex strings; never remove matching lines
+  enableStubCollapse?: boolean;           // default: false — gate for aggressive H4
+}
+
 // ─── Compression Result ───────────────────────────────────────────────────────
 
 export interface CompressionResult {
@@ -300,6 +309,34 @@ export interface CompressionResult {
   savings_percent: number;
   compressed_context: string;
   removed_sections: string[];
+}
+
+// ─── Compression Pipeline Result (v3.1) ───────────────────────────────────────
+
+/**
+ * Result of running compression pipeline.
+ * heuristics_applied: identifiers only (H2, H3, H1, H4, H5) in stable order
+ * warnings: separate channel for regex compilation errors, etc.
+ */
+export interface CompressionPipelineResult {
+  compressed: string;
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied: string[];     // ['H2', 'H3'] if they ran; stable order
+  removed_sections: string[];       // Detailed removal descriptions
+  warnings: string[];               // e.g., "Invalid regex at pattern[0]: ..."
+  mode: 'standard' | 'aggressive';
+}
+
+// ─── Internal Compression Return (v3.1) ──────────────────────────────────────
+
+export interface CompressContextResult {
+  compressed: string;
+  removed: string[];
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied?: string[];  // NEW v3.1: which heuristics fired
+  mode?: 'standard' | 'aggressive';
 }
 
 // ─── License Data ─────────────────────────────────────────────────────────────

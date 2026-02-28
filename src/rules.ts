@@ -317,6 +317,128 @@ const rules: Rule[] = [
       };
     },
   },
+
+  // ── v3.1.0: New risk rules ──────────────────────────────────────────────
+
+  {
+    name: 'hallucination_risk',
+    applies_to: 'all',
+    check(prompt) {
+      // Detects prompts requesting ungrounded factual claims (stats, dates, quotes)
+      // without providing source context
+      const requestsFactual = /\b(exact|specific|precise)\s+(number|statistic|figure|date|quote|citation|data\s*point)/i.test(prompt)
+        || /\b(give\s+me\s+the\s+(exact|real|actual)|cite\s+(the|a)\s+source|what\s+is\s+the\s+exact)\b/i.test(prompt)
+        || /\b(list\s+all\s+(the\s+)?(facts|statistics|data\s*points)\s+(about|for|on))\b/i.test(prompt);
+      const hasGrounding = /\b(based\s+on|according\s+to|from\s+(the|this)|given\s+(the|this)|using\s+(the|this)|reference|context|source|document)\b/i.test(prompt);
+
+      const triggered = requestsFactual && !hasGrounding;
+      return {
+        rule_name: 'hallucination_risk',
+        severity: 'non_blocking',
+        triggered,
+        message: 'Prompt requests specific factual claims without grounding context. Risk of hallucinated data.',
+        assumption: triggered ? {
+          id: 'a_hallucination_risk',
+          assumption: 'Factual claims will be qualified with uncertainty. Provide source context to improve accuracy.',
+          confidence: 'low',
+          impact: 'high',
+          reversible: true,
+        } : undefined,
+        risk_elevation: triggered ? 'medium' as RiskLevel : undefined,
+      };
+    },
+  },
+
+  {
+    name: 'agent_underspec',
+    applies_to: 'all',
+    check(prompt) {
+      // Detects prompts that request autonomous agent behavior without constraints
+      const requestsAgent = /\b(autonomous(ly)?|agent|auto[\s-]?(run|execute|deploy)|run\s+without\s+(me|supervision|oversight)|unattended|hands[\s-]?off)\b/i.test(prompt);
+      const hasConstraints = /\b(limit|budget|max|cap|stop\s+after|timeout|abort|fallback|rollback|don['']?t|do\s+not|never|only)\b/i.test(prompt);
+
+      const triggered = requestsAgent && !hasConstraints;
+      return {
+        rule_name: 'agent_underspec',
+        severity: 'blocking',
+        triggered,
+        message: 'Autonomous execution requested without safety constraints (limits, fallbacks, stop conditions).',
+        question: triggered ? {
+          id: 'q_agent_underspec',
+          question: 'What are the safety boundaries? (max iterations, timeout, stop conditions, rollback plan)',
+          reason: 'Autonomous agent behavior was requested but no guardrails were specified.',
+          blocking: true,
+        } : undefined,
+        risk_elevation: triggered ? 'high' as RiskLevel : undefined,
+      };
+    },
+  },
+
+  {
+    name: 'conflicting_constraints',
+    applies_to: 'all',
+    check(prompt) {
+      // Detects contradictory constraint patterns
+      const hasOnlyX = /\b(only|exclusively|solely)\s+(modify|change|update|touch|edit)\b/i.test(prompt);
+      const hasAlsoY = /\b(also|and\s+also|plus|additionally)\s+(modify|change|update|touch|edit|refactor)\b/i.test(prompt);
+
+      const hasMustNot = prompt.match(/\b(must\s+not|don['']?t|do\s+not|never)\s+(\w+)/gi) || [];
+      const hasMust = prompt.match(/\b(must|always|ensure)\s+(\w+)/gi) || [];
+
+      // Check for direct contradictions in must/must-not pairs
+      let hasContradiction = false;
+      for (const mustNot of hasMustNot) {
+        const verb = mustNot.replace(/^(must\s+not|don['']?t|do\s+not|never)\s+/i, '').toLowerCase();
+        for (const must of hasMust) {
+          const mustVerb = must.replace(/^(must|always|ensure)\s+/i, '').toLowerCase();
+          if (verb === mustVerb) {
+            hasContradiction = true;
+            break;
+          }
+        }
+      }
+
+      const triggered = (hasOnlyX && hasAlsoY) || hasContradiction;
+      return {
+        rule_name: 'conflicting_constraints',
+        severity: 'blocking',
+        triggered,
+        message: 'Contradictory constraints detected. The prompt contains conflicting instructions.',
+        question: triggered ? {
+          id: 'q_conflicting_constraints',
+          question: 'The constraints appear to conflict. Which takes priority?',
+          reason: 'The prompt contains instructions that contradict each other.',
+          blocking: true,
+        } : undefined,
+      };
+    },
+  },
+
+  {
+    name: 'token_budget_mismatch',
+    applies_to: 'all',
+    check(prompt) {
+      // Detects prompts requesting large output with a small/fast model mention
+      const mentionsSmallModel = /\b(haiku|gpt[\s-]?4o[\s-]?mini|flash|nano|small\s+model|fast\s+model|cheap\s+model)\b/i.test(prompt);
+      const requestsLargeOutput = /\b(comprehensive|exhaustive|detailed\s+analysis|full\s+(report|audit|review)|in[\s-]?depth|thorough|complete\s+(list|overview|breakdown))\b/i.test(prompt);
+      const mentionsLargeContext = /\b(entire\s+(codebase|repo|project|file)|all\s+(files|modules|endpoints)|every\s+(file|function|class))\b/i.test(prompt);
+
+      const triggered = mentionsSmallModel && (requestsLargeOutput || mentionsLargeContext);
+      return {
+        rule_name: 'token_budget_mismatch',
+        severity: 'non_blocking',
+        triggered,
+        message: 'The requested output scope may exceed the referenced model\'s token budget.',
+        assumption: triggered ? {
+          id: 'a_token_budget_mismatch',
+          assumption: 'Output will be truncated or summarized to fit model context limits. Consider a larger model or narrower scope.',
+          confidence: 'medium',
+          impact: 'medium',
+          reversible: true,
+        } : undefined,
+      };
+    },
+  },
 ];
 
 // ─── Public API ───────────────────────────────────────────────────────────────

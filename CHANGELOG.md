@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.1.0] - 2026-03-01
+
+### Added
+- **Smart Compression (H1-H5)**: 5 deterministic heuristics — license block strip, comment collapse, duplicate collapse, stub collapse, aggressive middle truncation
+- **Zone Scanner** (`src/zones.ts`): Protects fenced code, tables, lists, JSON, YAML blocks from heuristic modification
+- **Preserve Patterns** (`src/preservePatterns.ts`): Regex string-based upfront marking of untouchable lines
+- **Tool Pruning** (`prune_tools` tool #15): Task-type-aware scoring, mention protection, always-relevant tool set
+- **Pre-Flight Deltas** (`src/deltas.ts`): Estimated token savings for compression and pruning before user commits
+- **4 new risk rules** (10 → 14): `hallucination_risk`, `agent_underspec`, `conflicting_constraints`, `token_budget_mismatch`
+- **G21 Drift Guardrail**: 10 golden fixture prompts with locked risk levels — prevents rule regressions
+- **G36 Invariant**: Property-based test ensuring compressed_tokens ≤ original_tokens (100-input fuzz)
+- `compress_context` response now includes `heuristics_applied` and `mode` fields (backward-compatible)
+- `prune_tools` output includes `schema_version: 1`
+- 6 new source files: `constants.ts`, `tokenizer.ts`, `zones.ts`, `preservePatterns.ts`, `deltas.ts`, `pruner.ts`
+- 12 new test files, ~215 new tests
+
+### Changed
+- Tool count: 14 → 15
+- Rule count: 10 → 14
+- Test count: ~312 → 527
+- `compressContext()` return type now includes `heuristics_applied: string[]` and `mode: string`
+- `compressContext()` now supports 5 overload signatures (context-only, intent string, IntentSpec, CompressionConfig, full 3-arg)
+
+### Notes
+- **No breaking changes** to existing tools, types, CLI, or GitHub Action. All 14 original MCP tools unchanged.
+- New `prune_tools` tool is FREE and unlimited.
+- Architecture constraint preserved: **zero LLM calls inside. Deterministic. Offline. Reproducible.**
+
 ## [3.0.0] - 2026-02-28
 
 ### Added

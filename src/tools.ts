@@ -1,6 +1,7 @@
-// tools.ts — MCP tool registrations for the prompt optimizer v3.0.
-// 14 tools total. Metered: optimize_prompt, refine_prompt, pre_flight. Free: all others.
+// tools.ts — MCP tool registrations for the prompt optimizer v3.1.
+// 15 tools total. Metered: optimize_prompt, refine_prompt, pre_flight. Free: all others.
 // v3 additions: classify_task (FREE), route_model (FREE), pre_flight (METERED — G6).
+// v3.1 additions: prune_tools (FREE).
 // Build-mode invariants enforced: I1 (deterministic ordering), I2 (request_id on all),
 // I3 (metering-after-success), I4 (rate limit via canUseOptimization), I5 (degraded health in response).
 
@@ -15,6 +16,8 @@ import { createRequestId, log } from './logger.js';
 import { runRules, computeRiskScore, extractBlockingQuestions } from './rules.js';
 import { sortCountsDescKeyAsc, sortIssues } from './sort.js';
 import { suggestProfile } from './profiles.js';
+import { scoreAllTools, rankTools, pruneTools } from './pruner.js';
+import type { ToolDefinition } from './pruner.js';
 import type {
   PreviewPack, StorageInterface, RateLimiter, ExecutionContext,
   OutputTarget, OptimizerConfig, Tier, LicenseData,
@@ -496,6 +499,9 @@ export function registerTools(
           savings_percent: result.originalTokens > 0
             ? Math.round(((result.originalTokens - result.compressedTokens) / result.originalTokens) * 100)
             : 0,
+          // v3.1.0: new backward-compatible fields
+          heuristics_applied: result.heuristics_applied,
+          mode: result.mode,
         });
       } catch (err) {
         log.error(requestId, 'compress_context failed:', err instanceof Error ? err.message : String(err));
@@ -1135,6 +1141,77 @@ export function registerTools(
           request_id: requestId,
           error: 'internal_error',
           message: `pre_flight failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // Tool 15: prune_tools (FREE) — v3.1
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  server.tool(
+    'prune_tools',
+    'Score and rank MCP tools by relevance to a task intent. Optionally prune low-relevance tools to save context tokens.',
+    {
+      intent: z.string().min(1).max(102400).describe('The task description or user intent to score tools against'),
+      tools: z.array(z.object({
+        name: z.string().min(1).describe('Tool name'),
+        description: z.string().describe('Tool description'),
+      })).min(1).max(500).describe('Array of tool definitions to score'),
+      mode: z.enum(['rank', 'prune']).default('rank').describe('rank: score and sort all tools. prune: also mark bottom-M tools for removal'),
+      prune_count: z.number().int().min(1).max(100).optional().describe('Number of lowest-scoring tools to prune (only in prune mode, default 5)'),
+    },
+    async ({ intent, tools: toolDefs, mode, prune_count }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        intent = hardenInput(intent);
+        const sanitizedTools: ToolDefinition[] = toolDefs.map(t => ({
+          name: hardenInput(t.name),
+          description: hardenInput(t.description),
+        }));
+
+        const intentSpec = analyzePrompt(intent);
+        const scores = scoreAllTools(sanitizedTools, intentSpec);
+
+        let result;
+        if (mode === 'prune') {
+          result = pruneTools(scores, intent, prune_count ?? 5);
+        } else {
+          const ranked = rankTools(scores);
+          result = {
+            tools: ranked,
+            pruned_count: 0,
+            pruned_tools: [] as string[],
+            tokens_saved_estimate: 0,
+            mode: 'rank' as const,
+          };
+        }
+
+        log.info(requestId, `prune_tools: mode=${mode}, tools=${sanitizedTools.length}, pruned=${result.pruned_count}`);
+        return jsonResponse({
+          request_id: requestId,
+          schema_version: 1,
+          mode: result.mode,
+          tools: result.tools.map(t => ({
+            name: t.name,
+            relevance_score: t.relevance_score,
+            signals: t.signals,
+            tokens_saved_estimate: t.tokens_saved_estimate,
+          })),
+          pruned_count: result.pruned_count,
+          pruned_tools: result.pruned_tools,
+          tokens_saved_estimate: result.tokens_saved_estimate,
+          total_tools: sanitizedTools.length,
+        });
+      } catch (err) {
+        log.error(requestId, 'prune_tools failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `prune_tools failed: ${err instanceof Error ? err.message : 'unknown error'}`,
         });
       }
     },

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A prompt linter for LLM applications — deterministic scoring, analysis, and standardization of AI prompts. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle. Ships as an MCP server, programmatic API, CLI linter (`prompt-lint`), and GitHub Action.
 
-**v3.0: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 14 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), GitHub Action, **reasoning complexity classifier**, **5 optimization profiles**, **deterministic model routing with decision_path audit trail**, **dimensional risk scoring**, and **Perplexity support** (recommendation-only).
+**v3.1: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 15 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), GitHub Action, **reasoning complexity classifier**, **5 optimization profiles**, **deterministic model routing with decision_path audit trail**, **dimensional risk scoring**, **Perplexity support** (recommendation-only), **smart compression pipeline (H1-H5 heuristics)**, **zone scanner**, **preserve patterns**, **tool pruning engine**, and **pre-flight deltas**.
 
 **Zero LLM calls inside the MCP.** All intelligence comes from the host Claude. The MCP provides structure, rules, and discipline.
 
@@ -14,7 +14,7 @@ A prompt linter for LLM applications — deterministic scoring, analysis, and st
 
 ```bash
 npm run build    # tsc → dist/
-npm test         # node --test dist/test/*.test.js (13 test files, 311 tests)
+npm test         # node --test dist/test/*.test.js (27 test files, 527 tests)
 npm run start    # node dist/src/index.js
 ```
 
@@ -73,7 +73,7 @@ User prompt → Host Claude → [calls MCP tools] → Deterministic analysis
 
 The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requires zero tool handler changes. Enforced by `test/contracts.test.ts`.
 
-## 14 MCP Tools
+## 15 MCP Tools
 
 | # | Tool | Free/Metered | Purpose |
 |---|------|-------------|---------|
@@ -81,7 +81,7 @@ The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requi
 | 2 | `refine_prompt` | **Metered** | Iterative: answer questions, add edits → updated PreviewPack |
 | 3 | `approve_prompt` | Free | Sign-off gate: returns final compiled prompt + quality_score_before |
 | 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google, Perplexity) |
-| 5 | `compress_context` | Free | Prune irrelevant context, report token savings |
+| 5 | `compress_context` | Free | Smart compression with H1-H5 heuristics, zone protection, preserve patterns |
 | 6 | `check_prompt` | Free | Lightweight pass/fail + score + top 2 issues |
 | 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode, session limits |
 | 8 | `get_usage` | Free | Usage count, limits, remaining, tier info |
@@ -91,6 +91,7 @@ The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requi
 | 12 | `classify_task` | Free | Classify prompt by task type, complexity, risk, and suggested profile |
 | 13 | `route_model` | Free | Route to optimal model with full `decision_path` audit trail |
 | 14 | `pre_flight` | **Metered** | Full pre-flight pipeline: classify → risk → route → score. 1 use. |
+| 15 | `prune_tools` | Free | Score/rank tools by relevance; optionally prune low-relevance to save tokens |
 
 ### Output Targets
 
@@ -116,15 +117,15 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 |------|------|
 | `src/index.ts` | Entry point — CLI flags, MCP server + stdio transport, wires storage + rate limiter |
 | `src/api.ts` | Barrel export for programmatic API — re-exports all pure functions + `optimize()` convenience pipeline |
-| `src/tools.ts` | 14 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
+| `src/tools.ts` | 15 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
 | `src/types.ts` | All interfaces: TierLimits, PLAN_LIMITS, PreviewPack, ExecutionContext, StorageInterface, OutputTarget, LicenseData |
 | `src/license.ts` | Ed25519 offline license key validation (public key only, zero npm deps) |
 | `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer task detection. `classifyComplexity()` for 6-type reasoning complexity classification. |
-| `src/compiler.ts` | Multi-LLM compilation: IntentSpec → claude/openai/generic output with format_version |
+| `src/compiler.ts` | Multi-LLM compilation: IntentSpec → claude/openai/generic output with format_version. Smart compression pipeline (H1-H5 heuristics). |
 | `src/estimator.ts` | Multi-provider cost estimation (Anthropic, OpenAI, Google, Perplexity), target-aware recommendations, `TIER_MODELS`, `routeModel()` with 2-step deterministic routing |
 | `src/profiles.ts` | 5 frozen optimization profiles (`cost_minimizer`, `balanced`, `quality_first`, `creative`, `enterprise_safe`), `suggestProfile()`, `resolveProfile()` |
 | `src/scorer.ts` | Quality scoring (0-100, 5 dimensions × 20 points, scoring_version: 2). `generateChecklist()` for structural coverage. |
-| `src/rules.ts` | 10 deterministic ambiguity detection rules with `applies_to` field, `RISK_WEIGHTS`, `computeRiskScore()`, `deriveRiskLevel()` |
+| `src/rules.ts` | 14 deterministic ambiguity detection rules with `applies_to` field, `RISK_WEIGHTS`, `computeRiskScore()`, `deriveRiskLevel()` |
 | `src/templates.ts` | `Record<TaskType, string>` for roles and workflows |
 | `src/session.ts` | Async session management delegating to StorageInterface |
 | `src/logger.ts` | Structured logging with levels, request ID correlation, prompt logging gate |
@@ -133,6 +134,12 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `src/storage/interface.ts` | StorageInterface type, defaults (DEFAULT_CONFIG, DEFAULT_USAGE, DEFAULT_STATS) |
 | `src/storage/localFs.ts` | File-based StorageInterface implementation (`~/.prompt-optimizer/`) |
 | `src/storage/index.ts` | Re-export — Phase B swaps one line |
+| `src/constants.ts` | Frozen configuration values for compression, pruning, and rules. PRUNE_THRESHOLD, LICENSE_SCAN_LINES, ALWAYS_RELEVANT_TOOLS. |
+| `src/tokenizer.ts` | Centralized token estimation: `estimatePromptTokens()` (words×1.3), `estimateToolTokens()` (chars/4). |
+| `src/zones.ts` | Zone scanner: identifies fenced code, tables, lists, JSON, YAML blocks to protect from heuristics. |
+| `src/preservePatterns.ts` | Mark untouchable lines before heuristics run. Regex-based + internal patterns. |
+| `src/deltas.ts` | Pre-flight delta calculation for compression and pruning token savings estimates. |
+| `src/pruner.ts` | Deterministic tool relevance scorer and pruner. Task-type-aware scoring, mention protection, always-relevant tools. |
 | `src/lint-cli.ts` | Standalone CLI linter (`prompt-lint` binary). No MCP dependency — reuses `api.ts` functions directly. |
 
 ## Test Files
@@ -153,6 +160,18 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `test/routing.test.ts` | TIER_MODELS structure, Perplexity pricing, complexity→tier mapping, budget/latency overrides, target-aware selection, fallback, profiles, RESEARCH_INTENT_RE, confidence formula, savings, decision_path, determinism |
 | `test/profiles.test.ts` | 5 frozen profiles, suggestProfile mapping, resolveProfile fallback, profile shape contract |
 | `test/risk-score.test.ts` | RISK_WEIGHTS/RISK_ESCALATION_THRESHOLD constants, computeRiskScore with dimensional output, deriveRiskLevel |
+| `test/heuristics.test.ts` | H1-H5 heuristic functions: license strip, comment collapse, duplicate collapse, stub collapse, middle truncation |
+| `test/g36-invariance.test.ts` | Property-based: compressed_tokens ≤ original_tokens (100-input fuzz) |
+| `test/g21-drift.test.ts` | 10 golden fixture prompts with locked risk levels — prevents rule regressions |
+| `test/pruner.test.ts` | Tool scoring, ranking, pruning, mention protection, always-relevant tools |
+| `test/deltas.test.ts` | Pre-flight delta calculation for compression and pruning |
+| `test/rules-v31.test.ts` | 4 new rules: hallucination_risk, agent_underspec, conflicting_constraints, token_budget_mismatch |
+| `test/zones.test.ts` | Zone scanner: fenced code, tables, lists, JSON, YAML detection |
+| `test/zones-termination.test.ts` | Zone scanner termination guarantees |
+| `test/tokenizer.test.ts` | Token estimation determinism and consistency |
+| `test/preservePatterns.test.ts` | Preserve pattern marking, invalid regex handling |
+| `test/constants.test.ts` | Frozen constants validation, stableStringify determinism |
+| `test/compression-overloads.test.ts` | 5 compressContext overload signatures, type detection, backward compatibility |
 
 ## Key Type Contracts
 
@@ -244,6 +263,47 @@ v3.0 adds a pre-LLM decision layer on top of the existing linter. **Zero LLM cal
 - All v3 tool outputs include `schema_version: 1` for forward-compatible versioning
 - Risk score (0–100) drives routing; `riskLevel` is derived for display only (`0-29=low`, `30-59=medium`, `60-100=high`)
 - Perplexity is in pricing + routing recommendations only (not an OutputTarget)
+
+## v3.1 Smart Compression + Tool Pruning
+
+v3.1 adds a compression heuristics pipeline and tool pruning engine. **Zero LLM calls — still deterministic, offline, reproducible.**
+
+### Compression Pipeline (H1-H5)
+- **H2**: License/header strip (top 40 lines, strong legal token detection)
+- **H3**: Comment collapse (5+ consecutive // lines → keep first 2)
+- **H1**: Consecutive duplicate collapse (exact match, preserve first)
+- **H4**: Stub collapse (comment-only function bodies, gated by config)
+- **H5**: Middle truncation (aggressive mode only, respects token budget)
+
+Pipeline order is deterministic: legacy compression → H2 → H3 → H1 → H4 → H5. Each heuristic respects zones and preserved lines.
+
+### Zone Scanner
+Protects structured content from heuristic modification: fenced code blocks, markdown tables (≥2 lines), markdown lists (≥3 lines), JSON blocks, YAML frontmatter.
+
+### Preserve Patterns
+User-supplied regex patterns (strings) mark lines as untouchable before the pipeline runs. Internal patterns also protect dedup placeholders from re-compression.
+
+### Tool Pruner
+- `scoreAllTools()` — task-type-aware relevance scoring (0-100)
+- `rankTools()` — sorted by relevance (highest first)
+- `pruneTools()` — marks bottom-M as prunable, respects mention protection + always-relevant set
+- `ALWAYS_RELEVANT_TOOLS` = {search, read, write, edit, bash} — never pruned
+- `TASK_REQUIRED_TOOLS` — high-confidence matches per task type
+
+### Pre-Flight Deltas
+Estimated token savings shown before user commits to optimization. Conditional presence (only when savings > 0).
+
+### New Rules (10 → 14)
+- `hallucination_risk` — ungrounded factual claims without source context
+- `agent_underspec` — autonomous execution without safety constraints
+- `conflicting_constraints` — contradictory must/must-not pairs
+- `token_budget_mismatch` — small model + large output scope
+
+### G21 Drift Guardrail
+10 golden fixture prompts with locked risk levels. Prevents rule regressions during development.
+
+### G36 Invariant
+Property-based test: `compressed_tokens ≤ original_tokens` for 100 random inputs.
 
 ## Breaking Changes (v1 → v2)
 

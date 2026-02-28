@@ -1,7 +1,8 @@
-// src/api.ts — Programmatic API barrel export (v3.0).
+// src/api.ts — Programmatic API barrel export (v3.1).
 // Pure, synchronous, zero side effects. Safe for library use.
 // Does NOT start the MCP server (use `claude-prompt-optimizer-mcp/server` for that).
 // v3 additions: classifyComplexity, routeModel, computeRiskScore, PROFILES, TIER_MODELS.
+// v3.1 additions: pruner, tokenizer, zones, preservePatterns, deltas, constants.
 
 // ─── Analyzer ────────────────────────────────────────────────────────────────
 export { analyzePrompt, detectTaskType, classifyComplexity } from './analyzer.js';
@@ -33,6 +34,24 @@ export { PROFILES, suggestProfile, resolveProfile } from './profiles.js';
 // ─── License Validation ──────────────────────────────────────────────────────
 export { validateLicenseKey, canonicalizePayload, PRODUCTION_PUBLIC_KEY_PEM } from './license.js';
 
+// ─── v3.1: Compression Pipeline ─────────────────────────────────────────────
+export { estimatePromptTokens, estimateToolTokens, estimateOutputTokens } from './tokenizer.js';
+export { scanZones, isLineInZone, isLinePreserved, getZonesInRange } from './zones.js';
+export type { Zone } from './zones.js';
+export { markPreservedLines } from './preservePatterns.js';
+export { scoreAllTools, rankTools, pruneTools, scoreTool, rankMode, pruneMode } from './pruner.js';
+export type { ToolDefinition, ToolScore, PruningResult } from './pruner.js';
+export {
+  calculateCompressionDelta, calculateToolPruningDelta,
+  calculatePreFlightDeltas, formatDelta, formatPreFlightDeltas,
+} from './deltas.js';
+export type { PreFlightDelta, PreFlightDeltas } from './deltas.js';
+export {
+  PRUNE_THRESHOLD, SIGNALS_CAP, LICENSE_SCAN_LINES, STRONG_LEGAL_TOKENS,
+  ALWAYS_RELEVANT_TOOLS, TASK_REQUIRED_TOOLS, TASK_NEGATIVE_TOOLS,
+  TASK_TOOL_KEYWORDS, stableStringify,
+} from './constants.js';
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 export type {
   TaskType,
@@ -51,6 +70,9 @@ export type {
   CostEstimate,
   PreviewPack,
   CompressionResult,
+  CompressionPipelineResult,
+  CompressionConfig,
+  CompressContextResult,
   LicenseData,
   TierLimits,
   EnforcementResult,

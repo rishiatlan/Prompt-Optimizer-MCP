@@ -1,9 +1,13 @@
 // compiler.ts — Multi-LLM prompt compilation.
 // claude: XML-tagged (current). openai: system/user split. generic: markdown.
 
-import type { IntentSpec, OutputTarget } from './types.js';
+import type { IntentSpec, OutputTarget, CompressionConfig, CompressionPipelineResult } from './types.js';
 import { isCodeTask, isProseTask } from './types.js';
 import { getRole, getWorkflow } from './templates.js';
+import { estimatePromptTokens } from './tokenizer.js';
+import { scanZones, isLinePreserved, isLineInZone } from './zones.js';
+import { markPreservedLines } from './preservePatterns.js';
+import { STRONG_LEGAL_TOKENS, LICENSE_SCAN_LINES } from './constants.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -457,17 +461,16 @@ function compileGeneric(spec: IntentSpec, context?: string): { prompt: string; c
   };
 }
 
-// ─── Context Compression ──────────────────────────────────────────────────────
+// ─── Compression Heuristics Pipeline ──────────────────────────────────────────
 
-/** Compress context by removing likely-irrelevant sections. */
-export function compressContext(context: string, intent: string): {
-  compressed: string;
-  removed: string[];
-  originalTokens: number;
-  compressedTokens: number;
-} {
-  const removed: string[] = [];
+/**
+ * Apply legacy compression (before heuristics pipeline).
+ * Handles import blocks, large comments, blank line collapsing.
+ * Returns pre-compressed text for pipeline input.
+ */
+function applyLegacyCompression(context: string): { compressed: string; removed: string[] } {
   let compressed = context;
+  const removed: string[] = [];
   const originalLength = context.length;
 
   // Remove import blocks (keep first 5 lines of imports, summarize the rest)
@@ -494,22 +497,514 @@ export function compressContext(context: string, intent: string): {
   // Remove trailing whitespace
   compressed = compressed.replace(/[ \t]+$/gm, '');
 
-  // Remove test files content if intent doesn't mention tests
-  if (!/\b(test|spec|jest|mocha|vitest)\b/i.test(intent)) {
-    const testPattern = /\/\/ (test|spec|__tests__)[\s\S]*?(?=\n\/\/|$)/gi;
-    compressed = compressed.replace(testPattern, (match) => {
-      removed.push('Removed test-related code (not relevant to intent)');
-      return '// [test code removed — not relevant to task]\n';
-    });
+  return { compressed, removed };
+}
+
+/**
+ * Run compression pipeline in deterministic order: H2 → H3 → H1 → H4 → H5
+ * Each heuristic respects zones and preserved lines.
+ * Returns pipeline result with audit trail.
+ */
+function runCompressionPipeline(
+  context: string,
+  config: CompressionConfig
+): CompressionPipelineResult {
+  // Apply legacy compression first
+  const { compressed: legacyCompressed, removed: legacyRemoved } = applyLegacyCompression(context);
+
+  const mode = config.mode || 'standard';
+  const zones = scanZones(legacyCompressed);
+  const preserved = markPreservedLines(legacyCompressed.split('\n'), config.preservePatterns);
+
+  const originalTokens = estimatePromptTokens(context);
+  let current = legacyCompressed;
+  const heuristics_applied: string[] = [];
+  const removed_sections: string[] = [...legacyRemoved]; // Start with legacy removals
+  const warnings: string[] = [];
+
+  // ─── H2: License/header strip (top 40 lines only) ─────────────────────────
+  const h2Result = applyH2_LicenseStrip(current, zones, preserved);
+  if (h2Result.applied) {
+    current = h2Result.compressed;
+    heuristics_applied.push('H2');
+    removed_sections.push(...h2Result.removed);
   }
 
-  const originalTokens = Math.ceil(originalLength / 4);
-  const compressedTokens = Math.ceil(compressed.length / 4);
+  // ─── H3: Collapse 5+ consecutive // comment lines ─────────────────────────
+  const h3Result = applyH3_CommentCollapse(current, zones, preserved);
+  if (h3Result.applied) {
+    current = h3Result.compressed;
+    heuristics_applied.push('H3');
+    removed_sections.push(...h3Result.removed);
+  }
+
+  // ─── H1: Collapse consecutive exact duplicate lines ──────────────────────
+  const h1Result = applyH1_DuplicateCollapse(current, zones, preserved);
+  if (h1Result.applied) {
+    current = h1Result.compressed;
+    heuristics_applied.push('H1');
+    removed_sections.push(...h1Result.removed);
+  }
+
+  // ─── H4: Collapse comment-only stubs ────────────────────────────────────
+  const h4Result = applyH4_StubCollapse(current, zones, preserved, mode, config.enableStubCollapse || false);
+  if (h4Result.applied) {
+    current = h4Result.compressed;
+    heuristics_applied.push('H4');
+    removed_sections.push(...h4Result.removed);
+  }
+
+  // ─── H5: Middle truncation (aggressive mode only) ────────────────────────
+  if (mode === 'aggressive') {
+    const h5Result = applyH5_MiddleTruncate(current, zones, preserved, config.tokenBudget || 8000);
+    if (h5Result.applied) {
+      current = h5Result.compressed;
+      heuristics_applied.push('H5');
+      removed_sections.push(...h5Result.removed);
+    }
+  }
+
+  const compressedTokens = estimatePromptTokens(current);
+
+  // ─── G36 Invariant: ensure compressed ≤ original ───────────────────────────
+  if (compressedTokens > originalTokens) {
+    return {
+      compressed: context,
+      originalTokens,
+      compressedTokens: originalTokens,
+      heuristics_applied: [],
+      removed_sections: ['[compression did not reduce tokens; reverted to original]'],
+      warnings,
+      mode,
+    };
+  }
 
   return {
-    compressed: compressed.trim(),
-    removed,
+    compressed: current,
     originalTokens,
     compressedTokens,
+    heuristics_applied,
+    removed_sections,
+    warnings,
+    mode,
+  };
+}
+
+// ─── H2: License/Header Strip ─────────────────────────────────────────────────
+
+interface HeuristicResult {
+  compressed: string;
+  applied: boolean;
+  removed: string[];
+}
+
+function applyH2_LicenseStrip(
+  text: string,
+  zones: ReturnType<typeof scanZones>,
+  preserved: Set<number>
+): HeuristicResult {
+  const lines = text.split('\n');
+  const removed: string[] = [];
+
+  let i = 0;
+  while (i < Math.min(LICENSE_SCAN_LINES, lines.length)) {
+    // Skip non-comment lines
+    if (!/^\s*(\/\/|#|\/\*|\*|;)/.test(lines[i])) {
+      i++;
+      continue;
+    }
+
+    // Found potential license block
+    const blockStart = i;
+    while (i < Math.min(LICENSE_SCAN_LINES, lines.length) &&
+           /^\s*(\/\/|#|\/\*|\*|;)/.test(lines[i])) {
+      i++;
+    }
+    const blockEnd = i - 1;
+
+    // Check for strong legal token in block
+    const blockText = lines.slice(blockStart, blockEnd + 1).join('\n');
+    if (STRONG_LEGAL_TOKENS.test(blockText)) {
+      // Check if any lines are preserved or in zones
+      let shouldRemove = true;
+      for (let j = blockStart; j <= blockEnd; j++) {
+        if (isLinePreserved(j, preserved) || isLineInZone(j, zones)) {
+          shouldRemove = false;
+          break;
+        }
+      }
+
+      if (shouldRemove) {
+        // Remove license block
+        const licenseLines = blockEnd - blockStart + 1;
+        lines.splice(blockStart, licenseLines, '[license header removed]');
+        removed.push(`Removed ${licenseLines}-line license header`);
+        i = blockStart + 1;
+      }
+    }
+  }
+
+  return {
+    compressed: lines.join('\n'),
+    applied: removed.length > 0,
+    removed,
+  };
+}
+
+// ─── H3: Comment Collapse (5+ consecutive // lines) ──────────────────────────
+
+function applyH3_CommentCollapse(
+  text: string,
+  zones: ReturnType<typeof scanZones>,
+  preserved: Set<number>
+): HeuristicResult {
+  const lines = text.split('\n');
+  const removed: string[] = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    // Check if line is // comment (not /// or /** )
+    if (/^\/\/[^/]/.test(lines[i]) && !isLinePreserved(i, preserved) && !isLineInZone(i, zones)) {
+      const blockStart = i;
+      while (i < lines.length && /^\/\/[^/]/.test(lines[i])) {
+        i++;
+      }
+      const blockEnd = i - 1;
+      const commentCount = blockEnd - blockStart + 1;
+
+      if (commentCount >= 5) {
+        // Keep first 2, collapse rest
+        const toRemove = commentCount - 2;
+        lines.splice(blockStart + 2, toRemove, `// … (${toRemove} more comment lines removed)`);
+        removed.push(`Collapsed ${toRemove} comment line(s)`);
+        i = blockStart + 3;
+      } else {
+        i = blockEnd + 1;
+      }
+    } else {
+      i++;
+    }
+  }
+
+  return {
+    compressed: lines.join('\n'),
+    applied: removed.length > 0,
+    removed,
+  };
+}
+
+// ─── H1: Consecutive Duplicate Collapse ────────────────────────────────────────
+
+function applyH1_DuplicateCollapse(
+  text: string,
+  zones: ReturnType<typeof scanZones>,
+  preserved: Set<number>
+): HeuristicResult {
+  const lines = text.split('\n');
+  const removed: string[] = [];
+
+  let i = 0;
+  while (i < lines.length) {
+    const current = lines[i].trimEnd();
+    let j = i + 1;
+
+    // Find consecutive duplicates
+    while (j < lines.length && lines[j].trimEnd() === current) {
+      j++;
+    }
+
+    const duplicateCount = j - i - 1;
+    if (duplicateCount > 0) {
+      // Check if any duplicate is preserved or in zone
+      let shouldDedup = true;
+      for (let k = i + 1; k < j; k++) {
+        if (isLinePreserved(k, preserved) || isLineInZone(k, zones)) {
+          shouldDedup = false;
+          break;
+        }
+      }
+
+      if (shouldDedup) {
+        // Remove duplicates, keep first
+        lines.splice(i + 1, duplicateCount, `… (${duplicateCount} duplicate lines removed)`);
+        removed.push(`Deduped ${duplicateCount} duplicate line(s)`);
+        i += 2;
+      } else {
+        i = j;
+      }
+    } else {
+      i = j;
+    }
+  }
+
+  return {
+    compressed: lines.join('\n'),
+    applied: removed.length > 0,
+    removed,
+  };
+}
+
+// ─── H4: Stub Collapse (comment-only bodies) ──────────────────────────────────
+
+function applyH4_StubCollapse(
+  text: string,
+  zones: ReturnType<typeof scanZones>,
+  preserved: Set<number>,
+  mode: 'standard' | 'aggressive',
+  enableStubCollapse: boolean
+): HeuristicResult {
+  const lines = text.split('\n');
+  const removed: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (isLinePreserved(i, preserved) || isLineInZone(i, zones)) {
+      continue;
+    }
+
+    const line = lines[i];
+    // Detect single-line stub: { /* ... */ }
+    if (/^\s*\{\s*\/\*\s*\w+\s*\*\/\s*\}/.test(line)) {
+      // Standard mode: never collapse throw new Error
+      if (line.includes('throw new Error') && mode === 'standard') {
+        continue;
+      }
+      // Aggressive mode: collapse only if enableStubCollapse
+      if (mode === 'aggressive' && !enableStubCollapse) {
+        continue;
+      }
+
+      lines[i] = '{ /* stub */ }';
+      removed.push('Collapsed stub');
+    }
+  }
+
+  return {
+    compressed: lines.join('\n'),
+    applied: removed.length > 0,
+    removed,
+  };
+}
+
+// ─── H5: Middle Truncation (aggressive mode only) ────────────────────────────
+
+function applyH5_MiddleTruncate(
+  text: string,
+  zones: ReturnType<typeof scanZones>,
+  preserved: Set<number>,
+  tokenBudget: number
+): HeuristicResult {
+  const lines = text.split('\n');
+  const currentTokens = estimatePromptTokens(text);
+
+  if (currentTokens <= tokenBudget) {
+    return {
+      compressed: text,
+      applied: false,
+      removed: [],
+    };
+  }
+
+  // Calculate token targets: keep first 30% + last 30%
+  const tokensToKeep = Math.floor(tokenBudget * 0.6);
+  const tokensPerPart = Math.floor(tokensToKeep * 0.5);
+
+  // Find line where first 30% ends
+  let startLineIdx = 0;
+  let startTokens = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const lineTokens = estimatePromptTokens(lines[i]);
+    if (startTokens + lineTokens >= tokensPerPart) {
+      startLineIdx = i;
+      break;
+    }
+    startTokens += lineTokens;
+  }
+
+  // Find line where last 30% begins
+  let endLineIdx = lines.length - 1;
+  let endTokens = 0;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const lineTokens = estimatePromptTokens(lines[i]);
+    if (endTokens + lineTokens >= tokensPerPart) {
+      endLineIdx = i;
+      break;
+    }
+    endTokens += lineTokens;
+  }
+
+  if (startLineIdx >= endLineIdx) {
+    return {
+      compressed: text,
+      applied: false,
+      removed: [],
+    };
+  }
+
+  // Build keep set: first part + last part + preserved lines
+  const keepSet = new Set<number>();
+  for (let i = 0; i <= startLineIdx; i++) keepSet.add(i);
+  for (let i = endLineIdx; i < lines.length; i++) keepSet.add(i);
+  preserved.forEach((lineNum) => keepSet.add(lineNum));
+
+  // Reconstruct with truncation placeholder
+  const result: string[] = [];
+  let lastKept = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (keepSet.has(i)) {
+      result.push(lines[i]);
+      lastKept = i;
+    } else if (i === startLineIdx + 1 && lastKept === startLineIdx) {
+      // Insert placeholder at first gap
+      const tokensRemoved = currentTokens - tokensToKeep;
+      result.push(`… [middle section truncated: ~${tokensRemoved} tokens removed to fit budget; mode=aggressive] …`);
+    }
+  }
+
+  const tokensRemoved = currentTokens - tokensToKeep;
+  return {
+    compressed: result.join('\n'),
+    applied: true,
+    removed: [`Truncated middle (~${tokensRemoved} tokens)`],
+  };
+}
+
+// ─── Context Compression ──────────────────────────────────────────────────────
+
+/** Overload signatures for compressContext supporting multiple call patterns.
+ * v3.1.0: heuristics_applied + mode are new backward-compatible fields. */
+
+export function compressContext(context: string): {
+  compressed: string;
+  removed: string[];
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied: string[];
+  mode: string;
+};
+
+export function compressContext(
+  context: string,
+  intent: string
+): {
+  compressed: string;
+  removed: string[];
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied: string[];
+  mode: string;
+};
+
+export function compressContext(
+  context: string,
+  intent: IntentSpec | string
+): {
+  compressed: string;
+  removed: string[];
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied: string[];
+  mode: string;
+};
+
+export function compressContext(
+  context: string,
+  config: CompressionConfig
+): {
+  compressed: string;
+  removed: string[];
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied: string[];
+  mode: string;
+};
+
+export function compressContext(
+  context: string,
+  intent: IntentSpec | string | undefined,
+  config?: CompressionConfig
+): {
+  compressed: string;
+  removed: string[];
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied: string[];
+  mode: string;
+};
+
+/**
+ * Compress context by removing likely-irrelevant sections.
+ *
+ * Overload resolution (deterministic order):
+ * 1. if 3rd arg present => config
+ * 2. else if 2nd arg undefined => no intent, no config
+ * 3. else if 2nd arg is string => raw intent text
+ * 4. else if 2nd arg is object with config keys => treat as config
+ * 5. else if 2nd arg is object with user_intent field => IntentSpec
+ * 6. else fallback to treating as IntentSpec-like
+ */
+export function compressContext(
+  context: string,
+  intent?: IntentSpec | string | CompressionConfig,
+  config?: CompressionConfig
+): {
+  compressed: string;
+  removed: string[];
+  originalTokens: number;
+  compressedTokens: number;
+  heuristics_applied: string[];
+  mode: string;
+} {
+  // ─── Overload detection ──────────────────────────────────────────────────
+  let resolvedIntent: string = '';
+  let resolvedConfig: CompressionConfig = {};
+
+  if (config !== undefined) {
+    // Case 1: 3rd arg present => explicit config
+    resolvedConfig = config;
+    if (typeof intent === 'string') {
+      resolvedIntent = intent;
+    } else if (intent && typeof intent === 'object' && 'user_intent' in intent) {
+      resolvedIntent = (intent as IntentSpec).user_intent;
+    }
+  } else if (intent === undefined) {
+    // Case 2: no 2nd arg => no intent, no config
+    resolvedIntent = '';
+    resolvedConfig = {};
+  } else if (typeof intent === 'string') {
+    // Case 3: 2nd arg is string => raw intent text
+    resolvedIntent = intent;
+    resolvedConfig = {};
+  } else if (typeof intent === 'object') {
+    // Case 4 & 5: 2nd arg is object => check if it's config or IntentSpec
+    const isConfigLike =
+      'mode' in intent ||
+      'tokenBudget' in intent ||
+      'preservePatterns' in intent ||
+      'enableStubCollapse' in intent;
+
+    if (isConfigLike) {
+      // Treat as config
+      resolvedConfig = intent as CompressionConfig;
+      resolvedIntent = '';
+    } else if ('user_intent' in intent) {
+      // Treat as IntentSpec
+      resolvedIntent = (intent as IntentSpec).user_intent;
+      resolvedConfig = {};
+    } else {
+      // Case 6: fallback to IntentSpec-like
+      resolvedConfig = {};
+    }
+  }
+
+  // Run compression pipeline with resolved config
+  const pipelineResult = runCompressionPipeline(context, resolvedConfig);
+
+  return {
+    compressed: pipelineResult.compressed.trim(),
+    removed: pipelineResult.removed_sections,
+    originalTokens: pipelineResult.originalTokens,
+    compressedTokens: pipelineResult.compressedTokens,
+    heuristics_applied: pipelineResult.heuristics_applied,
+    mode: pipelineResult.mode,
   };
 }

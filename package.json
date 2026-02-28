@@ -1,6 +1,6 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "type": "module",
   "description": "The prompt linter for LLM applications — scores, analyzes, standardizes prompts, and routes to optimal models via MCP. Free tier included.",
   "main": "dist/src/api.js",

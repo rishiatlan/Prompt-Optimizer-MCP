@@ -95,4 +95,4 @@ await server.connect(transport);
 
 // Log tier from storage (reflects license > env var > default priority)
 const bootUsage = await storage.getUsage();
-log.info(bootId, `MCP server v${pkg.version} ready (tier=${bootUsage.tier}, tools=11)`);
+log.info(bootId, `MCP server v${pkg.version} ready (tier=${bootUsage.tier}, tools=15)`);
