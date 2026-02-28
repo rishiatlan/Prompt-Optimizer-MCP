@@ -471,7 +471,7 @@
       position: relative;
     }
     .pricing-card.featured::before {
-      content: 'Most Popular';
+      content: 'Recommended';
       position: absolute;
       top: -12px;
       left: 50%;
@@ -569,6 +569,18 @@
     footer a { color: var(--text-muted); }
     footer a:hover { color: var(--text); }
 
+    /* -- Alternate section backgrounds ---------------- */
+    .section-alt { background: var(--surface); }
+    .section-alt .definition { background: var(--bg); }
+    .section-alt .feature-card, .section-alt .use-case-card { background: var(--bg); }
+    .section-alt .install { background: var(--bg); }
+
+    /* -- Mid-page CTA -------------------------------- */
+    .mid-cta {
+      text-align: center;
+      padding: 32px 0 0;
+    }
+
     /* -- Mobile -------------------------------------- */
     @media (max-width: 640px) {
       .benefit-block { flex-direction: column; gap: 8px; }
@@ -615,12 +627,12 @@
             <span class="demo-label">Your prompt</span>
           </div>
           <div class="demo-body">
-            <span class="demo-dim">&gt;</span> Make the code better and fix all the bugs<span class="demo-cursor">|</span>
-            <div class="demo-score bad">Score: <strong>38</strong>/100</div>
+            <span class="demo-dim">&gt;</span> Write me something about our product launch<span class="demo-cursor">|</span>
+            <div class="demo-score bad">Score: <strong>31</strong>/100</div>
             <div class="demo-issues">
               <span class="demo-tag">&#x26a0; vague_objective</span>
-              <span class="demo-tag">&#x26a0; missing_constraints</span>
-              <span class="demo-tag">&#x26a0; scope_explosion</span>
+              <span class="demo-tag">&#x26a0; missing_audience</span>
+              <span class="demo-tag">&#x26a0; no_constraints</span>
             </div>
           </div>
         </div>
@@ -633,11 +645,11 @@
             <span class="demo-label">Compiled output</span>
           </div>
           <div class="demo-body compiled">
-            <div><span class="xml-tag">&lt;role&gt;</span>Senior TypeScript engineer<span class="xml-tag">&lt;/role&gt;</span></div>
-            <div><span class="xml-tag">&lt;goal&gt;</span>Fix failing tests in auth module<span class="xml-tag">&lt;/goal&gt;</span></div>
+            <div><span class="xml-tag">&lt;role&gt;</span>Product marketing writer<span class="xml-tag">&lt;/role&gt;</span></div>
+            <div><span class="xml-tag">&lt;goal&gt;</span>Write a 200-word launch announcement<span class="xml-tag">&lt;/goal&gt;</span></div>
             <div><span class="xml-tag">&lt;constraints&gt;</span></div>
-            <div class="indent">- Preserve existing API contracts</div>
-            <div class="indent">- No new dependencies</div>
+            <div class="indent">- Tone: professional, concise</div>
+            <div class="indent">- Audience: existing customers</div>
             <div><span class="xml-tag">&lt;/constraints&gt;</span></div>
             <div class="demo-score good">Score: <strong>91</strong>/100</div>
           </div>
@@ -678,7 +690,7 @@
   </section>
 
   <!-- Section 2: What Is AI Prompt Optimization? -->
-  <section class="section" id="what-is">
+  <section class="section section-alt" id="what-is">
     <div class="container">
       <h2 class="section-title">What Is AI Prompt Optimization?</h2>
       <div class="definition">
@@ -722,11 +734,14 @@
           </div>
         </div>
       </div>
+      <div class="mid-cta">
+        <a href="#get-started" class="btn btn-primary">Try It Free &rarr;</a>
+      </div>
     </div>
   </section>
 
   <!-- Section 4: How It Works -->
-  <section class="section" id="how">
+  <section class="section section-alt" id="how">
     <div class="container">
       <h2 class="section-title">How It Works</h2>
       <p class="section-subtitle">Five steps from rough prompt to production-ready. All analysis is deterministic &mdash; no AI calls inside.</p>
@@ -767,6 +782,9 @@
           </div>
         </div>
       </div>
+      <div class="mid-cta">
+        <a href="#get-started" class="btn btn-primary">Get Started Free &rarr;</a>
+      </div>
     </div>
   </section>
 
@@ -797,7 +815,7 @@
   </section>
 
   <!-- Section 6: Comparison -->
-  <section class="section" id="comparison">
+  <section class="section section-alt" id="comparison">
     <div class="container">
       <h2 class="section-title">Prompt Optimizer vs Alternatives</h2>
       <p class="section-subtitle">There are several ways to improve prompt quality. Here's how they compare.</p>
@@ -810,7 +828,7 @@
             <tr><td>Manual prompt rewriting</td><td>Flexible, no tooling needed</td><td>Inconsistent, slow, no scoring</td></tr>
             <tr><td>Fine-tuning models</td><td>Powerful for specific tasks</td><td>Expensive, complex, requires data</td></tr>
             <tr><td>Trial-and-error iteration</td><td>Easy to start</td><td>Token waste, no quality measurement</td></tr>
-            <tr><td>Prompt Optimizer MCP</td><td>Structured, measurable, local, free</td><td>Requires MCP client or Node.js</td></tr>
+            <tr><td>Prompt Optimizer MCP</td><td>Structured, measurable, local, free</td><td>Works via MCP client or Node.js</td></tr>
           </tbody>
         </table>
       </div>
@@ -859,6 +877,9 @@
           <p>Use as a Node.js library &mdash; no MCP server needed. <code>import { optimize } from 'claude-prompt-optimizer-mcp'</code>. Pure, synchronous, zero side effects.</p>
         </div>
       </div>
+      <div class="mid-cta">
+        <a href="#get-started" class="btn btn-primary">Try It Free &rarr;</a>
+      </div>
     </div>
   </section>
 
@@ -897,7 +918,7 @@ const md = optimize('write a REST API', undefined, 'generic');
   </section>
 
   <!-- Section 9: All 11 Tools -->
-  <section class="section" id="tools">
+  <section class="section section-alt" id="tools">
     <div class="container">
       <h2 class="section-title">All 11 tools</h2>
       <p class="section-subtitle">Metered tools count against your usage quota. Free tools are always unlimited.</p>
@@ -958,7 +979,7 @@ const md = optimize('write a REST API', undefined, 'generic');
   </section>
 
   <!-- Section 11: Get Started (Pricing + Install + Activate) -->
-  <section class="section" id="get-started">
+  <section class="section section-alt" id="get-started">
     <div class="container">
       <h2 class="section-title" style="text-align: center;">Get started in 30 seconds</h2>
       <p class="section-subtitle" style="text-align: center;">Free tier includes 10 optimizations, unlimited scoring, and all 11 tools. No credit card required.</p>
@@ -1051,6 +1072,7 @@ const md = optimize('write a REST API', undefined, 'generic');
       <p>
         Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a> &middot;
         <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a> &middot;
+        <a href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/how-i-built-this.html">How I Built This</a> &middot;
         MIT License
       </p>
     </div>
