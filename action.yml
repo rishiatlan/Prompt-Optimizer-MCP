@@ -49,5 +49,8 @@ runs:
           echo "::error::Invalid version '${VERSION}'. Use a tag like @v2 or @v2.3.0, or set 'version' input (e.g., version: '2.3.0')."
           exit 2
         fi
-        npx -y "claude-prompt-optimizer-mcp@${VERSION}" prompt-lint "${ARGS[@]}"
+        # npx can't run secondary bins — install locally and use node_modules/.bin
+        TMPDIR=$(mktemp -d)
+        npm install --prefix "$TMPDIR" "claude-prompt-optimizer-mcp@${VERSION}" --no-save 2>&1
+        "$TMPDIR/node_modules/.bin/prompt-lint" "${ARGS[@]}"
       shell: bash

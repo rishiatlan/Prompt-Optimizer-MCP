@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.3.1] - 2026-02-28
+
+### Fixed
+- **GitHub Action**: `npx` cannot run secondary bins from multi-bin packages. Action now uses `npm install --prefix` + `node_modules/.bin/prompt-lint` for reliable invocation by remote users.
+
 ## [2.3.0] - 2026-02-28
 
 ### Added
