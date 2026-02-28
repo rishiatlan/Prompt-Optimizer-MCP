@@ -442,10 +442,15 @@
       font-size: 15px;
       margin-bottom: 8px;
     }
+    .faq-q::before {
+      content: 'Q: ';
+      color: var(--accent);
+    }
     .faq-a {
       font-size: 14px;
       color: var(--text-muted);
       line-height: 1.6;
+      padding-left: 24px;
     }
 
     /* -- Pricing ------------------------------------- */
@@ -571,9 +576,6 @@
 
     /* -- Alternate section backgrounds ---------------- */
     .section-alt { background: var(--surface); }
-    .section-alt .definition { background: var(--bg); }
-    .section-alt .feature-card, .section-alt .use-case-card { background: var(--bg); }
-    .section-alt .install { background: var(--bg); }
 
     /* -- Mid-page CTA -------------------------------- */
     .mid-cta {
@@ -689,25 +691,8 @@
     </div>
   </section>
 
-  <!-- Section 2: What Is AI Prompt Optimization? -->
-  <section class="section section-alt" id="what-is">
-    <div class="container">
-      <h2 class="section-title">What Is AI Prompt Optimization?</h2>
-      <div class="definition">
-        <p>Prompt optimization is the practice of systematically scoring, restructuring, and compiling natural-language instructions before sending them to a large language model. The goal is to reduce token cost, improve output quality, and eliminate ambiguity &mdash; turning ad-hoc prompting into a repeatable, measurable process.</p>
-        <ul class="definition-list">
-          <li>Scoring clarity, specificity, and structure</li>
-          <li>Detecting ambiguity and missing constraints</li>
-          <li>Compiling structured instructions with role, goal, and boundaries</li>
-          <li>Estimating token cost across multiple providers</li>
-          <li>Standardizing prompt frameworks across teams</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section 3: Product Introduction -->
-  <section class="section" id="product">
+  <!-- Section 2: Product Introduction -->
+  <section class="section section-alt" id="product">
     <div class="container">
       <h2 class="section-title">Prompt Optimizer MCP</h2>
       <p class="section-subtitle">An open-source implementation of prompt optimization that runs entirely on your machine.</p>
@@ -736,6 +721,23 @@
       </div>
       <div class="mid-cta">
         <a href="#get-started" class="btn btn-primary">Try It Free &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: What Is AI Prompt Optimization? -->
+  <section class="section" id="what-is">
+    <div class="container">
+      <h2 class="section-title">What Is AI Prompt Optimization?</h2>
+      <div class="definition">
+        <p>Prompt optimization is the practice of systematically scoring, restructuring, and compiling natural-language instructions before sending them to a large language model. The goal is to reduce token cost, improve output quality, and eliminate ambiguity &mdash; turning ad-hoc prompting into a repeatable, measurable process.</p>
+        <ul class="definition-list">
+          <li>Scoring clarity, specificity, and structure</li>
+          <li>Detecting ambiguity and missing constraints</li>
+          <li>Compiling structured instructions with role, goal, and boundaries</li>
+          <li>Estimating token cost across multiple providers</li>
+          <li>Standardizing prompt frameworks across teams</li>
+        </ul>
       </div>
     </div>
   </section>
@@ -795,16 +797,16 @@
       <p class="section-subtitle">Different teams, same problem: inconsistent prompts waste tokens and produce unpredictable results.</p>
       <div class="use-cases-grid">
         <div class="use-case-card feature-card">
-          <h3>For anyone building with AI</h3>
-          <p>Score prompts before they run. Catch vague instructions before they waste tokens. Works whether you write code or just use AI tools.</p>
+          <h3>For everyday AI users</h3>
+          <p>Get better answers from ChatGPT, Claude, or any LLM. Score your prompts, see what's vague, and fix it before you hit send.</p>
         </div>
         <div class="use-case-card feature-card">
           <h3>For teams standardizing prompts</h3>
           <p>Enforce consistent structure across every prompt. Same quality bar, every time, across every team member.</p>
         </div>
         <div class="use-case-card feature-card">
-          <h3>For anyone optimizing AI spend</h3>
-          <p>See exact cost estimates across 8 models before you run. Compress context to strip irrelevant input. Cut spend without cutting quality.</p>
+          <h3>For teams controlling AI costs</h3>
+          <p>Compare pricing across 8 models before every call. Compress context to strip irrelevant input. Cut spend across your org without cutting quality.</p>
         </div>
         <div class="use-case-card feature-card">
           <h3>For MCP-powered workflows</h3>
@@ -828,7 +830,7 @@
             <tr><td>Manual prompt rewriting</td><td>Flexible, no tooling needed</td><td>Inconsistent, slow, no scoring</td></tr>
             <tr><td>Fine-tuning models</td><td>Powerful for specific tasks</td><td>Expensive, complex, requires data</td></tr>
             <tr><td>Trial-and-error iteration</td><td>Easy to start</td><td>Token waste, no quality measurement</td></tr>
-            <tr><td>Prompt Optimizer MCP</td><td>Structured, measurable, local, free</td><td>Works via MCP client or Node.js</td></tr>
+            <tr><td>Prompt Optimizer MCP</td><td>Structured, measurable, runs locally, free tier included</td><td>Works via MCP client or Node.js</td></tr>
           </tbody>
         </table>
       </div>
@@ -981,7 +983,7 @@ const md = optimize('write a REST API', undefined, 'generic');
   <!-- Section 11: Get Started (Pricing + Install + Activate) -->
   <section class="section section-alt" id="get-started">
     <div class="container">
-      <h2 class="section-title" style="text-align: center;">Get started in 30 seconds</h2>
+      <h2 class="section-title" style="text-align: center;">Get started in under 2 minutes</h2>
       <p class="section-subtitle" style="text-align: center;">Free tier includes 10 optimizations, unlimited scoring, and all 11 tools. No credit card required.</p>
 
       <!-- Pricing Cards -->
@@ -1072,7 +1074,7 @@ const md = optimize('write a REST API', undefined, 'generic');
       <p>
         Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a> &middot;
         <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a> &middot;
-        <a href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/how-i-built-this.html">How I Built This</a> &middot;
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a> &middot;
         MIT License
       </p>
     </div>
