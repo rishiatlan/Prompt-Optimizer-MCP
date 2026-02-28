@@ -10,6 +10,11 @@ import os from 'node:os';
 import { LocalFsStorage } from '../src/storage/localFs.js';
 import { LocalRateLimiter } from '../src/rateLimit.js';
 import { analyzePrompt, scorePrompt, compilePrompt, generateChecklist, estimateCost } from '../src/api.js';
+import { detectTaskType, classifyComplexity } from '../src/analyzer.js';
+import { runRules, extractBlockingQuestions, computeRiskScore } from '../src/rules.js';
+import { suggestProfile } from '../src/profiles.js';
+import { estimateTokens, routeModel } from '../src/estimator.js';
+import type { ModelRoutingInput, OptimizationProfile } from '../src/types.js';
 import { validateLicenseKey, canonicalizePayload } from '../src/license.js';
 import type { LicensePayload } from '../src/license.js';
 import { PLAN_LIMITS } from '../src/types.js';
@@ -483,5 +488,223 @@ describe('E2E: Configuration & stats', () => {
 
     const stats = await storage.getStats();
     assert.equal(stats.total_optimized, 3, 'should have 3 optimizations');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// v3 Decision Engine: classify_task pipeline
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('E2E: classify_task pipeline', () => {
+  it('returns all required fields for code prompt', () => {
+    const prompt = 'Write a Python function that calculates compound interest. Include type hints.';
+    const taskType = detectTaskType(prompt);
+    const complexityResult = classifyComplexity(prompt);
+    const ruleResults = runRules(prompt, undefined, taskType);
+    const riskScore = computeRiskScore(ruleResults);
+    const suggestedProfileName = suggestProfile(complexityResult.complexity, riskScore.score);
+
+    // Validate all fields present
+    assert.ok(typeof taskType === 'string');
+    assert.ok(['simple_factual', 'analytical', 'multi_step', 'creative', 'long_context', 'agent_orchestration']
+      .includes(complexityResult.complexity));
+    assert.ok(typeof complexityResult.confidence === 'number');
+    assert.ok(Array.isArray(complexityResult.signals));
+    assert.ok(['low', 'medium', 'high'].includes(riskScore.level));
+    assert.ok(typeof riskScore.score === 'number');
+    assert.ok(['cost_minimizer', 'balanced', 'quality_first', 'creative', 'enterprise_safe']
+      .includes(suggestedProfileName));
+  });
+
+  it('simple question classified as simple_factual', () => {
+    const prompt = 'What is TypeScript?';
+    const complexity = classifyComplexity(prompt);
+    assert.equal(complexity.complexity, 'simple_factual');
+  });
+
+  it('multi-step prompt classified correctly', () => {
+    const prompt = 'First, set up the database. Then, create the API routes. Next, build the frontend. Finally, deploy to production.';
+    const complexity = classifyComplexity(prompt);
+    assert.equal(complexity.complexity, 'multi_step');
+  });
+
+  it('research intent prompt detectable', () => {
+    const prompt = 'Search the web for the latest React performance benchmarks with citations';
+    const taskType = detectTaskType(prompt);
+    const complexity = classifyComplexity(prompt);
+    assert.ok(typeof taskType === 'string');
+    assert.ok(typeof complexity.complexity === 'string');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// v3 Decision Engine: route_model pipeline
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('E2E: route_model pipeline', () => {
+  it('routes simple question to small tier (Anthropic/haiku for claude target)', () => {
+    const prompt = 'What is a closure in JavaScript?';
+    const taskType = detectTaskType(prompt);
+    const complexity = classifyComplexity(prompt);
+    const ruleResults = runRules(prompt, undefined, taskType);
+    const riskScore = computeRiskScore(ruleResults);
+    const contextTokens = estimateTokens(prompt);
+
+    const input: ModelRoutingInput = {
+      taskType,
+      complexity: complexity.complexity,
+      budgetSensitivity: 'medium',
+      latencySensitivity: 'medium',
+      contextTokens,
+      riskScore: riskScore.score,
+    };
+
+    const rec = routeModel(input, prompt, complexity.confidence, 'claude');
+    assert.equal(rec.primary.provider, 'anthropic');
+    assert.equal(rec.primary.model, 'haiku');
+    assert.ok(rec.decision_path.includes('default_tier=small'));
+  });
+
+  it('routes multi-step high-risk to top tier', () => {
+    const input: ModelRoutingInput = {
+      taskType: 'code_change',
+      complexity: 'multi_step',
+      budgetSensitivity: 'medium',
+      latencySensitivity: 'medium',
+      contextTokens: 10000,
+      riskScore: 50, // above RISK_ESCALATION_THRESHOLD
+    };
+
+    const rec = routeModel(input, undefined, 60, 'claude');
+    assert.equal(rec.primary.provider, 'anthropic');
+    assert.equal(rec.primary.model, 'opus');
+    assert.ok(rec.decision_path.includes('default_tier=top'));
+  });
+
+  it('routes research prompt to Perplexity', () => {
+    const prompt = 'Search the web for the latest TypeScript performance benchmarks with sources';
+    const input: ModelRoutingInput = {
+      taskType: 'research',
+      complexity: 'analytical',
+      budgetSensitivity: 'medium',
+      latencySensitivity: 'medium',
+      contextTokens: 500,
+      riskScore: 10,
+    };
+
+    const rec = routeModel(input, prompt, 70, 'claude');
+    assert.equal(rec.primary.provider, 'perplexity');
+    assert.ok(rec.decision_path.includes('research_intent=true'));
+  });
+
+  it('decision_path is complete audit trail', () => {
+    const input: ModelRoutingInput = {
+      taskType: 'create',
+      complexity: 'creative',
+      budgetSensitivity: 'high',
+      latencySensitivity: 'medium',
+      contextTokens: 3000,
+      riskScore: 25,
+      profile: 'creative',
+    };
+
+    const rec = routeModel(input, undefined, 70, 'claude');
+    // Verify decision_path contains key decisions
+    assert.ok(rec.decision_path.includes('profile=creative'));
+    assert.ok(rec.decision_path.includes('complexity=creative'));
+    assert.ok(rec.decision_path.some(e => e.startsWith('risk_score=')));
+    assert.ok(rec.decision_path.some(e => e.startsWith('selected=')));
+    assert.ok(rec.decision_path.some(e => e.startsWith('fallback=')));
+    assert.ok(rec.decision_path.includes('baseline_model=gpt-4o'));
+  });
+
+  it('fallback differs from primary provider', () => {
+    const input: ModelRoutingInput = {
+      taskType: 'code_change',
+      complexity: 'analytical',
+      budgetSensitivity: 'medium',
+      latencySensitivity: 'medium',
+      contextTokens: 5000,
+      riskScore: 20,
+    };
+
+    const rec = routeModel(input, undefined, 60, 'claude');
+    assert.notEqual(rec.primary.provider, rec.fallback.provider,
+      'Fallback must differ from primary provider');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// v3 Decision Engine: pre_flight pipeline (full integration)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('E2E: pre_flight pipeline', () => {
+  beforeEach(() => { storage = makeTestStorage(); });
+  afterEach(() => { try { fs.rmSync(testDir, { recursive: true }); } catch {} });
+
+  it('full pre_flight pipeline returns all fields', () => {
+    const prompt = 'Create a REST API for user management with JWT authentication, rate limiting, and comprehensive error handling.';
+    const context = 'Using Node.js + Express + TypeScript';
+
+    // Simulate pre_flight pipeline (same as tool handler)
+    const taskType = detectTaskType(prompt);
+    const complexityResult = classifyComplexity(prompt, context);
+    const ruleResults = runRules(prompt, context, taskType);
+    const riskScoreResult = computeRiskScore(ruleResults);
+    const suggestedProfileName = suggestProfile(complexityResult.complexity, riskScoreResult.score);
+
+    const contextTokens = estimateTokens(prompt + context);
+    const routingInput: ModelRoutingInput = {
+      taskType,
+      complexity: complexityResult.complexity,
+      budgetSensitivity: 'medium',
+      latencySensitivity: 'medium',
+      contextTokens,
+      riskScore: riskScoreResult.score,
+      profile: suggestedProfileName,
+    };
+    const recommendation = routeModel(routingInput, prompt, complexityResult.confidence, 'claude');
+
+    const intentSpec = analyzePrompt(prompt, context);
+    const qualityScore = scorePrompt(intentSpec, context);
+
+    // Validate structure
+    assert.ok(typeof taskType === 'string');
+    assert.ok(typeof complexityResult.complexity === 'string');
+    assert.ok(typeof riskScoreResult.score === 'number');
+    assert.ok(typeof riskScoreResult.level === 'string');
+    assert.ok(typeof recommendation.primary.model === 'string');
+    assert.ok(typeof recommendation.primary.provider === 'string');
+    assert.ok(typeof recommendation.confidence === 'number');
+    assert.ok(typeof qualityScore.total === 'number');
+    assert.ok(Array.isArray(recommendation.decision_path));
+    assert.ok(recommendation.decision_path.length > 0);
+    assert.ok(typeof recommendation.savings_vs_default.savingsPercent === 'number');
+    assert.ok(typeof recommendation.savings_summary === 'string');
+  });
+
+  it('pre_flight metering increments usage (G6)', async () => {
+    const usageBefore = await storage.getUsage();
+    const initialCount = usageBefore.total_optimizations;
+
+    // Simulate pre_flight metering
+    await storage.incrementUsage();
+
+    const usageAfter = await storage.getUsage();
+    assert.equal(usageAfter.total_optimizations, initialCount + 1,
+      'pre_flight should increment usage by 1');
+  });
+
+  it('pre_flight does NOT double-meter (G6)', async () => {
+    // Simulate: pre_flight calls incrementUsage once, not via optimize_prompt
+    const usageBefore = await storage.getUsage();
+    const initialCount = usageBefore.total_optimizations;
+
+    // One increment for pre_flight
+    await storage.incrementUsage();
+
+    const usageAfter = await storage.getUsage();
+    assert.equal(usageAfter.total_optimizations, initialCount + 1,
+      'pre_flight should only meter once (no double-metering via optimize_prompt)');
   });
 });

@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.rishiatlan/prompt-optimizer-mcp",
-  "description": "The prompt linter for LLM applications. Scores, analyzes & standardizes prompts. Zero AI calls inside. Freemium.",
+  "description": "The prompt linter for LLM applications. Scores, analyzes, standardizes prompts & routes to optimal models. Zero AI calls inside. Freemium.",
   "repository": {
     "url": "https://github.com/rishiatlan/Prompt-Optimizer-MCP",
     "source": "github"
   },
-  "version": "2.3.2",
+  "version": "3.0.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "claude-prompt-optimizer-mcp",
-      "version": "2.3.2",
+      "version": "3.0.0",
       "transport": {
         "type": "stdio"
       },

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A prompt linter for LLM applications — deterministic scoring, analysis, and standardization of AI prompts. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle. Ships as an MCP server, programmatic API, CLI linter (`prompt-lint`), and GitHub Action.
 
-**v2.3: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 11 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), and GitHub Action.
+**v3.0: Production-ready freemium product** with 3-tier access (Free/Pro $4.99\/mo/Power $9.99\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 14 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), GitHub Action, **reasoning complexity classifier**, **5 optimization profiles**, **deterministic model routing with decision_path audit trail**, **dimensional risk scoring**, and **Perplexity support** (recommendation-only).
 
 **Zero LLM calls inside the MCP.** All intelligence comes from the host Claude. The MCP provides structure, rules, and discipline.
 
@@ -14,7 +14,7 @@ A prompt linter for LLM applications — deterministic scoring, analysis, and st
 
 ```bash
 npm run build    # tsc → dist/
-npm test         # node --test dist/test/*.test.js (10 test files, 158 tests)
+npm test         # node --test dist/test/*.test.js (13 test files, 311 tests)
 npm run start    # node dist/src/index.js
 ```
 
@@ -73,14 +73,14 @@ User prompt → Host Claude → [calls MCP tools] → Deterministic analysis
 
 The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requires zero tool handler changes. Enforced by `test/contracts.test.ts`.
 
-## 11 MCP Tools
+## 14 MCP Tools
 
 | # | Tool | Free/Metered | Purpose |
 |---|------|-------------|---------|
 | 1 | `optimize_prompt` | **Metered** | Main entry: analyze → score → compile → estimate cost → return PreviewPack |
 | 2 | `refine_prompt` | **Metered** | Iterative: answer questions, add edits → updated PreviewPack |
 | 3 | `approve_prompt` | Free | Sign-off gate: returns final compiled prompt + quality_score_before |
-| 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google) |
+| 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google, Perplexity) |
 | 5 | `compress_context` | Free | Prune irrelevant context, report token savings |
 | 6 | `check_prompt` | Free | Lightweight pass/fail + score + top 2 issues |
 | 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode, session limits |
@@ -88,6 +88,9 @@ The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requi
 | 9 | `prompt_stats` | Free | Aggregates: total, avg score, top task types, cost savings |
 | 10 | `set_license` | Free | Activate Pro license key (Ed25519 offline validation) |
 | 11 | `license_status` | Free | Check license status, tier, expiry. Shows purchase link if no license. |
+| 12 | `classify_task` | Free | Classify prompt by task type, complexity, risk, and suggested profile |
+| 13 | `route_model` | Free | Route to optimal model with full `decision_path` audit trail |
+| 14 | `pre_flight` | **Metered** | Full pre-flight pipeline: classify → risk → route → score. 1 use. |
 
 ### Output Targets
 
@@ -113,14 +116,15 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 |------|------|
 | `src/index.ts` | Entry point — CLI flags, MCP server + stdio transport, wires storage + rate limiter |
 | `src/api.ts` | Barrel export for programmatic API — re-exports all pure functions + `optimize()` convenience pipeline |
-| `src/tools.ts` | 11 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
+| `src/tools.ts` | 14 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
 | `src/types.ts` | All interfaces: TierLimits, PLAN_LIMITS, PreviewPack, ExecutionContext, StorageInterface, OutputTarget, LicenseData |
 | `src/license.ts` | Ed25519 offline license key validation (public key only, zero npm deps) |
-| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer task detection. |
+| `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer task detection. `classifyComplexity()` for 6-type reasoning complexity classification. |
 | `src/compiler.ts` | Multi-LLM compilation: IntentSpec → claude/openai/generic output with format_version |
-| `src/estimator.ts` | Multi-provider cost estimation (Anthropic, OpenAI, Google), target-aware recommendations |
+| `src/estimator.ts` | Multi-provider cost estimation (Anthropic, OpenAI, Google, Perplexity), target-aware recommendations, `TIER_MODELS`, `routeModel()` with 2-step deterministic routing |
+| `src/profiles.ts` | 5 frozen optimization profiles (`cost_minimizer`, `balanced`, `quality_first`, `creative`, `enterprise_safe`), `suggestProfile()`, `resolveProfile()` |
 | `src/scorer.ts` | Quality scoring (0-100, 5 dimensions × 20 points, scoring_version: 2). `generateChecklist()` for structural coverage. |
-| `src/rules.ts` | 10 deterministic ambiguity detection rules with `applies_to` field |
+| `src/rules.ts` | 10 deterministic ambiguity detection rules with `applies_to` field, `RISK_WEIGHTS`, `computeRiskScore()`, `deriveRiskLevel()` |
 | `src/templates.ts` | `Record<TaskType, string>` for roles and workflows |
 | `src/session.ts` | Async session management delegating to StorageInterface |
 | `src/logger.ts` | Structured logging with levels, request ID correlation, prompt logging gate |
@@ -143,8 +147,12 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `test/security.test.ts` | Input hardening, session ID sanitization, no-throw invariant, UUID format |
 | `test/license.test.ts` | Ed25519 validation, storage CRUD, tier priority chain, file permissions |
 | `test/api.test.ts` | Barrel exports, `optimize()` shape/determinism/context/targets, packaging validation |
-| `test/e2e.test.ts` | Full pipeline, license→tier upgrade, gate enforcement, checkout URL wiring, config & stats |
+| `test/e2e.test.ts` | Full pipeline, license→tier upgrade, gate enforcement, checkout URL wiring, config & stats, classify_task/route_model/pre_flight e2e |
 | `test/lint-cli.test.ts` | CLI tests — spawns `node bin/lint.js` as child process, tests all flags, exit codes, JSON output, file/stdin/glob input |
+| `test/complexity.test.ts` | Complexity classifier: 6 types × 3+ prompts, confidence, signals contract (sorted, capped, key=value format) |
+| `test/routing.test.ts` | TIER_MODELS structure, Perplexity pricing, complexity→tier mapping, budget/latency overrides, target-aware selection, fallback, profiles, RESEARCH_INTENT_RE, confidence formula, savings, decision_path, determinism |
+| `test/profiles.test.ts` | 5 frozen profiles, suggestProfile mapping, resolveProfile fallback, profile shape contract |
+| `test/risk-score.test.ts` | RISK_WEIGHTS/RISK_ESCALATION_THRESHOLD constants, computeRiskScore with dimensional output, deriveRiskLevel |
 
 ## Key Type Contracts
 
@@ -209,6 +217,28 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 **If it fails with EOTP:** The token was overwritten. Tell the user to create a new **Automation** token (NOT Publish, NOT Read-only) at https://www.npmjs.com/settings/tokens, then run: `npm config set //registry.npmjs.org/:_authToken=<new-token>`
 
 **Never ask the user for an OTP code.** Never try env var hacks. The automation token is the solution.
+
+## v3.0 Decision Engine
+
+v3.0 adds a pre-LLM decision layer on top of the existing linter. **Zero LLM calls — still deterministic, offline, reproducible.**
+
+### Routing Architecture
+- **`ModelTier = 'small' | 'mid' | 'top'`** — canonical tier used everywhere (G9)
+- **2-step routing:** (1) complexity + risk → default tier, (2) budget/latency overrides → final tier
+- **`TIER_MODELS`** — frozen constant: 3 tiers × 4 providers (anthropic, openai, google, perplexity)
+- **`RESEARCH_INTENT_RE`** — strict word-boundary regex for Perplexity opt-in (G15)
+- **`RISK_ESCALATION_THRESHOLD = 40`** — named constant, not a magic number (G11)
+- **Perplexity** — recommendation-only, NOT an OutputTarget; uses `generic` compile format
+
+### Key Constants
+- `BASELINE_MODEL = 'gpt-4o'` ($2.50/$10.00 per 1M tokens) — savings comparison baseline (G2)
+- `RISK_WEIGHTS` — 10 rules × dimensional weights (underspec, hallucination, scope, constraint)
+- `PROFILES` — 5 frozen presets: `cost_minimizer`, `balanced`, `quality_first`, `creative`, `enterprise_safe`
+
+### Metering Contract (G6)
+- `classify_task` + `route_model` = **FREE** (no metering)
+- `pre_flight` = **1 metered use** (same as `optimize_prompt`)
+- `pre_flight` does NOT call `optimize_prompt` internally — no double-metering
 
 ## Breaking Changes (v1 → v2)
 

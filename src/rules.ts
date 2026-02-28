@@ -1,7 +1,7 @@
 // rules.ts — Deterministic ambiguity detection rules. No LLM calls.
 // Rules are task-type aware: code-only rules skip for prose/research tasks.
 
-import type { RuleResult, RiskLevel, TaskType } from './types.js';
+import type { RuleResult, RiskLevel, RiskScore, RiskDimensions, TaskType, IntentSpec } from './types.js';
 import { isCodeTask, isProseTask } from './types.js';
 
 // ─── Rule Definitions ─────────────────────────────────────────────────────────
@@ -363,4 +363,84 @@ export function getElevatedRisk(results: RuleResult[]): RiskLevel | undefined {
   if (elevations.includes('high')) return 'high';
   if (elevations.includes('medium')) return 'medium';
   return undefined;
+}
+
+// ─── Risk Scoring (v3 Decision Engine) ──────────────────────────────────────
+
+/** Threshold at which risk escalates routing tier (G11: no magic numbers). */
+export const RISK_ESCALATION_THRESHOLD = 40;
+
+/** Explicit risk weights for each rule. Dimension + base + blocking multiplier.
+ *  G4: unknown rules are ignored with a decision_path warning. */
+export const RISK_WEIGHTS: Record<string, { dimension: keyof RiskDimensions; base: number; blockingMultiplier: number }> = {
+  vague_objective:          { dimension: 'underspec',  base: 15, blockingMultiplier: 1.5 },
+  missing_target:           { dimension: 'underspec',  base: 12, blockingMultiplier: 1.5 },
+  scope_explosion:          { dimension: 'scope',      base: 20, blockingMultiplier: 1.5 },
+  high_risk_domain:         { dimension: 'constraint', base: 10, blockingMultiplier: 1.0 },
+  no_constraints_high_risk: { dimension: 'constraint', base: 18, blockingMultiplier: 1.5 },
+  format_ambiguity:         { dimension: 'underspec',  base: 5,  blockingMultiplier: 1.0 },
+  multi_task_overload:      { dimension: 'scope',      base: 8,  blockingMultiplier: 1.0 },
+  generic_vague_ask:        { dimension: 'underspec',  base: 15, blockingMultiplier: 1.5 },
+  missing_audience:         { dimension: 'underspec',  base: 3,  blockingMultiplier: 1.0 },
+  no_clear_ask:             { dimension: 'underspec',  base: 8,  blockingMultiplier: 1.0 },
+};
+
+/** Derive RiskLevel from numeric score (G14: score drives routing, level is display-only). */
+export function deriveRiskLevel(score: number): RiskLevel {
+  if (score >= 60) return 'high';
+  if (score >= 30) return 'medium';
+  return 'low';
+}
+
+/**
+ * Compute dimensional risk score from triggered rules.
+ * Score = sum of triggered rule weights (base × blockingMultiplier if blocking), capped at 100.
+ * Each dimension scored independently. All 4 dimensions always present (default 0).
+ *
+ * @param ruleResults - Triggered rule results from runRules()
+ * @param _intent - IntentSpec (reserved for future risk rules)
+ * @returns RiskScore with numeric score, dimensions, and derived level
+ */
+export function computeRiskScore(ruleResults: RuleResult[], _intent?: IntentSpec): RiskScore {
+  const dimensions: RiskDimensions = {
+    underspec: 0,
+    hallucination: 0,
+    scope: 0,
+    constraint: 0,
+  };
+
+  const missingRules: string[] = [];
+
+  for (const result of ruleResults) {
+    if (!result.triggered) continue;
+
+    const weight = RISK_WEIGHTS[result.rule_name];
+    if (!weight) {
+      // G4: unknown rule — ignore + track for decision_path
+      missingRules.push(result.rule_name);
+      continue;
+    }
+
+    const isBlocking = result.severity === 'blocking';
+    const effectiveWeight = isBlocking
+      ? weight.base * weight.blockingMultiplier
+      : weight.base;
+
+    dimensions[weight.dimension] += effectiveWeight;
+  }
+
+  // Cap each dimension at 100
+  for (const key of Object.keys(dimensions) as Array<keyof RiskDimensions>) {
+    dimensions[key] = Math.min(100, Math.round(dimensions[key]));
+  }
+
+  // Total score = sum of dimensions, capped at 100
+  const rawScore = dimensions.underspec + dimensions.hallucination + dimensions.scope + dimensions.constraint;
+  const score = Math.min(100, rawScore);
+
+  return {
+    score,
+    dimensions,
+    level: deriveRiskLevel(score),
+  };
 }

@@ -1,8 +1,9 @@
 // analyzer.ts — Intent decomposition: raw prompt → IntentSpec.
 
-import type { IntentSpec, TaskType, RiskLevel } from './types.js';
+import type { IntentSpec, TaskType, RiskLevel, ReasoningComplexity, ComplexityResult } from './types.js';
 import { isCodeTask, isProseTask } from './types.js';
 import { runRules, extractBlockingQuestions, extractAssumptions, getElevatedRisk } from './rules.js';
+import { estimateTokens } from './estimator.js';
 
 // ─── Prose Output Types ──────────────────────────────────────────────────────
 // Comprehensive list of non-code output types. Used by intent-first detection
@@ -444,6 +445,133 @@ function assessBaseRisk(prompt: string, taskType: TaskType): RiskLevel {
   if (taskType === 'create') return 'medium';
   // Code changes default to medium
   return 'medium';
+}
+
+// ─── Reasoning Complexity Classifier (v3 Decision Engine) ───────────────────
+// Deterministic heuristics. No LLM calls. Returns complexity type + confidence + signals.
+// Signals contract: key=value pairs, alphabetically sorted, capped at 10, no raw substrings.
+
+const COMPLEXITY_CODE_REFS = [
+  /\b(function|class|method|interface|type|enum|const|let|var|def|fn)\s+\w+/i,
+  /\b\w+\(\)/,
+  /\b\w+\.\w+\(/,
+];
+const AGENT_PATTERNS = [
+  /\b(tool|mcp|function[_\s]?call|api[_\s]?call|plugin|extension|use\s+\w+\s+to)\b/i,
+  /\b(agent|orchestrat|automat|pipeline|workflow\s+engine)\b/i,
+];
+const MULTI_STEP_PATTERNS = [
+  /\b(first|second|third|then|after\s+that|next|finally)\b/gi,
+  /\d+\.\s+\w/g,
+  /\bstep\s+\d+/gi,
+];
+const CREATIVE_PATTERNS = [
+  /\b(brainstorm|ideate|imagine|creative|novel|original|unique|innovative)\b/i,
+];
+const ANALYTICAL_PATTERNS = [
+  /\b(compar|evaluat|assess|benchmark|trade-?off|pros?\s+and\s+cons?|analy[sz])/i,
+];
+const LONG_CONTEXT_PATTERNS = [
+  /\b(given\s+this\s+(document|file|context|code|text))\b/i,
+  /\b(based\s+on\s+(the|this)\s+(above|following|provided))\b/i,
+];
+const QUESTION_PATTERNS = [
+  /^(what|how|why|where|when|who|which|is|are|can|does|do)\b/i,
+  /\?$/m,
+];
+
+const MAX_SIGNALS = 10;
+
+/**
+ * Classify the reasoning complexity of a prompt. Deterministic.
+ * Returns complexity type, confidence (0-100), and signals (key=value pairs).
+ */
+export function classifyComplexity(
+  prompt: string,
+  context?: string,
+): ComplexityResult {
+  const signals: string[] = [];
+  const fullText = prompt + (context ? '\n' + context : '');
+
+  // ── Compute base signals ────────────────────────────────────────────
+  const promptLength = prompt.length;
+  const contextTokens = context ? estimateTokens(context) : 0;
+  const totalTokens = estimateTokens(fullText);
+
+  signals.push(`prompt_length=${promptLength}`);
+
+  const hasCodeRefs = FILE_EXTENSIONS.test(prompt) || COMPLEXITY_CODE_REFS.some(p => p.test(prompt));
+  signals.push(`code_refs=${hasCodeRefs}`);
+
+  const hasQuestionPattern = QUESTION_PATTERNS.some(p => p.test(prompt));
+  signals.push(`question_pattern=${hasQuestionPattern}`);
+
+  // Count task separators for multi-part detection
+  let multiPartCount = 0;
+  for (const pattern of MULTI_STEP_PATTERNS) {
+    const matches = prompt.match(pattern);
+    if (matches) multiPartCount += matches.length;
+  }
+  const isMultiPart = multiPartCount >= 3;
+  signals.push(`multi_part=${isMultiPart}`);
+  if (isMultiPart) signals.push(`multi_part_count=${multiPartCount}`);
+
+  const hasAgentSignals = AGENT_PATTERNS.some(p => p.test(prompt));
+  signals.push(`agent_signals=${hasAgentSignals}`);
+
+  const hasCreativeSignals = CREATIVE_PATTERNS.some(p => p.test(prompt));
+  signals.push(`creative_signals=${hasCreativeSignals}`);
+
+  const hasAnalyticalSignals = ANALYTICAL_PATTERNS.some(p => p.test(prompt));
+  signals.push(`analytical_signals=${hasAnalyticalSignals}`);
+
+  const hasLongContext = contextTokens > 5000 || LONG_CONTEXT_PATTERNS.some(p => p.test(prompt));
+  if (contextTokens > 0) signals.push(`context_tokens=${contextTokens}`);
+  signals.push(`long_context=${hasLongContext}`);
+
+  // ── Classification (priority order — most specific first) ───────────
+
+  let complexity: ReasoningComplexity;
+  let confidence: number;
+
+  if (hasAgentSignals) {
+    complexity = 'agent_orchestration';
+    confidence = hasCodeRefs ? 90 : 75;
+  } else if (hasLongContext) {
+    complexity = 'long_context';
+    confidence = contextTokens > 5000 ? 90 : 70;
+  } else if (isMultiPart) {
+    complexity = 'multi_step';
+    confidence = multiPartCount >= 5 ? 90 : 75;
+  } else if (hasCreativeSignals && !hasCodeRefs) {
+    complexity = 'creative';
+    confidence = 80;
+  } else if (hasAnalyticalSignals) {
+    complexity = 'analytical';
+    confidence = 80;
+  } else if (promptLength < 100 && hasQuestionPattern && !hasCodeRefs && !isMultiPart) {
+    complexity = 'simple_factual';
+    confidence = promptLength < 50 ? 95 : 85;
+  } else if (promptLength < 200 && hasQuestionPattern) {
+    complexity = 'simple_factual';
+    confidence = 70;
+  } else {
+    // Default: analytical for longer prompts, simple_factual for shorter
+    if (totalTokens > 500) {
+      complexity = 'analytical';
+      confidence = 60;
+    } else {
+      complexity = 'simple_factual';
+      confidence = 60;
+    }
+  }
+
+  // Sort signals alphabetically and cap at MAX_SIGNALS
+  const sortedSignals = signals
+    .sort((a, b) => a.localeCompare(b))
+    .slice(0, MAX_SIGNALS);
+
+  return { complexity, confidence, signals: sortedSignals };
 }
 
 // ─── Main Analyzer ────────────────────────────────────────────────────────────

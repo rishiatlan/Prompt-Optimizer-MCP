@@ -15,7 +15,8 @@ Lint, score, and standardize prompt quality — the ESLint for LLM applications.
 
 - **Prompts run without any quality check.** "Make the code better" gives Claude no constraints, no success criteria, and no target — leading to unpredictable results and wasted compute.
 - **No structure scoring, no ambiguity detection.** Even experienced engineers skip success criteria, constraints, and workflow steps. This linter flags structural gaps before you send.
-- **Cost is invisible until after you've spent it.** Most users have no idea how many tokens their prompt will consume. The linter shows cost breakdowns across 8 models from Anthropic, OpenAI, and Google before you commit. Cost estimates are approximate — validate for billing-critical workflows.
+- **Cost is invisible until after you've spent it.** Most users have no idea how many tokens their prompt will consume. The linter shows cost breakdowns across 10 models from Anthropic, OpenAI, Google, and Perplexity before you commit. Cost estimates are approximate — validate for billing-critical workflows.
+- **Simple tasks run on expensive models.** Without routing intelligence, every prompt goes to the same model. The decision engine classifies complexity and routes simple tasks to cheaper models automatically — reducing LLM spend without changing your prompts.
 - **Context bloat is the hidden cost multiplier.** Sending 500 lines of code when 50 are relevant burns tokens on irrelevant context. The compressor strips what doesn't matter.
 - **Human-in-the-loop approval.** The MCP asks blocking questions when your prompt is ambiguous, requires you to answer them before proceeding, and only finalizes the compiled prompt after you explicitly approve. No prompt runs without your sign-off — the gate is enforced in code, not convention.
 
@@ -229,7 +230,7 @@ Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global acces
 }
 ```
 
-Restart Claude Code. All 11 tools appear automatically. Free tier gives you 10 optimizations to try it out.
+Restart Claude Code. All 14 tools appear automatically. Free tier gives you 10 optimizations to try it out.
 
 <details>
 <summary><strong>Claude Desktop config path</strong></summary>
@@ -410,14 +411,14 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | Activate Pro license | Ask Claude: "Use set_license with key: po_pro_..." |
 | Check license status | Ask Claude: "Use license_status" |
 
-## 11 MCP Tools
+## 14 MCP Tools
 
 | # | Tool | Free/Metered | Purpose |
 |---|------|-------------|---------|
 | 1 | `optimize_prompt` | **Metered** | Main entry: analyze, score, compile, estimate cost, return PreviewPack |
 | 2 | `refine_prompt` | **Metered** | Iterative: answer questions, add edits, get updated PreviewPack |
 | 3 | `approve_prompt` | Free | Sign-off gate: returns final compiled prompt |
-| 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google) |
+| 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google, Perplexity) |
 | 5 | `compress_context` | Free | Prune irrelevant context, report token savings |
 | 6 | `check_prompt` | Free | Lightweight pass/fail + score + top 2 issues |
 | 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode |
@@ -425,6 +426,9 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | 9 | `prompt_stats` | Free | Aggregates: total optimized, avg score, top task types, cost savings |
 | 10 | `set_license` | Free | Activate a Pro or Power license key (Ed25519 offline validation) |
 | 11 | `license_status` | Free | Check license status, tier, expiry. Shows purchase link if free tier. |
+| 12 | `classify_task` | Free | Classify prompt by task type, reasoning complexity, risk, and suggested profile |
+| 13 | `route_model` | Free | Route to optimal model with `decision_path` audit trail |
+| 14 | `pre_flight` | **Metered** | Full pre-flight pipeline: classify, assess risk, route model, score quality |
 
 ## Pricing
 
@@ -434,7 +438,7 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | **Optimizations** | 10 lifetime | 100/month | Unlimited |
 | **Rate limit** | 5/min | 30/min | 60/min |
 | **Always-on mode** | — | — | ✓ |
-| **All 11 tools** | ✓ | ✓ | ✓ |
+| **All 14 tools** | ✓ | ✓ | ✓ |
 
 Free tier gives you 10 optimizations to experience the full pipeline. No credit card required.
 
@@ -474,6 +478,70 @@ The MCP is a **co-pilot for the co-pilot**. It does the structural work (decompo
 **Zero LLM calls inside the MCP.** All analysis is deterministic — regex, heuristics, and rule engines. The host Claude provides all intelligence. This means the MCP itself is instant, free, and predictable.
 
 **Works for all prompt types** — not just code. The pipeline auto-detects 13 task types (code changes, writing, research, planning, analysis, communication, data, and more) and adapts scoring, constraints, templates, and model recommendations accordingly. A Slack post gets writing-optimized constraints; a refactoring task gets code safety guardrails. **Intent-first detection** ensures that prompts *about* technical topics but requesting non-code tasks (e.g., "Write me a LinkedIn post about my MCP server") are classified correctly — the opening verb phrase takes priority over technical keywords in the body.
+
+### Pre-Flight Pipeline
+
+The `pre_flight` tool runs the full decision pipeline in a single call — classify your prompt, assess risk, route to the optimal model, and score quality. No compilation, no approval loop — just instant intelligence about what your prompt needs.
+
+```
+Input: "Build a REST API with authentication, rate limiting,
+        and database integration"
+
+→ Classification:
+    Task Type:    create
+    Complexity:   multi_step
+    Risk Score:   45/100 (scope: 20, underspec: 15, constraint: 10)
+    Profile:      quality_first
+
+→ Model Recommendation:
+    Primary:      claude opus (anthropic)
+    Fallback:     o1 (openai)
+    Confidence:   60/100
+    Est. Cost:    $0.045
+
+→ Decision Path:
+    complexity=multi_step → risk_score=45 → tier=top
+    → profile=quality_first → selected=anthropic/opus
+    → fallback=openai/o1 → baseline=gpt-4o
+
+→ Quality Score: 52/100
+```
+
+`pre_flight` counts as 1 metered use. `classify_task` and `route_model` are always free.
+
+### Model Routing
+
+The `route_model` tool recommends the optimal model using a 2-step deterministic process:
+
+**Step 1 — Pick tier from complexity + risk:**
+
+| Complexity | Default Tier | Escalation |
+|-----------|-------------|------------|
+| `simple_factual` | small (Haiku, GPT-4o-mini, Flash) | — |
+| `analytical` | mid (Sonnet, GPT-4o, Gemini Pro) | — |
+| `multi_step` | mid | → top if risk ≥ 40 |
+| `creative` | mid (temp 0.8–1.0) | — |
+| `long_context` | mid (200K+ windows) | — |
+| `agent_orchestration` | mid | → top if risk ≥ 40 |
+
+**Step 2 — Apply overrides:**
+- `budgetSensitivity=high` → downgrade one tier
+- `latencySensitivity=high` → prefer smaller models within tier
+- Research intent detected → recommend Perplexity (Sonar / Sonar Pro)
+
+Every decision is recorded in `decision_path` for full auditability.
+
+### Optimization Profiles
+
+5 built-in presets that configure routing defaults. Explicit inputs always override profile defaults.
+
+| Profile | Tier | Temperature | Risk Tolerance | Best For |
+|---------|------|-------------|----------------|----------|
+| `cost_minimizer` | Cheapest viable | 0.3 | Low | Simple queries, batch processing |
+| `balanced` | Mid-tier | 0.5 | Medium | General purpose (default) |
+| `quality_first` | Top-tier | 0.3 | Low | Complex tasks, high-stakes outputs |
+| `creative` | Mid-tier | 0.9 | High | Writing, brainstorming, open-ended |
+| `enterprise_safe` | Top-tier | 0.1 | Zero | Regulated, audited environments |
 
 <details>
 <summary><strong>Quality Scoring System</strong></summary>
@@ -588,7 +656,7 @@ Model recommendation logic:
 - **Sonnet** — writing, communication, research, analysis, standard code changes (best balance)
 - **Opus** — high-risk tasks, complex planning, large-scope creation/refactoring (maximum capability)
 
-Pricing is hardcoded from published rates (Anthropic, OpenAI, Google) and versioned in `src/estimator.ts`.
+Pricing is hardcoded from published rates (Anthropic, OpenAI, Google, Perplexity) and versioned in `src/estimator.ts`.
 
 </details>
 

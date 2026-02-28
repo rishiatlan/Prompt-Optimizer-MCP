@@ -1,9 +1,10 @@
-// src/api.ts — Programmatic API barrel export.
+// src/api.ts — Programmatic API barrel export (v3.0).
 // Pure, synchronous, zero side effects. Safe for library use.
 // Does NOT start the MCP server (use `claude-prompt-optimizer-mcp/server` for that).
+// v3 additions: classifyComplexity, routeModel, computeRiskScore, PROFILES, TIER_MODELS.
 
 // ─── Analyzer ────────────────────────────────────────────────────────────────
-export { analyzePrompt, detectTaskType } from './analyzer.js';
+export { analyzePrompt, detectTaskType, classifyComplexity } from './analyzer.js';
 
 // ─── Scorer ──────────────────────────────────────────────────────────────────
 export { scorePrompt } from './scorer.js';
@@ -14,11 +15,20 @@ export { generateChecklist } from './scorer.js';
 // ─── Compiler ────────────────────────────────────────────────────────────────
 export { compilePrompt, compressContext } from './compiler.js';
 
-// ─── Cost Estimator ──────────────────────────────────────────────────────────
-export { estimateCost, estimateTokens, estimateCostForText, PRICING_DATA } from './estimator.js';
+// ─── Cost Estimator + Model Routing ─────────────────────────────────────────
+export {
+  estimateCost, estimateTokens, estimateCostForText, PRICING_DATA,
+  routeModel, TIER_MODELS, RESEARCH_INTENT_RE,
+} from './estimator.js';
 
 // ─── Rules Engine ────────────────────────────────────────────────────────────
-export { runRules, extractBlockingQuestions, extractAssumptions, getElevatedRisk } from './rules.js';
+export {
+  runRules, extractBlockingQuestions, extractAssumptions, getElevatedRisk,
+  computeRiskScore, RISK_WEIGHTS, RISK_ESCALATION_THRESHOLD, deriveRiskLevel,
+} from './rules.js';
+
+// ─── Profiles ────────────────────────────────────────────────────────────────
+export { PROFILES, suggestProfile, resolveProfile } from './profiles.js';
 
 // ─── License Validation ──────────────────────────────────────────────────────
 export { validateLicenseKey, canonicalizePayload, PRODUCTION_PUBLIC_KEY_PEM } from './license.js';
@@ -44,6 +54,17 @@ export type {
   LicenseData,
   TierLimits,
   EnforcementResult,
+  // v3 Decision Engine types
+  ReasoningComplexity,
+  OptimizationProfile,
+  ComplexityResult,
+  RiskDimensions,
+  RiskScore,
+  SavingsComparison,
+  TierModelEntry,
+  ModelTier,
+  ModelRoutingInput,
+  ModelRecommendation,
 } from './types.js';
 
 export { isCodeTask, isProseTask, PLAN_LIMITS } from './types.js';

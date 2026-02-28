@@ -36,7 +36,103 @@ export type SessionState = 'ANALYZING' | 'COMPILED' | 'APPROVED';
 
 export type RuleSeverity = 'blocking' | 'non_blocking';
 
-export type ModelTier = 'haiku' | 'sonnet' | 'opus';
+/** Canonical routing tier for the decision engine (G9: small/mid/top everywhere). */
+export type ModelTier = 'small' | 'mid' | 'top';
+
+// ─── Reasoning Complexity (v3 decision engine) ──────────────────────────────
+
+export type ReasoningComplexity =
+  | 'simple_factual'
+  | 'analytical'
+  | 'multi_step'
+  | 'creative'
+  | 'long_context'
+  | 'agent_orchestration';
+
+// ─── Optimization Profiles (v3 decision engine) ─────────────────────────────
+
+export type OptimizationProfile =
+  | 'cost_minimizer'
+  | 'balanced'
+  | 'quality_first'
+  | 'creative'
+  | 'enterprise_safe';
+
+// ─── Complexity Classification Result ───────────────────────────────────────
+
+export interface ComplexityResult {
+  complexity: ReasoningComplexity;
+  confidence: number;          // 0-100
+  signals: string[];           // key=value pairs, sorted alphabetically, capped at 10
+}
+
+// ─── Risk Dimensions & Score (v3 decision engine) ───────────────────────────
+
+export interface RiskDimensions {
+  underspec: number;
+  hallucination: number;
+  scope: number;
+  constraint: number;
+}
+
+export interface RiskScore {
+  score: number;               // 0-100
+  dimensions: RiskDimensions;
+  level: RiskLevel;            // derived: 0-29=low, 30-59=medium, 60-100=high (G14)
+}
+
+// ─── Savings Comparison (structured numeric, G13) ───────────────────────────
+
+export interface SavingsComparison {
+  baselineModel: string;       // e.g. 'gpt-4o'
+  baselineCost: number;        // USD total cost
+  recommendedCost: number;     // USD total cost
+  savingsPercent: number;      // 0-100
+}
+
+// ─── Tier Model Entry (G1) ──────────────────────────────────────────────────
+
+export interface TierModelEntry {
+  provider: string;
+  model: string;
+  defaultTemp: number;
+  maxTokensCap: number;
+}
+
+// ─── Model Routing Input (v3 decision engine, G16) ──────────────────────────
+
+export interface ModelRoutingInput {
+  taskType: TaskType;
+  complexity: ReasoningComplexity;
+  budgetSensitivity: 'low' | 'medium' | 'high';
+  latencySensitivity: 'low' | 'medium' | 'high';
+  contextTokens: number;
+  riskScore: number;           // 0-100 (G16: drives routing, not riskLevel)
+  profile?: OptimizationProfile;
+}
+
+// ─── Model Recommendation (v3 decision engine) ─────────────────────────────
+
+export interface ModelRecommendation {
+  primary: {
+    model: string;
+    provider: string;
+    temperature: number;
+    maxTokens: number;
+  };
+  fallback: {
+    model: string;
+    provider: string;
+    reason: string;
+  };
+  confidence: number;                  // 0-100 (G3: deterministic formula)
+  costEstimate: CostEstimate;
+  rationale: string;
+  tradeoffs: string[];
+  savings_vs_default: SavingsComparison;  // G13: structured numeric
+  savings_summary: string;                // display label
+  decision_path: string[];                // full audit trail
+}
 
 // ─── Output Target (multi-LLM) ───────────────────────────────────────────────
 

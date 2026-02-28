@@ -9,6 +9,18 @@ import { scorePrompt, generateChecklist } from '../src/scorer.js';
 import { estimateCost, estimateCostForText } from '../src/estimator.js';
 import { sortCountsDescKeyAsc, sortIssues, sortCostEntries, CHECKLIST_ORDER } from '../src/sort.js';
 import type { PreviewPack, CompilationChecklist, ModelCost, LicenseData } from '../src/types.js';
+// v3 contract imports — verify all new exports are accessible via api.ts barrel
+import {
+  classifyComplexity, routeModel, computeRiskScore,
+  PROFILES, suggestProfile, resolveProfile,
+  TIER_MODELS, RESEARCH_INTENT_RE, RISK_WEIGHTS, RISK_ESCALATION_THRESHOLD, deriveRiskLevel,
+  PRICING_DATA,
+} from '../src/api.js';
+import type {
+  ReasoningComplexity, OptimizationProfile, ComplexityResult,
+  RiskDimensions, RiskScore, SavingsComparison, TierModelEntry,
+  ModelTier, ModelRoutingInput, ModelRecommendation,
+} from '../src/api.js';
 
 describe('PreviewPack shape contract', () => {
   it('has all required fields', () => {
@@ -119,12 +131,13 @@ describe('Deterministic ordering contract', () => {
     }
   });
 
-  it('estimateCost includes all 3 providers', () => {
+  it('estimateCost includes all 4 providers (including Perplexity)', () => {
     const estimate = estimateCost('test prompt', 'writing', 'low', 'claude');
     const providers = new Set(estimate.costs.map(c => c.provider));
     assert.ok(providers.has('anthropic'), 'Should include anthropic');
     assert.ok(providers.has('openai'), 'Should include openai');
     assert.ok(providers.has('google'), 'Should include google');
+    assert.ok(providers.has('perplexity'), 'Should include perplexity');
   });
 });
 
@@ -191,5 +204,127 @@ describe('Cost estimate response shape', () => {
       assert.ok(typeof cost.output_cost_usd === 'number');
       assert.ok(typeof cost.total_cost_usd === 'number');
     }
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// v3 API Export Contracts
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('v3 API exports: all new functions are callable', () => {
+  it('classifyComplexity is exported and callable', () => {
+    const result = classifyComplexity('What is TypeScript?');
+    assert.ok(typeof result.complexity === 'string');
+    assert.ok(typeof result.confidence === 'number');
+    assert.ok(Array.isArray(result.signals));
+  });
+
+  it('routeModel is exported and callable', () => {
+    const input: ModelRoutingInput = {
+      taskType: 'code_change',
+      complexity: 'analytical',
+      budgetSensitivity: 'medium',
+      latencySensitivity: 'medium',
+      contextTokens: 5000,
+      riskScore: 20,
+    };
+    const result = routeModel(input);
+    assert.ok(typeof result.primary.model === 'string');
+    assert.ok(typeof result.primary.provider === 'string');
+    assert.ok(typeof result.confidence === 'number');
+    assert.ok(Array.isArray(result.decision_path));
+  });
+
+  it('computeRiskScore is exported and callable', () => {
+    const result = computeRiskScore([]);
+    assert.equal(result.score, 0);
+    assert.equal(result.level, 'low');
+  });
+
+  it('PROFILES is exported and has 5 entries', () => {
+    assert.equal(Object.keys(PROFILES).length, 5);
+  });
+
+  it('suggestProfile is exported and callable', () => {
+    assert.equal(suggestProfile('simple_factual', 0), 'cost_minimizer');
+  });
+
+  it('resolveProfile is exported and callable', () => {
+    const path: string[] = [];
+    assert.equal(resolveProfile('balanced', path), 'balanced');
+  });
+
+  it('TIER_MODELS is exported and has 3 tiers', () => {
+    assert.equal(Object.keys(TIER_MODELS).length, 3);
+  });
+
+  it('RESEARCH_INTENT_RE is exported and works', () => {
+    assert.ok(RESEARCH_INTENT_RE.test('search the web for data'));
+    assert.ok(!RESEARCH_INTENT_RE.test('refactor this function'));
+  });
+
+  it('RISK_WEIGHTS is exported and has entries', () => {
+    assert.ok(Object.keys(RISK_WEIGHTS).length >= 10);
+  });
+
+  it('RISK_ESCALATION_THRESHOLD is exported and equals 40', () => {
+    assert.equal(RISK_ESCALATION_THRESHOLD, 40);
+  });
+
+  it('deriveRiskLevel is exported and callable', () => {
+    assert.equal(deriveRiskLevel(10), 'low');
+    assert.equal(deriveRiskLevel(50), 'medium');
+    assert.equal(deriveRiskLevel(80), 'high');
+  });
+
+  it('PRICING_DATA includes perplexity', () => {
+    assert.ok('perplexity' in PRICING_DATA.providers);
+  });
+});
+
+describe('v3 ModelRecommendation shape contract', () => {
+  it('has all required fields', () => {
+    const input: ModelRoutingInput = {
+      taskType: 'create',
+      complexity: 'multi_step',
+      budgetSensitivity: 'medium',
+      latencySensitivity: 'medium',
+      contextTokens: 8000,
+      riskScore: 50,
+    };
+    const rec: ModelRecommendation = routeModel(input);
+
+    // Primary
+    assert.ok(typeof rec.primary.model === 'string');
+    assert.ok(typeof rec.primary.provider === 'string');
+    assert.ok(typeof rec.primary.temperature === 'number');
+    assert.ok(typeof rec.primary.maxTokens === 'number');
+
+    // Fallback
+    assert.ok(typeof rec.fallback.model === 'string');
+    assert.ok(typeof rec.fallback.provider === 'string');
+    assert.ok(typeof rec.fallback.reason === 'string');
+
+    // Confidence
+    assert.ok(rec.confidence >= 0 && rec.confidence <= 100);
+
+    // Cost estimate
+    assert.ok(typeof rec.costEstimate.input_tokens === 'number');
+    assert.ok(Array.isArray(rec.costEstimate.costs));
+
+    // Rationale + tradeoffs
+    assert.ok(typeof rec.rationale === 'string');
+    assert.ok(Array.isArray(rec.tradeoffs));
+
+    // Savings (G13)
+    assert.ok(typeof rec.savings_vs_default.baselineModel === 'string');
+    assert.ok(typeof rec.savings_vs_default.baselineCost === 'number');
+    assert.ok(typeof rec.savings_vs_default.recommendedCost === 'number');
+    assert.ok(typeof rec.savings_vs_default.savingsPercent === 'number');
+    assert.ok(typeof rec.savings_summary === 'string');
+
+    // Decision path
+    assert.ok(Array.isArray(rec.decision_path));
+    assert.ok(rec.decision_path.length > 0);
   });
 });

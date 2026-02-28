@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.0.0] - 2026-02-28
+
+### Added
+- **Reasoning Complexity Classifier** (`classifyComplexity`): Deterministic heuristic that classifies prompts into 6 complexity types — `simple_factual`, `analytical`, `multi_step`, `creative`, `long_context`, `agent_orchestration`. Returns structured `{ complexity, confidence, signals }` with stable `key=value` signal contract.
+- **Optimization Profiles** (`src/profiles.ts`): 5 frozen presets — `cost_minimizer`, `balanced`, `quality_first`, `creative`, `enterprise_safe`. Each provides defaults for model tier, temperature, max tokens, and sensitivity settings.
+- **Model Routing Engine** (`routeModel`): 2-step deterministic routing — (1) pick tier from complexity + risk, (2) apply budget/latency overrides. Returns `ModelRecommendation` with `decision_path` audit trail, structured `savings_vs_default`, confidence score, and fallback model.
+- **Risk Scoring** (`computeRiskScore`): Dimensional risk scoring across 4 axes (underspec, hallucination, scope, constraint). Score 0-100 drives routing decisions. Explicit `RISK_WEIGHTS` mapping with blocking multipliers.
+- **Perplexity in PRICING_DATA**: `sonar` and `sonar-pro` models added for cost estimation and routing. Recommendation-only — not an OutputTarget (uses `generic` format). Strict research-intent regex (G15) prevents false positives.
+- **`TIER_MODELS` constant**: Explicit frozen mapping of `small`/`mid`/`top` tiers to provider+model+temperature+maxTokens entries across all 4 providers.
+- **3 new MCP tools** (14 total):
+  - `classify_task` (FREE): Classify prompt by task type, complexity, risk, and suggested profile.
+  - `route_model` (FREE): Route to optimal model with full `decision_path` audit trail.
+  - `pre_flight` (METERED): Full pre-flight pipeline — classify, assess risk, route model, score quality. Counts as 1 optimization use.
+- **~100 new tests** (311 total): Routing matrix, complexity classifier, profiles, risk scoring, research intent regex, contract tests for all new exports.
+
+### Changed
+- **`ModelTier`**: Changed from `'haiku' | 'sonnet' | 'opus'` to `'small' | 'mid' | 'top'` — canonical routing tier used everywhere (G9).
+- **`estimateCost` / `estimateCostForText`**: Now include Perplexity in cost comparison output.
+- **API exports** (`src/api.ts`): 15+ new exports including `classifyComplexity`, `routeModel`, `computeRiskScore`, `PROFILES`, `TIER_MODELS`, and all new types.
+
+### Notes
+- No breaking changes to existing tools, types, or CLI. All 11 original MCP tools, `prompt-lint` CLI, and GitHub Action are unchanged.
+- Architecture constraint preserved: zero LLM calls inside. Deterministic. Offline. Reproducible.
+- `pre_flight` does NOT call `optimize_prompt` internally — no double-metering (G6).
+
 ## [2.3.2] - 2026-02-28
 
 ### Changed

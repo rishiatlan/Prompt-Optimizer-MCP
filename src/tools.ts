@@ -1,21 +1,24 @@
-// tools.ts — MCP tool registrations for the prompt optimizer v2.1.
-// 11 tools total. Metered: optimize_prompt, refine_prompt. Free: all others.
+// tools.ts — MCP tool registrations for the prompt optimizer v3.0.
+// 14 tools total. Metered: optimize_prompt, refine_prompt, pre_flight. Free: all others.
+// v3 additions: classify_task (FREE), route_model (FREE), pre_flight (METERED — G6).
 // Build-mode invariants enforced: I1 (deterministic ordering), I2 (request_id on all),
 // I3 (metering-after-success), I4 (rate limit via canUseOptimization), I5 (degraded health in response).
 
 import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { analyzePrompt, detectTaskType } from './analyzer.js';
+import { analyzePrompt, detectTaskType, classifyComplexity } from './analyzer.js';
 import { compilePrompt, compressContext } from './compiler.js';
 import { scorePrompt, generateChecklist } from './scorer.js';
-import { estimateCost, estimateCostForText } from './estimator.js';
+import { estimateCost, estimateCostForText, estimateTokens, routeModel } from './estimator.js';
 import { createSession, getSession, updateSession } from './session.js';
 import { createRequestId, log } from './logger.js';
-import { runRules } from './rules.js';
+import { runRules, computeRiskScore, extractBlockingQuestions } from './rules.js';
 import { sortCountsDescKeyAsc, sortIssues } from './sort.js';
+import { suggestProfile } from './profiles.js';
 import type {
   PreviewPack, StorageInterface, RateLimiter, ExecutionContext,
   OutputTarget, OptimizerConfig, Tier, LicenseData,
+  ModelRoutingInput, OptimizationProfile,
 } from './types.js';
 import { PLAN_LIMITS } from './types.js';
 import { validateLicenseKey } from './license.js';
@@ -837,6 +840,298 @@ export function registerTools(
           request_id: requestId,
           error: 'internal_error',
           message: `license_status failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // Tool 12: classify_task (FREE — G6: no metering)
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  server.tool(
+    'classify_task',
+    'Classify a prompt by task type, reasoning complexity, risk level, and suggested profile. Free — no metering.',
+    {
+      prompt: z.string().min(1).max(102400).describe('The prompt to classify'),
+      context: z.string().max(102400).optional().describe('Optional context: repo info, file contents, preferences'),
+    },
+    async ({ prompt, context }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        prompt = hardenInput(prompt);
+        if (context) context = hardenInput(context);
+
+        // Task type detection
+        const taskType = detectTaskType(prompt);
+
+        // Complexity classification
+        const complexityResult = classifyComplexity(prompt, context);
+
+        // Risk scoring
+        const ruleResults = runRules(prompt, context, taskType);
+        const riskScore = computeRiskScore(ruleResults);
+
+        // Suggested profile (G5: deterministic mapping)
+        const suggestedProfileName = suggestProfile(complexityResult.complexity, riskScore.score);
+
+        // Decomposition hint for multi-step tasks
+        let decompositionHint: string | undefined;
+        if (complexityResult.complexity === 'multi_step') {
+          const stepCount = complexityResult.signals
+            .find(s => s.startsWith('multi_part='))
+            ?.split('=')[1];
+          if (stepCount && parseInt(stepCount, 10) >= 3) {
+            decompositionHint = `This looks like a multi-step task with ${stepCount} parts. Consider breaking into ${stepCount} sub-prompts for better results.`;
+          }
+        }
+
+        log.info(requestId, `classify_task: type=${taskType}, complexity=${complexityResult.complexity}, risk=${riskScore.level}`);
+        return jsonResponse({
+          request_id: requestId,
+          taskType,
+          complexity: complexityResult.complexity,
+          complexityConfidence: complexityResult.confidence,
+          suggestedProfile: suggestedProfileName,
+          riskLevel: riskScore.level,
+          riskScore: riskScore.score,
+          riskDimensions: riskScore.dimensions,
+          signals: complexityResult.signals,
+          ...(decompositionHint && { decompositionHint }),
+        });
+      } catch (err) {
+        log.error(requestId, 'classify_task failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `classify_task failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // Tool 13: route_model (FREE — G6: no metering)
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  server.tool(
+    'route_model',
+    'Route to the optimal model based on task complexity, risk, budget, and latency preferences. Returns recommendation with decision_path audit trail. Free — no metering.',
+    {
+      prompt: z.string().min(1).max(102400).optional().describe('Raw prompt text (for auto-classification and research intent detection)'),
+      context: z.string().max(102400).optional().describe('Optional context'),
+      // Structured input (overrides auto-classification when provided)
+      taskType: z.enum([
+        'code_change', 'question', 'review', 'debug', 'create', 'refactor',
+        'writing', 'research', 'planning', 'analysis', 'communication', 'data', 'other',
+      ]).optional().describe('Task type (auto-detected if prompt provided)'),
+      complexity: z.enum([
+        'simple_factual', 'analytical', 'multi_step', 'creative', 'long_context', 'agent_orchestration',
+      ]).optional().describe('Reasoning complexity (auto-detected if prompt provided)'),
+      profile: z.enum([
+        'cost_minimizer', 'balanced', 'quality_first', 'creative', 'enterprise_safe',
+      ]).optional().describe('Optimization profile'),
+      budgetSensitivity: z.enum(['low', 'medium', 'high']).optional().describe('Budget sensitivity (default: from profile)'),
+      latencySensitivity: z.enum(['low', 'medium', 'high']).optional().describe('Latency sensitivity (default: from profile)'),
+      target: z.enum(['claude', 'openai', 'generic']).default('claude').describe('Output target for provider preference'),
+    },
+    async ({ prompt, context, taskType, complexity, profile, budgetSensitivity, latencySensitivity, target }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        if (prompt) prompt = hardenInput(prompt);
+        if (context) context = hardenInput(context);
+
+        const outputTarget: OutputTarget = target || ctx.config.default_target;
+
+        // Auto-classify if prompt provided and fields not explicitly given
+        let resolvedTaskType = taskType;
+        let resolvedComplexity = complexity;
+        let complexityConfidence = 60;
+
+        if (prompt) {
+          if (!resolvedTaskType) {
+            resolvedTaskType = detectTaskType(prompt);
+          }
+          if (!resolvedComplexity) {
+            const cr = classifyComplexity(prompt, context);
+            resolvedComplexity = cr.complexity;
+            complexityConfidence = cr.confidence;
+          }
+        }
+
+        // Defaults
+        if (!resolvedTaskType) resolvedTaskType = 'other';
+        if (!resolvedComplexity) resolvedComplexity = 'analytical';
+
+        // Risk scoring
+        const contextTokens = estimateTokens((prompt || '') + (context || ''));
+        const ruleResults = prompt ? runRules(prompt, context, resolvedTaskType) : [];
+        const riskScoreResult = computeRiskScore(ruleResults);
+
+        // Build routing input
+        const routingInput: ModelRoutingInput = {
+          taskType: resolvedTaskType,
+          complexity: resolvedComplexity,
+          budgetSensitivity: budgetSensitivity || 'medium',
+          latencySensitivity: latencySensitivity || 'medium',
+          contextTokens,
+          riskScore: riskScoreResult.score,
+          profile: profile as OptimizationProfile | undefined,
+        };
+
+        const recommendation = routeModel(routingInput, prompt, complexityConfidence, outputTarget);
+
+        log.info(requestId, `route_model: ${resolvedComplexity} → ${recommendation.primary.provider}/${recommendation.primary.model}`);
+        return jsonResponse({
+          request_id: requestId,
+          ...recommendation,
+        });
+      } catch (err) {
+        log.error(requestId, 'route_model failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `route_model failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // Tool 14: pre_flight (METERED — G6: counts as 1 optimization use)
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  server.tool(
+    'pre_flight',
+    'Full pre-flight analysis: classify task, assess risk, route model, score quality. Returns complete decision bundle. Metered — counts as 1 optimization use.',
+    {
+      prompt: z.string().min(1).max(102400).describe('The prompt to analyze'),
+      context: z.string().max(102400).optional().describe('Optional context'),
+      profile: z.enum([
+        'cost_minimizer', 'balanced', 'quality_first', 'creative', 'enterprise_safe',
+      ]).optional().describe('Optimization profile'),
+      budgetSensitivity: z.enum(['low', 'medium', 'high']).optional().describe('Budget sensitivity'),
+      latencySensitivity: z.enum(['low', 'medium', 'high']).optional().describe('Latency sensitivity'),
+      target: z.enum(['claude', 'openai', 'generic']).default('claude').describe('Output target'),
+    },
+    async ({ prompt, context, profile, budgetSensitivity, latencySensitivity, target }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        prompt = hardenInput(prompt);
+        if (context) context = hardenInput(context);
+
+        const outputTarget: OutputTarget = target || ctx.config.default_target;
+
+        // Freemium gate (G6: pre_flight is metered)
+        const enforcement = await storage.canUseOptimization(ctx);
+        if (!enforcement.allowed) {
+          const isRateLimit = enforcement.enforcement === 'rate';
+          return jsonResponse({
+            request_id: requestId,
+            error: isRateLimit ? 'rate_limited' : 'free_tier_limit_reached',
+            enforcement: enforcement.enforcement,
+            remaining: enforcement.remaining,
+            limits: enforcement.limits,
+            tier: enforcement.usage.tier,
+            ...(enforcement.retry_after_seconds != null && {
+              retry_after_seconds: enforcement.retry_after_seconds,
+            }),
+            ...(!isRateLimit && {
+              pro_purchase_url: PRO_PURCHASE_URL,
+              power_purchase_url: POWER_PURCHASE_URL,
+              next_step: 'You\'ve hit your plan limit. Upgrade to Pro ($4.99/mo) or Power ($9.99/mo) for more optimizations — then run set_license with your key.',
+            }),
+          });
+        }
+
+        // 1. Task type detection
+        const taskType = detectTaskType(prompt);
+
+        // 2. Complexity classification
+        const complexityResult = classifyComplexity(prompt, context);
+
+        // 3. Risk scoring
+        const ruleResults = runRules(prompt, context, taskType);
+        const riskScoreResult = computeRiskScore(ruleResults);
+        const blockingQuestions = extractBlockingQuestions(ruleResults);
+        const warnings = ruleResults
+          .filter(r => r.triggered && r.severity === 'non_blocking')
+          .map(r => r.message);
+
+        // 4. Suggested profile
+        const suggestedProfileName = suggestProfile(complexityResult.complexity, riskScoreResult.score);
+
+        // 5. Model routing
+        const contextTokens = estimateTokens(prompt + (context || ''));
+        const routingInput: ModelRoutingInput = {
+          taskType,
+          complexity: complexityResult.complexity,
+          budgetSensitivity: budgetSensitivity || 'medium',
+          latencySensitivity: latencySensitivity || 'medium',
+          contextTokens,
+          riskScore: riskScoreResult.score,
+          profile: (profile || suggestedProfileName) as OptimizationProfile,
+        };
+        const recommendation = routeModel(routingInput, prompt, complexityResult.confidence, outputTarget);
+
+        // 6. Quality score
+        const intentSpec = analyzePrompt(prompt, context);
+        const qualityScore = scorePrompt(intentSpec, context);
+
+        // Summary line
+        const summary = `${complexityResult.complexity} task → ${recommendation.primary.provider}/${recommendation.primary.model} recommended. Risk score: ${riskScoreResult.score}/100. Quality: ${qualityScore.total}/100. Est. cost: $${recommendation.costEstimate.costs.find(c => c.model === recommendation.primary.model)?.total_cost_usd?.toFixed(4) ?? 'N/A'}.`;
+
+        // G6: Metering after success — counts as 1 optimization use
+        let success = false;
+        try {
+          success = true;
+        } finally {
+          if (success) {
+            await storage.incrementUsage();
+            await storage.updateStats({
+              type: 'optimize',
+              score_before: qualityScore.total,
+              task_type: taskType,
+              blocking_questions: blockingQuestions.map(q => q.question),
+            });
+          }
+        }
+
+        log.info(requestId, `pre_flight: ${complexityResult.complexity}/${riskScoreResult.level} → ${recommendation.primary.model}`);
+        return jsonResponse({
+          request_id: requestId,
+          classification: {
+            taskType,
+            complexity: complexityResult.complexity,
+            complexityConfidence: complexityResult.confidence,
+            riskLevel: riskScoreResult.level,
+            riskScore: riskScoreResult.score,
+            riskDimensions: riskScoreResult.dimensions,
+            signals: complexityResult.signals,
+          },
+          model: recommendation,
+          qualityScore: qualityScore.total,
+          risks: {
+            score: riskScoreResult.score,
+            dimensions: riskScoreResult.dimensions,
+            warnings,
+            blockingQuestions: blockingQuestions.map(q => q.question),
+          },
+          profile: profile || suggestedProfileName,
+          summary,
+        });
+      } catch (err) {
+        log.error(requestId, 'pre_flight failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `pre_flight failed: ${err instanceof Error ? err.message : 'unknown error'}`,
         });
       }
     },

@@ -614,7 +614,8 @@
       <p class="subtitle">
         Score, analyze, and standardize prompts before you send them to any LLM &mdash; like ESLint, but for AI instructions.
       </p>
-      <p class="subtitle" style="font-size:15px; margin-top:-20px; margin-bottom:36px;">Works locally. No API keys. No pipeline required.</p>
+      <p class="subtitle" style="font-size:15px; margin-top:-20px; margin-bottom:12px;">Works locally. No API keys. No pipeline required.</p>
+      <p class="subtitle" style="font-size:14px; margin-top:0; margin-bottom:36px; color: var(--accent);">Now with deterministic model routing and pre-flight decision intelligence.</p>
       <div class="cta-row">
         <a href="#get-started" class="btn btn-primary">Try It Free</a>
         <a href="#how" class="btn btn-secondary">See How It Works</a>
@@ -774,7 +775,7 @@
           <div class="flow-num">4</div>
           <div class="flow-content">
             <h3>Know the cost before you run</h3>
-            <p>Estimates token count and cost across 8 models from Anthropic, OpenAI, and Google. Recommends the best model for your task type.</p>
+            <p>Estimates token count and cost across 10 models from Anthropic, OpenAI, Google, and Perplexity. Routes to the optimal model for your task type and risk level.</p>
           </div>
         </div>
         <div class="flow-step">
@@ -803,7 +804,7 @@
         </div>
         <div class="use-case-card feature-card">
           <h3>For engineering teams managing LLM spend</h3>
-          <p>Compare pricing across 8 models before every call. Compress context to strip irrelevant input. Cut spend across your org without cutting quality.</p>
+          <p>Compare pricing across 10 models before every call. Route simple tasks to cheaper models automatically. Compress context to strip irrelevant input.</p>
         </div>
         <div class="use-case-card feature-card">
           <h3>For CI/CD pipelines</h3>
@@ -812,6 +813,10 @@
         <div class="use-case-card feature-card">
           <h3>For MCP-powered workflows</h3>
           <p>Drop into Claude Code, Cursor, or Windsurf in 10 seconds. Works with any MCP-compatible client. No configuration required.</p>
+        </div>
+        <div class="use-case-card feature-card">
+          <h3>For reducing LLM costs</h3>
+          <p>Route simple tasks to cheaper models automatically &mdash; reduce LLM spend without changing your prompts. Pre-flight classification picks the right model tier for every task.</p>
         </div>
       </div>
     </div>
@@ -867,7 +872,7 @@
         <div class="feature-card">
           <div class="icon">&#x1f4b0;</div>
           <h3>Multi-Provider Cost</h3>
-          <p>Know what you'll pay before you run. Token and cost estimates across 8 models from Anthropic, OpenAI, and Google.</p>
+          <p>Know what you'll pay before you run. Token and cost estimates across 10 models from Anthropic, OpenAI, Google, and Perplexity.</p>
         </div>
         <div class="feature-card">
           <div class="icon">&#x1f512;</div>
@@ -920,10 +925,10 @@ const md = optimize('write a REST API', undefined, 'generic');
     </div>
   </section>
 
-  <!-- Section 9: All 11 Tools -->
+  <!-- Section 9: All 14 Tools -->
   <section class="section section-alt" id="tools">
     <div class="container">
-      <h2 class="section-title">All 11 tools</h2>
+      <h2 class="section-title">All 14 tools</h2>
       <p class="section-subtitle">Metered tools count against your usage quota. Free tools are always unlimited.</p>
       <div style="overflow-x: auto;">
         <table class="tools-table">
@@ -934,7 +939,7 @@ const md = optimize('write a REST API', undefined, 'generic');
             <tr><td>optimize_prompt</td><td><span class="tag tag-metered">Metered</span></td><td>Analyze, score, compile, estimate cost &rarr; PreviewPack</td></tr>
             <tr><td>refine_prompt</td><td><span class="tag tag-metered">Metered</span></td><td>Answer questions, add edits &rarr; updated PreviewPack</td></tr>
             <tr><td>approve_prompt</td><td><span class="tag tag-free">Free</span></td><td>Sign-off gate &rarr; final compiled prompt</td></tr>
-            <tr><td>estimate_cost</td><td><span class="tag tag-free">Free</span></td><td>Multi-provider token + cost estimator</td></tr>
+            <tr><td>estimate_cost</td><td><span class="tag tag-free">Free</span></td><td>Multi-provider token + cost estimator (incl. Perplexity)</td></tr>
             <tr><td>compress_context</td><td><span class="tag tag-free">Free</span></td><td>Prune irrelevant context, report savings</td></tr>
             <tr><td>check_prompt</td><td><span class="tag tag-free">Free</span></td><td>Quick pass/fail + score + top issues</td></tr>
             <tr><td>configure_optimizer</td><td><span class="tag tag-free">Free</span></td><td>Set mode, threshold, strictness, target</td></tr>
@@ -942,6 +947,9 @@ const md = optimize('write a REST API', undefined, 'generic');
             <tr><td>prompt_stats</td><td><span class="tag tag-free">Free</span></td><td>Aggregated stats: avg score, top tasks, savings</td></tr>
             <tr><td>set_license</td><td><span class="tag tag-free">Free</span></td><td>Activate Pro or Power license key</td></tr>
             <tr><td>license_status</td><td><span class="tag tag-free">Free</span></td><td>Check license, tier, and expiry</td></tr>
+            <tr><td>classify_task</td><td><span class="tag tag-free">Free</span></td><td>Classify prompt by task type, complexity, risk, profile</td></tr>
+            <tr><td>route_model</td><td><span class="tag tag-free">Free</span></td><td>Route to optimal model with decision_path audit trail</td></tr>
+            <tr><td>pre_flight</td><td><span class="tag tag-metered">Metered</span></td><td>Full pipeline: classify &rarr; risk &rarr; route &rarr; score</td></tr>
           </tbody>
         </table>
       </div>
@@ -959,7 +967,7 @@ const md = optimize('write a REST API', undefined, 'generic');
         </div>
         <div class="faq-item">
           <div class="faq-q">How can I reduce LLM token cost?</div>
-          <div class="faq-a">Two ways: use the context compressor to strip irrelevant input (reports exact token savings), and use the cost estimator to compare pricing across 8 models before you run. Structured prompts also reduce retry cycles &mdash; clearer instructions mean fewer wasted calls. Cost estimates are approximate &mdash; validate for billing-critical workflows.</div>
+          <div class="faq-a">Three ways: use the model router to automatically pick the cheapest viable model for each task, use the context compressor to strip irrelevant input (reports exact token savings), and use the cost estimator to compare pricing across 10 models before you run. Structured prompts also reduce retry cycles &mdash; clearer instructions mean fewer wasted calls.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">Does this call external APIs?</div>
@@ -971,11 +979,11 @@ const md = optimize('write a REST API', undefined, 'generic');
         </div>
         <div class="faq-item">
           <div class="faq-q">Does it work with OpenAI and Claude?</div>
-          <div class="faq-a">Yes. Prompts compile to three formats: Claude XML (<code>&lt;role&gt;</code>, <code>&lt;goal&gt;</code>, <code>&lt;constraints&gt;</code>), OpenAI system/user split, and generic Markdown. The cost estimator covers models from Anthropic, OpenAI, and Google.</div>
+          <div class="faq-a">Yes. Prompts compile to three formats: Claude XML (<code>&lt;role&gt;</code>, <code>&lt;goal&gt;</code>, <code>&lt;constraints&gt;</code>), OpenAI system/user split, and generic Markdown. The cost estimator covers models from Anthropic, OpenAI, Google, and Perplexity.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">Is it free?</div>
-          <div class="faq-a">The free tier includes 10 optimizations, unlimited scoring and checking, and all 11 tools. Pro ($4.99/month) adds 100 optimizations per month. Power ($9.99/month) is unlimited. No credit card required to start.</div>
+          <div class="faq-a">The free tier includes 10 optimizations, unlimited scoring and checking, and all 14 tools. Pro ($4.99/month) adds 100 optimizations per month. Power ($9.99/month) is unlimited. No credit card required to start.</div>
         </div>
       </div>
     </div>
@@ -985,7 +993,7 @@ const md = optimize('write a REST API', undefined, 'generic');
   <section class="section section-alt" id="get-started">
     <div class="container">
       <h2 class="section-title" style="text-align: center;">Get started in under 2 minutes</h2>
-      <p class="section-subtitle" style="text-align: center;">Free tier includes 10 optimizations, unlimited scoring, and all 11 tools. No credit card required.</p>
+      <p class="section-subtitle" style="text-align: center;">Free tier includes 10 optimizations, unlimited scoring, and all 14 tools. No credit card required.</p>
 
       <!-- Pricing Cards -->
       <div class="pricing-grid">
@@ -997,7 +1005,7 @@ const md = optimize('write a REST API', undefined, 'generic');
             <li>10 optimizations total</li>
             <li>Unlimited scoring &amp; checking</li>
             <li>5 per minute rate limit</li>
-            <li>All 11 tools</li>
+            <li>All 14 tools</li>
             <li>All 3 output formats</li>
           </ul>
           <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP" class="btn btn-secondary">Get Started</a>
