@@ -717,7 +717,7 @@
           <div class="benefit-num">03</div>
           <div class="benefit-content">
             <h3>Works everywhere, calls nothing</h3>
-            <p>Runs 100% locally. Zero LLM calls inside. No API keys needed for the optimizer itself. Your prompts never leave your machine. Works offline, works air-gapped, works with any LLM.</p>
+            <p>Offline-first. Deterministic. No telemetry. No LLM calls inside the MCP. All compression, pruning, and risk scoring are local transforms. Your prompts never leave your machine. Works offline, works air-gapped, works with any LLM.</p>
           </div>
         </div>
       </div>
@@ -761,7 +761,7 @@
           <div class="flow-num">2</div>
           <div class="flow-content">
             <h3>Detect ambiguities</h3>
-            <p>10 deterministic rules catch scope explosion, missing constraints, and vague instructions &mdash; before you waste a single API call.</p>
+            <p>14 deterministic rules catch scope explosion, missing constraints, hallucination risk, and vague instructions &mdash; before you waste a single API call.</p>
           </div>
         </div>
         <div class="flow-step">
@@ -857,7 +857,7 @@
         <div class="feature-card">
           <div class="icon">&#x1f6e1;&#xfe0f;</div>
           <h3>Ambiguity Detection</h3>
-          <p>Catch problems before they waste API calls. 10 deterministic rules detect scope explosion, missing constraints, and vague instructions.</p>
+          <p>Catch problems before they waste API calls. 14 deterministic rules detect scope explosion, missing constraints, hallucination risk, and vague instructions.</p>
         </div>
         <div class="feature-card">
           <div class="icon">&#x1f3af;</div>
@@ -925,10 +925,10 @@ const md = optimize('write a REST API', undefined, 'generic');
     </div>
   </section>
 
-  <!-- Section 9: All 14 Tools -->
+  <!-- Section 9: All 15 Tools -->
   <section class="section section-alt" id="tools">
     <div class="container">
-      <h2 class="section-title">All 14 tools</h2>
+      <h2 class="section-title">All 15 tools</h2>
       <p class="section-subtitle">Metered tools count against your usage quota. Free tools are always unlimited.</p>
       <div style="overflow-x: auto;">
         <table class="tools-table">
@@ -950,6 +950,7 @@ const md = optimize('write a REST API', undefined, 'generic');
             <tr><td>classify_task</td><td><span class="tag tag-free">Free</span></td><td>Classify prompt by task type, complexity, risk, profile</td></tr>
             <tr><td>route_model</td><td><span class="tag tag-free">Free</span></td><td>Route to optimal model with decision_path audit trail</td></tr>
             <tr><td>pre_flight</td><td><span class="tag tag-metered">Metered</span></td><td>Full pipeline: classify &rarr; risk &rarr; route &rarr; score</td></tr>
+            <tr><td>prune_tools</td><td><span class="tag tag-free">Free</span></td><td>Score and rank tools by task relevance, optionally prune</td></tr>
           </tbody>
         </table>
       </div>
@@ -971,7 +972,7 @@ const md = optimize('write a REST API', undefined, 'generic');
         </div>
         <div class="faq-item">
           <div class="faq-q">Does this call external APIs?</div>
-          <div class="faq-a">No. Zero LLM calls inside. All analysis is deterministic &mdash; regex, heuristics, and rule engines. Your prompts never leave your machine. The host Claude (or any LLM client) provides all intelligence; the optimizer provides structure.</div>
+          <div class="faq-a">No. The core engine is offline-first &mdash; zero LLM calls, no telemetry. All analysis is deterministic (regex, heuristics, rule engines). Your prompts never leave your machine. Any network calls (e.g., cost lookups) occur only when an integration tool is explicitly invoked. The host Claude (or any LLM client) provides all intelligence; the optimizer provides structure.</div>
         </div>
         <div class="faq-item">
           <div class="faq-q">What is MCP?</div>
@@ -983,7 +984,7 @@ const md = optimize('write a REST API', undefined, 'generic');
         </div>
         <div class="faq-item">
           <div class="faq-q">Is it free?</div>
-          <div class="faq-a">The free tier includes 10 optimizations, unlimited scoring and checking, and all 14 tools. Pro ($4.99/month) adds 100 optimizations per month. Power ($9.99/month) is unlimited. No credit card required to start.</div>
+          <div class="faq-a">The free tier includes 10 optimizations, unlimited scoring and checking, and all 15 tools. Pro ($4.99/month) adds 100 optimizations per month. Power ($9.99/month) is unlimited. No credit card required to start.</div>
         </div>
       </div>
     </div>
@@ -993,7 +994,7 @@ const md = optimize('write a REST API', undefined, 'generic');
   <section class="section section-alt" id="get-started">
     <div class="container">
       <h2 class="section-title" style="text-align: center;">Get started in under 2 minutes</h2>
-      <p class="section-subtitle" style="text-align: center;">Free tier includes 10 optimizations, unlimited scoring, and all 14 tools. No credit card required.</p>
+      <p class="section-subtitle" style="text-align: center;">Free tier includes 10 optimizations, unlimited scoring, and all 15 tools. No credit card required.</p>
 
       <!-- Pricing Cards -->
       <div class="pricing-grid">
@@ -1005,7 +1006,7 @@ const md = optimize('write a REST API', undefined, 'generic');
             <li>10 optimizations total</li>
             <li>Unlimited scoring &amp; checking</li>
             <li>5 per minute rate limit</li>
-            <li>All 14 tools</li>
+            <li>All 15 tools</li>
             <li>All 3 output formats</li>
           </ul>
           <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP" class="btn btn-secondary">Get Started</a>

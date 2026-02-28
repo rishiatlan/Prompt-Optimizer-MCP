@@ -251,7 +251,7 @@ v3.0 adds a pre-LLM decision layer on top of the existing linter. **Zero LLM cal
 
 ### Key Constants
 - `BASELINE_MODEL = 'gpt-4o'` ($2.50/$10.00 per 1M tokens) — savings comparison baseline (G2)
-- `RISK_WEIGHTS` — 10 rules × dimensional weights (underspec, hallucination, scope, constraint)
+- `RISK_WEIGHTS` — 14 rules × dimensional weights (underspec, hallucination, scope, constraint)
 - `PROFILES` — 5 frozen presets: `cost_minimizer`, `balanced`, `quality_first`, `creative`, `enterprise_safe`
 
 ### Metering Contract (G6)

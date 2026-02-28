@@ -17,6 +17,7 @@ import { runRules, computeRiskScore, extractBlockingQuestions } from './rules.js
 import { sortCountsDescKeyAsc, sortIssues } from './sort.js';
 import { suggestProfile } from './profiles.js';
 import { scoreAllTools, rankTools, pruneTools } from './pruner.js';
+import { calculateCompressionDelta } from './deltas.js';
 import type { ToolDefinition } from './pruner.js';
 import type {
   PreviewPack, StorageInterface, RateLimiter, ExecutionContext,
@@ -1092,6 +1093,23 @@ export function registerTools(
         const intentSpec = analyzePrompt(prompt, context);
         const qualityScore = scorePrompt(intentSpec, context);
 
+        // 7. Compression delta (conditional — only when context is provided)
+        let compressionDelta: { tokens_saved_estimate: number; percentage_reduction: number } | undefined;
+        if (context && context.length > 0) {
+          try {
+            const compressionResult = compressContext(context, intentSpec);
+            const delta = calculateCompressionDelta(compressionResult as any);
+            if (delta) {
+              compressionDelta = {
+                tokens_saved_estimate: delta.tokens_saved_estimate,
+                percentage_reduction: delta.percentage_reduction,
+              };
+            }
+          } catch {
+            // Compression delta is best-effort; don't fail pre_flight
+          }
+        }
+
         // Summary line
         const summary = `${complexityResult.complexity} task → ${recommendation.primary.provider}/${recommendation.primary.model} recommended. Risk score: ${riskScoreResult.score}/100. Quality: ${qualityScore.total}/100. Est. cost: $${recommendation.costEstimate.costs.find(c => c.model === recommendation.primary.model)?.total_cost_usd?.toFixed(4) ?? 'N/A'}.`;
 
@@ -1133,6 +1151,7 @@ export function registerTools(
             blockingQuestions: blockingQuestions.map(q => q.question),
           },
           profile: profile || suggestedProfileName,
+          ...(compressionDelta && { compression_delta: compressionDelta }),
           summary,
         });
       } catch (err) {

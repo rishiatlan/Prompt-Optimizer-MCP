@@ -13,6 +13,7 @@
 - **G36 Invariant**: Property-based test ensuring compressed_tokens ≤ original_tokens (100-input fuzz)
 - `compress_context` response now includes `heuristics_applied` and `mode` fields (backward-compatible)
 - `prune_tools` output includes `schema_version: 1`
+- `pre_flight` now returns `compression_delta` conditionally when context is provided (token savings estimate)
 - 6 new source files: `constants.ts`, `tokenizer.ts`, `zones.ts`, `preservePatterns.ts`, `deltas.ts`, `pruner.ts`
 - 12 new test files, ~215 new tests
 

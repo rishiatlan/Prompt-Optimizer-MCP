@@ -17,7 +17,7 @@ Lint, score, and standardize prompt quality — the ESLint for LLM applications.
 - **No structure scoring, no ambiguity detection.** Even experienced engineers skip success criteria, constraints, and workflow steps. This linter flags structural gaps before you send.
 - **Cost is invisible until after you've spent it.** Most users have no idea how many tokens their prompt will consume. The linter shows cost breakdowns across 10 models from Anthropic, OpenAI, Google, and Perplexity before you commit. Cost estimates are approximate — validate for billing-critical workflows.
 - **Simple tasks run on expensive models.** Without routing intelligence, every prompt goes to the same model. The decision engine classifies complexity and routes simple tasks to cheaper models automatically — reducing LLM spend without changing your prompts.
-- **Context bloat is the hidden cost multiplier.** Sending 500 lines of code when 50 are relevant burns tokens on irrelevant context. The compressor strips what doesn't matter.
+- **Context bloat is the hidden cost multiplier.** Sending 500 lines of code when 50 are relevant burns tokens on irrelevant context. The smart compressor runs 5 heuristics (license strip, comment collapse, duplicate collapse, stub collapse, aggressive truncation) with zone protection for code blocks and tables — standard mode is safe, aggressive mode is opt-in.
 - **Human-in-the-loop approval.** The MCP asks blocking questions when your prompt is ambiguous, requires you to answer them before proceeding, and only finalizes the compiled prompt after you explicitly approve. No prompt runs without your sign-off — the gate is enforced in code, not convention.
 
 ## Benchmarks
@@ -230,7 +230,7 @@ Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global acces
 }
 ```
 
-Restart Claude Code. All 14 tools appear automatically. Free tier gives you 10 optimizations to try it out.
+Restart Claude Code. All 15 tools appear automatically. Free tier gives you 10 optimizations to try it out.
 
 <details>
 <summary><strong>Claude Desktop config path</strong></summary>
@@ -411,7 +411,7 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | Activate Pro license | Ask Claude: "Use set_license with key: po_pro_..." |
 | Check license status | Ask Claude: "Use license_status" |
 
-## 14 MCP Tools
+## 15 MCP Tools
 
 | # | Tool | Free/Metered | Purpose |
 |---|------|-------------|---------|
@@ -429,6 +429,7 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | 12 | `classify_task` | Free | Classify prompt by task type, reasoning complexity, risk, and suggested profile |
 | 13 | `route_model` | Free | Route to optimal model with `decision_path` audit trail |
 | 14 | `pre_flight` | **Metered** | Full pre-flight pipeline: classify, assess risk, route model, score quality |
+| 15 | `prune_tools` | Free | Score and rank MCP tools by task relevance, optionally prune low-relevance tools |
 
 ## Pricing
 
@@ -438,7 +439,7 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | **Optimizations** | 10 lifetime | 100/month | Unlimited |
 | **Rate limit** | 5/min | 30/min | 60/min |
 | **Always-on mode** | — | — | ✓ |
-| **All 14 tools** | ✓ | ✓ | ✓ |
+| **All 15 tools** | ✓ | ✓ | ✓ |
 
 Free tier gives you 10 optimizations to experience the full pipeline. No credit card required.
 
@@ -567,7 +568,7 @@ The before/after delta shows exactly what improved: "Your prompt went from 48 to
 </details>
 
 <details>
-<summary><strong>10 Ambiguity Detection Rules</strong></summary>
+<summary><strong>14 Ambiguity Detection Rules</strong></summary>
 
 All rules are deterministic (regex + keyword matching). No LLM calls. Rules are **task-type aware** — code-only rules skip for writing/research tasks, prose-only rules skip for code tasks.
 
@@ -583,6 +584,10 @@ All rules are deterministic (regex + keyword matching). No LLM calls. Rules are 
 | `generic_vague_ask` | All | BLOCKING | Extremely vague prompt with no actionable specifics ("make it better", "just fix it") |
 | `missing_audience` | Prose | NON-BLOCKING | No target audience specified for writing/communication task |
 | `no_clear_ask` | Prose | NON-BLOCKING | No clear communication goal detected |
+| `hallucination_risk` | All | NON-BLOCKING | Open-ended generation without grounding sources or factual constraints |
+| `agent_underspec` | All | BLOCKING | Agent/orchestration task with no tool list, permission boundary, or stopping criteria |
+| `conflicting_constraints` | All | BLOCKING | Contradictory instructions detected (e.g., "be brief" + "be comprehensive") |
+| `token_budget_mismatch` | All | NON-BLOCKING | Requested output likely exceeds model context or reasonable token budget |
 
 Hard caps: max 3 blocking questions per cycle, max 5 assumptions shown.
 
@@ -1013,17 +1018,18 @@ Reason:         Balanced task — Sonnet offers the best
 
 </details>
 
-## Security & Privacy
+## Security & Privacy Posture (Offline-First)
 
-| What | Detail |
-|------|--------|
-| **LLM calls** | Zero. All analysis is deterministic — regex, heuristics, rule engines. |
-| **Network calls** | Zero. The MCP runs 100% locally. No telemetry, no phone-home. |
-| **Data storage** | `~/.prompt-optimizer/` on your machine. Sessions, usage, config, stats, license. |
-| **License validation** | Ed25519 asymmetric signatures. Public key only in the package. No PII in the key. |
-| **License file** | `chmod 600` on POSIX systems (best-effort). Only your user can read it. |
-| **Prompt logging** | Disabled by default. Opt-in via `PROMPT_OPTIMIZER_LOG_PROMPTS=true`. Never enable in shared environments. |
-| **Dependencies** | 2 runtime: `@modelcontextprotocol/sdk` and `zod`. No transitive bloat. |
+- **Offline-first by default:** the core optimizer runs locally and does not require network access.
+- **Deterministic and reproducible:** given the same inputs, version, and configuration, outputs are stable. All heuristics and pruning decisions are deterministic (no randomness, no runtime learning).
+- **No LLM calls inside the MCP:** compression, tool pruning, and risk scoring are local transforms.
+- **No telemetry:** the core engine does not send usage or prompt data anywhere.
+- **Local-only state:** persisted artifacts (sessions, usage, config, stats, license) live under `~/.prompt-optimizer/`.
+- **Aggressive compression is opt-in:** `mode=aggressive` may truncate the middle of context to fit a token budget; standard mode never truncates the middle.
+- **Optional integrations:** any network calls (e.g., cost lookups for external providers) occur only when an integration tool is explicitly invoked.
+- **License validation:** Ed25519 asymmetric signatures. Public key only in the package. No PII in the key. `chmod 600` on POSIX (best-effort).
+- **Prompt logging:** disabled by default. Opt-in via `PROMPT_OPTIMIZER_LOG_PROMPTS=true`. Never enable in shared environments.
+- **Dependencies:** 2 runtime: `@modelcontextprotocol/sdk` and `zod`. No transitive bloat.
 
 ## Troubleshooting
 
@@ -1042,7 +1048,7 @@ Reason:         Balanced task — Sonnet offers the best
 ## Roadmap
 
 - [x] Core prompt optimizer with 5 MCP tools (v1.0)
-- [x] 10 deterministic ambiguity detection rules (task-type aware)
+- [x] 14 deterministic ambiguity detection rules (task-type aware)
 - [x] Quality scoring (0-100, scoring_version: 2) with before/after delta
 - [x] Cost estimation with per-model breakdown (Anthropic, OpenAI, Google)
 - [x] Context compression
@@ -1065,7 +1071,13 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] Dual entry points — `"."` (API) + `"./server"` (MCP server)
 - [x] Curl installer — `curl -fsSL .../install.sh | bash`
 - [x] Lemon Squeezy checkout integration — tier-specific purchase URLs
-- [x] 129 tests across 9 test suites (including E2E pipeline, license, and gate enforcement)
+- [x] v3.0 Decision Engine: complexity classifier, 5 optimization profiles, model routing with decision_path, risk scoring (0–100), Perplexity routing
+- [x] 3 new tools: `classify_task`, `route_model`, `pre_flight` (14 total in v3.0)
+- [x] v3.1 Smart Compression: H1–H5 heuristics pipeline with zone protection, standard/aggressive modes
+- [x] v3.1 Tool Pruning: task-aware relevance scoring, mention protection, always-relevant tools
+- [x] v3.1 4 new ambiguity rules: hallucination_risk, agent_underspec, conflicting_constraints, token_budget_mismatch (14 total)
+- [x] v3.1 Pre-flight deltas: compression_delta conditionally surfaced when context provided
+- [x] 15 MCP tools, 14 rules, 527 tests across 21 test suites
 - [ ] Optional Haiku pass for nuanced ambiguity detection
 - [ ] Prompt template library (common patterns)
 - [ ] History/export of past sessions
