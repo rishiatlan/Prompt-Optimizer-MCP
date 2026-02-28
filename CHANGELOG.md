@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.2] - 2026-02-28
+
+### Changed
+- **GitHub Action**: Deterministic install path (`$RUNNER_TEMP/prompt-lint-$$`) instead of `mktemp`. Added `--ignore-scripts` for supply-chain hardening.
+- **CI workflow**: Added `cache: 'npm'` to all `setup-node` steps for faster repeat runs.
+- **README**: Added action internals note, SHA-pinned example, version mapping docs.
+
 ## [2.3.1] - 2026-02-28
 
 ### Fixed

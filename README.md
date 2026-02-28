@@ -334,7 +334,19 @@ jobs:
 
 > This action expects your repo to be checked out (`actions/checkout`). Without it, file globs will match nothing.
 
+**SHA-pinned example (for enterprise users):**
+
+```yaml
+      - uses: rishiatlan/Prompt-Optimizer-MCP@abc123def  # SHA-pinned
+        with:
+          version: '2.3.2'  # Required when pinning by SHA
+          files: 'prompts/**/*.txt'
+          threshold: 70
+```
+
 **Notes:**
+- The action installs `prompt-lint` via `npm install --prefix` into `$RUNNER_TEMP`, then runs `node_modules/.bin/prompt-lint`. No npx.
+- Action tag `@v2` maps to npm `@2` (latest 2.x). Use `@v2.3.2` for exact pinning.
 - Exit code 2 means no files matched or invalid input — not "all passed." Zero matched files is always an error.
 - On Windows runners, prefer single quotes or escape glob wildcards in PowerShell.
 - Markdown files are linted as raw text (no fenced-block extraction) in v1.
