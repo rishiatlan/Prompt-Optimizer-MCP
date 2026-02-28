@@ -25,6 +25,20 @@ runs:
         if [ -z "$VERSION" ]; then VERSION="${{ github.action_ref }}"; fi
         # Strip leading 'v' (git tag v2.3.0 → npm 2.3.0)
         VERSION="${VERSION#v}"
+        # Build CLI args with proper quoting (bash array)
+        ARGS=(--file "${{ inputs.files }}")
+        if [ -n "${{ inputs.threshold }}" ]; then
+          ARGS+=(--threshold "${{ inputs.threshold }}")
+        elif [ "${{ inputs.strictness }}" = "strict" ]; then
+          ARGS+=(--strict)
+        elif [ "${{ inputs.strictness }}" = "relaxed" ]; then
+          ARGS+=(--relaxed)
+        fi
+        # Local checkout fallback (uses: ./ in self-tests)
+        if [ -z "$VERSION" ] && [ -f "$GITHUB_ACTION_PATH/bin/lint.js" ] && [ -f "$GITHUB_ACTION_PATH/dist/src/lint-cli.js" ]; then
+          node "$GITHUB_ACTION_PATH/bin/lint.js" "${ARGS[@]}"
+          exit $?
+        fi
         # Fail fast on empty version
         if [ -z "$VERSION" ]; then
           echo "::error::Could not resolve npm version. Set the 'version' input explicitly (e.g., version: '2.3.0')."
@@ -34,15 +48,6 @@ runs:
         if ! echo "$VERSION" | grep -qE '^([0-9]+|[0-9]+\.[0-9]+\.[0-9]+)$'; then
           echo "::error::Invalid version '${VERSION}'. Use a tag like @v2 or @v2.3.0, or set 'version' input (e.g., version: '2.3.0')."
           exit 2
-        fi
-        # Build CLI args with proper quoting (bash array)
-        ARGS=(--file "${{ inputs.files }}")
-        if [ -n "${{ inputs.threshold }}" ]; then
-          ARGS+=(--threshold "${{ inputs.threshold }}")
-        elif [ "${{ inputs.strictness }}" = "strict" ]; then
-          ARGS+=(--strict)
-        elif [ "${{ inputs.strictness }}" = "relaxed" ]; then
-          ARGS+=(--relaxed)
         fi
         npx -y "claude-prompt-optimizer-mcp@${VERSION}" prompt-lint "${ARGS[@]}"
       shell: bash
