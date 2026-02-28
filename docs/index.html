@@ -3,8 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt Optimizer MCP — Turn Sloppy Prompts into Structured AI Instructions</title>
-  <meta name="description" content="Open-source MCP server that scores, structures, and compiles your prompts for Claude, OpenAI, and any LLM. 5-dimension quality scoring, ambiguity detection, multi-provider cost estimates. Free tier, Pro, and Power plans.">
+  <title>AI Prompt Optimization Tool | Reduce LLM Cost &amp; Improve Output Quality</title>
+  <meta name="description" content="Score and optimize prompts before sending them to LLMs. Detect ambiguity, reduce token costs, and standardize AI workflows with Prompt Optimizer MCP. Free, open-source, works with Claude, OpenAI, and any LLM.">
+  <meta name="keywords" content="prompt optimizer, prompt quality score, reduce LLM token cost, MCP server, prompt engineering tool, AI prompt scorer, prompt compiler, Claude prompt tool, OpenAI prompt optimizer, what is prompt optimization">
+  <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="AI Prompt Optimization Tool | Reduce LLM Cost &amp; Improve Output Quality">
+  <meta property="og:description" content="Score, fix, and compile prompts before sending them to an LLM. Free, open-source, works with any LLM.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI Prompt Optimization Tool | Reduce LLM Cost &amp; Improve Output Quality">
+  <meta name="twitter:description" content="Score, fix, and compile prompts before sending them to an LLM. Free, open-source, works with any LLM.">
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Prompt Optimizer MCP",
+    "description": "Open-source tool that scores, structures, and compiles AI prompts. Deterministic analysis with zero LLM calls inside.",
+    "applicationCategory": "ProductivityApplication",
+    "operatingSystem": "Cross-platform",
+    "offers": [
+      { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free tier — 10 optimizations" },
+      { "@type": "Offer", "price": "4.99", "priceCurrency": "USD", "description": "Pro — 100/month" },
+      { "@type": "Offer", "price": "9.99", "priceCurrency": "USD", "description": "Power — unlimited" }
+    ],
+    "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/",
+    "downloadUrl": "https://www.npmjs.com/package/claude-prompt-optimizer-mcp"
+  }
+  </script>
+
   <style>
     :root {
       --bg: #0a0a0f;
@@ -33,7 +66,7 @@
 
     .container { max-width: 800px; margin: 0 auto; padding: 0 24px; }
 
-    /* ── Nav ─────────────────────────────────────── */
+    /* -- Nav ----------------------------------------- */
     nav {
       padding: 16px 0;
       border-bottom: 1px solid var(--border);
@@ -54,7 +87,7 @@
     .nav-links a { color: var(--text-muted); }
     .nav-links a:hover { color: var(--text); }
 
-    /* ── Hero Demo ─────────────────────────────────── */
+    /* -- Hero Demo ----------------------------------- */
     .hero-demo {
       display: flex;
       align-items: center;
@@ -129,7 +162,7 @@
       .demo-arrow { transform: rotate(90deg); }
     }
 
-    /* ── Hero ────────────────────────────────────── */
+    /* -- Hero ---------------------------------------- */
     .hero {
       padding: 80px 0 64px;
       text-align: center;
@@ -155,7 +188,7 @@
     .subtitle {
       font-size: 18px;
       color: var(--text-muted);
-      max-width: 560px;
+      max-width: 600px;
       margin: 0 auto 36px;
     }
     .cta-row {
@@ -188,9 +221,23 @@
     }
     .btn-secondary:hover { border-color: var(--text-muted); }
 
-    /* ── Install block ───────────────────────────── */
+    /* -- Sections ------------------------------------ */
+    .section { padding: 64px 0; }
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .section-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+    }
+
+    /* -- Install block ------------------------------- */
     .install {
-      margin: 48px auto;
+      margin: 12px auto 0;
       max-width: 600px;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -198,6 +245,7 @@
       padding: 20px 24px;
       text-align: left;
     }
+    .install:first-child, .install-first { margin-top: 0; }
     .install-label {
       font-size: 12px;
       text-transform: uppercase;
@@ -214,20 +262,68 @@
       word-break: break-all;
     }
 
-    /* ── How it works ────────────────────────────── */
-    .section { padding: 64px 0; }
-    .section-title {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
+    /* -- Pain cards (orange left border) ------------- */
+    .pain-card {
+      border-left: 3px solid var(--orange);
     }
-    .section-subtitle {
-      font-size: 16px;
+    .pain-card .icon { font-size: 28px; margin-bottom: 8px; }
+
+    /* -- Benefits ------------------------------------ */
+    .benefit-block {
+      display: flex;
+      gap: 20px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .benefit-block:last-child { border-bottom: none; }
+    .benefit-num {
+      flex-shrink: 0;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--accent);
+      opacity: 0.4;
+      line-height: 1;
+      padding-top: 4px;
+    }
+    .benefit-content h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .benefit-content p {
+      font-size: 14px;
       color: var(--text-muted);
-      margin-bottom: 40px;
+      line-height: 1.6;
     }
 
+    /* -- Definition block ----------------------------- */
+    .definition {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+    .definition strong { color: var(--text); }
+    .definition-list {
+      list-style: none;
+      margin-top: 16px;
+    }
+    .definition-list li {
+      padding: 4px 0;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .definition-list li::before {
+      content: '\2022';
+      color: var(--accent);
+      margin-right: 10px;
+      font-weight: 700;
+    }
+
+    /* -- How it works flow --------------------------- */
     .flow {
       display: flex;
       flex-direction: column;
@@ -262,7 +358,53 @@
       color: var(--text-muted);
     }
 
-    /* ── Features ─────────────────────────────────── */
+    /* -- Use cases ----------------------------------- */
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .use-case-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .use-case-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .use-case-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* -- Comparison table ----------------------------- */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .compare-table th {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--border);
+      color: var(--text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .compare-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .compare-table td:first-child { color: var(--text); font-weight: 500; }
+    .compare-table tr:last-child td { background: rgba(124, 92, 252, 0.08); }
+
+    /* -- Features ------------------------------------ */
     .features-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -289,7 +431,24 @@
       line-height: 1.5;
     }
 
-    /* ── Pricing ──────────────────────────────────── */
+    /* -- FAQ ----------------------------------------- */
+    .faq-item {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+    .faq-a {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* -- Pricing ------------------------------------- */
     .pricing-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -362,7 +521,7 @@
     }
     .pricing-card .btn { width: 100%; justify-content: center; }
 
-    /* ── Tools table ──────────────────────────────── */
+    /* -- Tools table --------------------------------- */
     .tools-table {
       width: 100%;
       border-collapse: collapse;
@@ -399,7 +558,7 @@
     .tag-free { background: rgba(52, 211, 153, 0.1); color: var(--green); }
     .tag-metered { background: rgba(251, 146, 60, 0.1); color: var(--orange); }
 
-    /* ── Footer ───────────────────────────────────── */
+    /* -- Footer -------------------------------------- */
     footer {
       padding: 40px 0;
       border-top: 1px solid var(--border);
@@ -409,6 +568,12 @@
     }
     footer a { color: var(--text-muted); }
     footer a:hover { color: var(--text); }
+
+    /* -- Mobile -------------------------------------- */
+    @media (max-width: 640px) {
+      .benefit-block { flex-direction: column; gap: 8px; }
+      .benefit-num { font-size: 24px; }
+    }
   </style>
 </head>
 <body>
@@ -418,8 +583,9 @@
     <div class="container">
       <div class="logo">Prompt Optimizer <span>MCP</span></div>
       <div class="nav-links">
+        <a href="#how">How It Works</a>
         <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
+        <a href="#get-started">Pricing</a>
         <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
         <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
       </div>
@@ -429,14 +595,14 @@
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <div class="badge">Open Source &middot; <strong>11 Tools</strong> &middot; Zero LLM Calls Inside</div>
-      <h1>Turn sloppy prompts into<br><span class="highlight">structured AI instructions</span></h1>
+      <div class="badge">Open Source &middot; <strong>Works with Claude, OpenAI, any LLM</strong> &middot; Zero LLM Calls Inside</div>
+      <h1>AI Prompt Optimization<br><span class="highlight">That Just Works</span></h1>
       <p class="subtitle">
-        An MCP server that scores your prompts (0&ndash;100), detects ambiguities, and compiles optimized output for Claude, OpenAI, and any LLM. Cut costs and get better results on every call.
+        Score, fix, and compile prompts before sending them to an LLM &mdash; reduce token cost and improve output quality.
       </p>
       <div class="cta-row">
-        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP" class="btn btn-primary">Install Free</a>
-        <a href="#pricing" class="btn btn-secondary">See Pricing</a>
+        <a href="#get-started" class="btn btn-primary">Try It Free</a>
+        <a href="#how" class="btn btn-secondary">See How It Works</a>
       </div>
 
       <!-- Hero Demo -->
@@ -481,30 +647,89 @@
     </div>
   </section>
 
-  <!-- Install -->
-  <div class="container">
-    <div class="install">
-      <div class="install-label">Add to any MCP-compatible client in 10 seconds</div>
-      <code>{ "mcpServers": { "prompt-optimizer": {
-    "command": "npx",
-    "args": ["-y", "claude-prompt-optimizer-mcp"]
-  }}}</code>
-    </div>
-    <div class="install" style="margin-top: 12px;">
-      <div class="install-label">Or install globally via npm</div>
-      <code>npm install -g claude-prompt-optimizer-mcp</code>
-    </div>
-    <div class="install" style="margin-top: 12px;">
-      <div class="install-label">Or one-line curl install</div>
-      <code>curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash</code>
-    </div>
-  </div>
-
-  <!-- How it works -->
-  <section class="section">
+  <!-- Section 1: Why Prompt Quality Matters -->
+  <section class="section" id="problem">
     <div class="container">
-      <h2 class="section-title">How it works</h2>
-      <p class="section-subtitle">You write a prompt. The MCP scores it, finds what's missing, and compiles a structured version. No AI calls inside &mdash; all intelligence comes from your host LLM.</p>
+      <h2 class="section-title">Why Prompt Quality Matters</h2>
+      <p class="section-subtitle">Most LLM cost and quality problems trace back to the prompt. Fix the input, fix the output.</p>
+      <div class="features-grid">
+        <div class="feature-card pain-card">
+          <div class="icon">&#x1f4b8;</div>
+          <h3>Poor prompts increase token cost</h3>
+          <p>Verbose, unfocused prompts burn tokens on filler. You pay for confusion, not intelligence.</p>
+        </div>
+        <div class="feature-card pain-card">
+          <div class="icon">&#x1f504;</div>
+          <h3>Inconsistent outputs require rework</h3>
+          <p>Same prompt, different results. Each retry costs tokens and time. The prompt itself is the problem.</p>
+        </div>
+        <div class="feature-card pain-card">
+          <div class="icon">&#x26a0;&#xfe0f;</div>
+          <h3>Hidden ambiguity increases hallucination risk</h3>
+          <p>Vague instructions give the LLM room to guess. Guessing means hallucinating.</p>
+        </div>
+        <div class="feature-card pain-card">
+          <div class="icon">&#x1f937;</div>
+          <h3>Teams lack objective quality scoring</h3>
+          <p>There's no linter for prompts. No type-checker. No pre-flight. You just hope.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: What Is AI Prompt Optimization? -->
+  <section class="section" id="what-is">
+    <div class="container">
+      <h2 class="section-title">What Is AI Prompt Optimization?</h2>
+      <div class="definition">
+        <p>Prompt optimization is the practice of systematically scoring, restructuring, and compiling natural-language instructions before sending them to a large language model. The goal is to reduce token cost, improve output quality, and eliminate ambiguity &mdash; turning ad-hoc prompting into a repeatable, measurable process.</p>
+        <ul class="definition-list">
+          <li>Scoring clarity, specificity, and structure</li>
+          <li>Detecting ambiguity and missing constraints</li>
+          <li>Compiling structured instructions with role, goal, and boundaries</li>
+          <li>Estimating token cost across multiple providers</li>
+          <li>Standardizing prompt frameworks across teams</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Product Introduction -->
+  <section class="section" id="product">
+    <div class="container">
+      <h2 class="section-title">Prompt Optimizer MCP</h2>
+      <p class="section-subtitle">An open-source implementation of prompt optimization that runs entirely on your machine.</p>
+      <div>
+        <div class="benefit-block">
+          <div class="benefit-num">01</div>
+          <div class="benefit-content">
+            <h3>Every prompt scored before it runs</h3>
+            <p>A 0&ndash;100 quality score across 5 dimensions tells you exactly where a prompt is weak &mdash; before you spend a single token. Stop guessing, start measuring.</p>
+          </div>
+        </div>
+        <div class="benefit-block">
+          <div class="benefit-num">02</div>
+          <div class="benefit-content">
+            <h3>Fewer iterations, lower cost</h3>
+            <p>Structured compilation adds role, goal, constraints, and output format to every prompt. Clearer instructions mean the LLM gets it right the first time. Less back-and-forth, fewer wasted calls.</p>
+          </div>
+        </div>
+        <div class="benefit-block">
+          <div class="benefit-num">03</div>
+          <div class="benefit-content">
+            <h3>Works everywhere, calls nothing</h3>
+            <p>Runs 100% locally. Zero LLM calls inside. No API keys needed for the optimizer itself. Your prompts never leave your machine. Works offline, works air-gapped, works with any LLM.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: How It Works -->
+  <section class="section" id="how">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">Five steps from rough prompt to production-ready. All analysis is deterministic &mdash; no AI calls inside.</p>
       <div class="flow">
         <div class="flow-step">
           <div class="flow-num">1</div>
@@ -516,15 +741,15 @@
         <div class="flow-step">
           <div class="flow-num">2</div>
           <div class="flow-content">
-            <h3>Catch what's missing</h3>
-            <p>10 deterministic rules detect ambiguities, missing constraints, scope creep, and blocking questions &mdash; before you waste a single API call.</p>
+            <h3>Detect ambiguities</h3>
+            <p>10 deterministic rules catch scope explosion, missing constraints, and vague instructions &mdash; before you waste a single API call.</p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num">3</div>
           <div class="flow-content">
-            <h3>Get a compiled prompt</h3>
-            <p>Outputs a structured prompt with role, goal, constraints, workflow, and output format &mdash; compiled for Claude XML, OpenAI, or Markdown.</p>
+            <h3>Compile a structured version</h3>
+            <p>The optimizer adds role, goal, constraints, workflow, and output format. Choose your target: Claude XML, OpenAI system/user, or Markdown.</p>
           </div>
         </div>
         <div class="flow-step">
@@ -545,52 +770,99 @@
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="section" id="features">
+  <!-- Section 5: Use Cases -->
+  <section class="section" id="use-cases">
     <div class="container">
-      <h2 class="section-title">11 tools, instant setup</h2>
-      <p class="section-subtitle">Everything runs locally. 2 runtime dependencies. No API keys needed for the optimizer itself.</p>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="icon">&#x1f50d;</div>
-          <h3>5-Dimension Scoring</h3>
-          <p>Scores every prompt 0&ndash;100 across clarity, specificity, completeness, constraints, and efficiency. See exactly where to improve.</p>
+      <h2 class="section-title">Use Cases</h2>
+      <p class="section-subtitle">Different teams, same problem: inconsistent prompts waste tokens and produce unpredictable results.</p>
+      <div class="use-cases-grid">
+        <div class="use-case-card feature-card">
+          <h3>For anyone building with AI</h3>
+          <p>Score prompts before they run. Catch vague instructions before they waste tokens. Works whether you write code or just use AI tools.</p>
         </div>
-        <div class="feature-card">
-          <div class="icon">&#x1f6e1;&#xfe0f;</div>
-          <h3>Ambiguity Detection</h3>
-          <p>10 deterministic rules catch scope explosion, missing constraints, and vague instructions before they waste API calls.</p>
+        <div class="use-case-card feature-card">
+          <h3>For teams standardizing prompts</h3>
+          <p>Enforce consistent structure across every prompt. Same quality bar, every time, across every team member.</p>
         </div>
-        <div class="feature-card">
-          <div class="icon">&#x1f3af;</div>
-          <h3>Structured Compilation</h3>
-          <p>Outputs prompts with role, goal, constraints, workflow, and output format. Compiles to Claude XML, OpenAI, or Markdown.</p>
+        <div class="use-case-card feature-card">
+          <h3>For anyone optimizing AI spend</h3>
+          <p>See exact cost estimates across 8 models before you run. Compress context to strip irrelevant input. Cut spend without cutting quality.</p>
         </div>
-        <div class="feature-card">
-          <div class="icon">&#x26a1;</div>
-          <h3>Context Compression</h3>
-          <p>Strips irrelevant context sections. Reports exact token savings and removed sections. Less noise, better output.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">&#x1f4b0;</div>
-          <h3>Multi-Provider Cost</h3>
-          <p>Token + cost estimates across 8 models from Anthropic, OpenAI, and Google. Know the cost before you run.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">&#x1f512;</div>
-          <h3>Offline License</h3>
-          <p>Ed25519 signed keys. No network calls, no accounts, no PII. Works air-gapped. Activate in seconds.</p>
-        </div>
-        <div class="feature-card">
-          <div class="icon">&#x1f4e6;</div>
-          <h3>Programmatic API</h3>
-          <p>Use as a library: <code>import { optimize } from 'claude-prompt-optimizer-mcp'</code>. Pure, synchronous, zero side effects. ESM-only.</p>
+        <div class="use-case-card feature-card">
+          <h3>For MCP-powered workflows</h3>
+          <p>Drop into Claude Code, Cursor, or Windsurf in 10 seconds. Works with any MCP-compatible client. No configuration required.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Programmatic API -->
+  <!-- Section 6: Comparison -->
+  <section class="section" id="comparison">
+    <div class="container">
+      <h2 class="section-title">Prompt Optimizer vs Alternatives</h2>
+      <p class="section-subtitle">There are several ways to improve prompt quality. Here's how they compare.</p>
+      <div style="overflow-x: auto;">
+        <table class="compare-table">
+          <thead>
+            <tr><th>Method</th><th>Pros</th><th>Cons</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Manual prompt rewriting</td><td>Flexible, no tooling needed</td><td>Inconsistent, slow, no scoring</td></tr>
+            <tr><td>Fine-tuning models</td><td>Powerful for specific tasks</td><td>Expensive, complex, requires data</td></tr>
+            <tr><td>Trial-and-error iteration</td><td>Easy to start</td><td>Token waste, no quality measurement</td></tr>
+            <tr><td>Prompt Optimizer MCP</td><td>Structured, measurable, local, free</td><td>Requires MCP client or Node.js</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Features -->
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="section-title">Built for people who take prompts seriously</h2>
+      <p class="section-subtitle">Everything runs locally. Two runtime dependencies. No API keys needed for the optimizer itself.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="icon">&#x1f50d;</div>
+          <h3>Quality Scoring</h3>
+          <p>Stop guessing if a prompt is good enough. Get a 0&ndash;100 score across clarity, specificity, completeness, constraints, and efficiency.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">&#x1f6e1;&#xfe0f;</div>
+          <h3>Ambiguity Detection</h3>
+          <p>Catch problems before they waste API calls. 10 deterministic rules detect scope explosion, missing constraints, and vague instructions.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">&#x1f3af;</div>
+          <h3>Structured Compilation</h3>
+          <p>Let the LLM focus on answering, not interpreting. Outputs prompts with role, goal, constraints, and workflow &mdash; compiled for Claude, OpenAI, or Markdown.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">&#x26a1;</div>
+          <h3>Context Compression</h3>
+          <p>Send less, get more. Strips irrelevant context sections and reports exact token savings. Smaller input = lower cost + better focus.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">&#x1f4b0;</div>
+          <h3>Multi-Provider Cost</h3>
+          <p>Know what you'll pay before you run. Token and cost estimates across 8 models from Anthropic, OpenAI, and Google.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">&#x1f512;</div>
+          <h3>Offline License</h3>
+          <p>No accounts, no network calls, no PII collected. Ed25519-signed keys verified locally. Works air-gapped.</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon">&#x1f4e6;</div>
+          <h3>Programmatic API</h3>
+          <p>Use as a Node.js library &mdash; no MCP server needed. <code>import { optimize } from 'claude-prompt-optimizer-mcp'</code>. Pure, synchronous, zero side effects.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 8: Programmatic API -->
   <section class="section" id="api">
     <div class="container">
       <h2 class="section-title">Use it as a library</h2>
@@ -624,8 +896,8 @@ const md = optimize('write a REST API', undefined, 'generic');
     </div>
   </section>
 
-  <!-- Tools -->
-  <section class="section">
+  <!-- Section 9: All 11 Tools -->
+  <section class="section" id="tools">
     <div class="container">
       <h2 class="section-title">All 11 tools</h2>
       <p class="section-subtitle">Metered tools count against your usage quota. Free tools are always unlimited.</p>
@@ -652,11 +924,46 @@ const md = optimize('write a REST API', undefined, 'generic');
     </div>
   </section>
 
-  <!-- Pricing -->
-  <section class="section" id="pricing">
+  <!-- Section 10: FAQ -->
+  <section class="section" id="faq">
     <div class="container">
-      <h2 class="section-title" style="text-align: center;">Simple pricing</h2>
-      <p class="section-subtitle" style="text-align: center;">Try it free. Upgrade when you can't stop using it.</p>
+      <h2 class="section-title">FAQ</h2>
+      <div>
+        <div class="faq-item">
+          <div class="faq-q">How do I measure prompt quality?</div>
+          <div class="faq-a">Prompt Optimizer scores every prompt 0&ndash;100 across five dimensions: clarity, specificity, completeness, constraints, and efficiency. Each point deducted has a specific, transparent reason. The before/after delta shows exactly what improved.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">How can I reduce LLM token cost?</div>
+          <div class="faq-a">Two ways: use the context compressor to strip irrelevant input (reports exact token savings), and use the cost estimator to compare pricing across 8 models before you run. Structured prompts also reduce retry cycles &mdash; clearer instructions mean fewer wasted calls.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Does this call external APIs?</div>
+          <div class="faq-a">No. Zero LLM calls inside. All analysis is deterministic &mdash; regex, heuristics, and rule engines. Your prompts never leave your machine. The host Claude (or any LLM client) provides all intelligence; the optimizer provides structure.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">What is MCP?</div>
+          <div class="faq-a">Model Context Protocol &mdash; an open standard that lets AI assistants like Claude, Cursor, and Windsurf use external tools. Think of it as plugins for AI. Not using MCP? The <a href="#api">programmatic API</a> works as a standalone Node.js library.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Does it work with OpenAI and Claude?</div>
+          <div class="faq-a">Yes. Prompts compile to three formats: Claude XML (<code>&lt;role&gt;</code>, <code>&lt;goal&gt;</code>, <code>&lt;constraints&gt;</code>), OpenAI system/user split, and generic Markdown. The cost estimator covers models from Anthropic, OpenAI, and Google.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Is it free?</div>
+          <div class="faq-a">The free tier includes 10 optimizations, unlimited scoring and checking, and all 11 tools. Pro ($4.99/month) adds 100 optimizations per month. Power ($9.99/month) is unlimited. No credit card required to start.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 11: Get Started (Pricing + Install + Activate) -->
+  <section class="section" id="get-started">
+    <div class="container">
+      <h2 class="section-title" style="text-align: center;">Get started in 30 seconds</h2>
+      <p class="section-subtitle" style="text-align: center;">Free tier includes 10 optimizations, unlimited scoring, and all 11 tools. No credit card required.</p>
+
+      <!-- Pricing Cards -->
       <div class="pricing-grid">
         <div class="pricing-card">
           <div class="tier">Free</div>
@@ -701,19 +1008,34 @@ const md = optimize('write a REST API', undefined, 'generic');
       <p style="text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-muted);">
         Have a promo code? Enter it at checkout for a discount.
       </p>
-    </div>
-  </section>
 
-  <!-- Activate -->
-  <section class="section" id="activate">
-    <div class="container">
-      <h2 class="section-title">Activate in seconds</h2>
-      <p class="section-subtitle">After purchase, you'll receive a license key. Paste it into Claude Code:</p>
+      <!-- Install Methods -->
+      <h3 style="margin-top: 48px; margin-bottom: 4px; font-size: 18px; font-weight: 600;">Install</h3>
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">Add to any MCP-compatible client (Claude Code, Cursor, Windsurf) in 10 seconds.</p>
+      <div class="install" style="margin-top: 0;">
+        <div class="install-label">MCP config (recommended)</div>
+        <code>{ "mcpServers": { "prompt-optimizer": {
+    "command": "npx",
+    "args": ["-y", "claude-prompt-optimizer-mcp"]
+  }}}</code>
+      </div>
       <div class="install">
+        <div class="install-label">Or install globally via npm</div>
+        <code>npm install -g claude-prompt-optimizer-mcp</code>
+      </div>
+      <div class="install">
+        <div class="install-label">Or one-line curl install</div>
+        <code>curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash</code>
+      </div>
+
+      <!-- Activate -->
+      <h3 style="margin-top: 48px; margin-bottom: 4px; font-size: 18px; font-weight: 600;">Activate your license</h3>
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px;">After purchase, you'll receive a license key. Paste it into Claude Code:</p>
+      <div class="install" style="margin-top: 0;">
         <div class="install-label">Step 1 &mdash; Tell Claude to activate</div>
         <code>Activate my Prompt Optimizer Pro license: po_pro_eyJ...</code>
       </div>
-      <div class="install" style="margin-top: 16px;">
+      <div class="install">
         <div class="install-label">Step 2 &mdash; Verify</div>
         <code>Check my prompt optimizer license status</code>
       </div>
