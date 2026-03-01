@@ -1,5 +1,5 @@
 // customRules.ts — Custom rule management for v3.2.1
-// File-based CRUD, validation, deterministic hashing, rule evaluation
+// File-based read-only loading, validation, deterministic hashing, rule evaluation
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';

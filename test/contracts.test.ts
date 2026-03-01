@@ -11,7 +11,7 @@ import { sortCountsDescKeyAsc, sortIssues, sortCostEntries, CHECKLIST_ORDER } fr
 import type { PreviewPack, CompilationChecklist, ModelCost, LicenseData } from '../src/types.js';
 // v3 contract imports — verify all new exports are accessible via api.ts barrel
 import {
-  classifyComplexity, routeModel, computeRiskScore,
+  classifyComplexity, routeModel, computeRiskScore, computeRiskScoreWithCustomRules,
   PROFILES, suggestProfile, resolveProfile,
   TIER_MODELS, RESEARCH_INTENT_RE, RISK_WEIGHTS, RISK_ESCALATION_THRESHOLD, deriveRiskLevel,
   PRICING_DATA,
@@ -20,6 +20,7 @@ import type {
   ReasoningComplexity, OptimizationProfile, ComplexityResult,
   RiskDimensions, RiskScore, SavingsComparison, TierModelEntry,
   ModelTier, ModelRoutingInput, ModelRecommendation,
+  RuleMatch, CustomRule, CustomRulesConfig,
 } from '../src/api.js';
 
 describe('PreviewPack shape contract', () => {
@@ -337,5 +338,110 @@ describe('v3 schema_version contract', () => {
     const SCHEMA_VERSION = 1;
     assert.equal(typeof SCHEMA_VERSION, 'number');
     assert.equal(SCHEMA_VERSION, 1);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// v3.2.1 Custom Rules Shape Contracts
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('CustomRule shape contract', () => {
+  it('has all 8 required fields with correct types', () => {
+    const rule: CustomRule = {
+      id: 'test_rule',
+      description: 'A test rule',
+      pattern: 'test.*pattern',
+      applies_to: 'all',
+      severity: 'BLOCKING',
+      risk_dimension: 'underspec',
+      risk_weight: 10,
+    };
+
+    assert.equal(typeof rule.id, 'string');
+    assert.equal(typeof rule.description, 'string');
+    assert.equal(typeof rule.pattern, 'string');
+    assert.equal(typeof rule.applies_to, 'string');
+    assert.equal(typeof rule.severity, 'string');
+    assert.equal(typeof rule.risk_dimension, 'string');
+    assert.equal(typeof rule.risk_weight, 'number');
+    assert.ok(['code', 'prose', 'all'].includes(rule.applies_to));
+    assert.ok(['BLOCKING', 'NON-BLOCKING'].includes(rule.severity));
+    assert.ok(['hallucination', 'constraint', 'underspec', 'scope'].includes(rule.risk_dimension));
+    assert.ok(rule.risk_weight >= 1 && rule.risk_weight <= 25);
+  });
+
+  it('accepts optional negative_pattern', () => {
+    const rule: CustomRule = {
+      id: 'neg_rule',
+      description: 'Rule with negative pattern',
+      pattern: 'match_this',
+      negative_pattern: 'but_not_this',
+      applies_to: 'code',
+      severity: 'NON-BLOCKING',
+      risk_dimension: 'constraint',
+      risk_weight: 5,
+    };
+
+    assert.equal(typeof rule.negative_pattern, 'string');
+  });
+});
+
+describe('RuleMatch shape contract', () => {
+  it('has all required fields', () => {
+    const match: RuleMatch = {
+      rule_id: 'custom_test_rule',
+      matched: true,
+      description: 'Test rule matched',
+      severity: 'BLOCKING',
+    };
+
+    assert.equal(typeof match.rule_id, 'string');
+    assert.equal(typeof match.matched, 'boolean');
+    assert.equal(typeof match.description, 'string');
+    assert.ok(['BLOCKING', 'NON-BLOCKING'].includes(match.severity));
+  });
+
+  it('accepts optional custom_weight, risk_dimension, error', () => {
+    const match: RuleMatch = {
+      rule_id: 'custom_weighted',
+      matched: true,
+      description: 'Weighted rule',
+      severity: 'NON-BLOCKING',
+      custom_weight: 15,
+      risk_dimension: 'scope',
+    };
+
+    assert.equal(match.custom_weight, 15);
+    assert.equal(match.risk_dimension, 'scope');
+
+    const errorMatch: RuleMatch = {
+      rule_id: 'custom_error',
+      matched: false,
+      description: 'Failed rule',
+      severity: 'BLOCKING',
+      error: 'Pattern compilation failed',
+    };
+    assert.equal(typeof errorMatch.error, 'string');
+  });
+});
+
+describe('computeRiskScoreWithCustomRules export contract', () => {
+  it('is exported from api.ts and callable', async () => {
+    assert.equal(typeof computeRiskScoreWithCustomRules, 'function');
+
+    // With no custom rules file, should return same as sync computeRiskScore
+    const { riskScore, customRuleMatches } = await computeRiskScoreWithCustomRules([], 'test prompt', 'other');
+    assert.equal(riskScore.score, 0);
+    assert.equal(riskScore.level, 'low');
+    assert.ok(Array.isArray(customRuleMatches));
+    assert.equal(customRuleMatches.length, 0);
+  });
+
+  it('returns same base score as sync function when no custom rules exist', async () => {
+    const syncResult = computeRiskScore([]);
+    const { riskScore } = await computeRiskScoreWithCustomRules([], 'test', 'other');
+    assert.equal(riskScore.score, syncResult.score);
+    assert.equal(riskScore.level, syncResult.level);
+    assert.deepStrictEqual(riskScore.dimensions, syncResult.dimensions);
   });
 });

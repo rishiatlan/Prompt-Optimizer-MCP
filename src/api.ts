@@ -25,7 +25,8 @@ export {
 // ─── Rules Engine ────────────────────────────────────────────────────────────
 export {
   runRules, extractBlockingQuestions, extractAssumptions, getElevatedRisk,
-  computeRiskScore, RISK_WEIGHTS, RISK_ESCALATION_THRESHOLD, deriveRiskLevel,
+  computeRiskScore, computeRiskScoreWithCustomRules,
+  RISK_WEIGHTS, RISK_ESCALATION_THRESHOLD, deriveRiskLevel,
 } from './rules.js';
 
 // ─── Profiles ────────────────────────────────────────────────────────────────
@@ -87,6 +88,10 @@ export type {
   ModelTier,
   ModelRoutingInput,
   ModelRecommendation,
+  // v3.2.1 Custom Rules types
+  RuleMatch,
+  CustomRule,
+  CustomRulesConfig,
 } from './types.js';
 
 export { isCodeTask, isProseTask, PLAN_LIMITS } from './types.js';

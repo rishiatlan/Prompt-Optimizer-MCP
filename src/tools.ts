@@ -13,7 +13,7 @@ import { scorePrompt, generateChecklist } from './scorer.js';
 import { estimateCost, estimateCostForText, estimateTokens, routeModel } from './estimator.js';
 import { createSession, getSession, updateSession } from './session.js';
 import { createRequestId, log } from './logger.js';
-import { runRules, computeRiskScore, extractBlockingQuestions } from './rules.js';
+import { runRules, computeRiskScore, computeRiskScoreWithCustomRules, extractBlockingQuestions } from './rules.js';
 import { sortCountsDescKeyAsc, sortIssues } from './sort.js';
 import { suggestProfile } from './profiles.js';
 import { scoreAllTools, rankTools, pruneTools } from './pruner.js';
@@ -894,9 +894,9 @@ export function registerTools(
         // Complexity classification
         const complexityResult = classifyComplexity(prompt, context);
 
-        // Risk scoring
+        // Risk scoring (with custom rules integration)
         const ruleResults = runRules(prompt, context, taskType);
-        const riskScore = computeRiskScore(ruleResults);
+        const { riskScore } = await computeRiskScoreWithCustomRules(ruleResults, prompt, taskType);
 
         // Suggested profile (G5: deterministic mapping)
         const suggestedProfileName = suggestProfile(complexityResult.complexity, riskScore.score);
@@ -992,10 +992,10 @@ export function registerTools(
         if (!resolvedTaskType) resolvedTaskType = 'other';
         if (!resolvedComplexity) resolvedComplexity = 'analytical';
 
-        // Risk scoring
+        // Risk scoring (with custom rules integration)
         const contextTokens = estimateTokens((prompt || '') + (context || ''));
         const ruleResults = prompt ? runRules(prompt, context, resolvedTaskType) : [];
-        const riskScoreResult = computeRiskScore(ruleResults);
+        const { riskScore: riskScoreResult } = await computeRiskScoreWithCustomRules(ruleResults, prompt || '', resolvedTaskType);
 
         // Build routing input
         const routingInput: ModelRoutingInput = {
@@ -1083,9 +1083,9 @@ export function registerTools(
         // 2. Complexity classification
         const complexityResult = classifyComplexity(prompt, context);
 
-        // 3. Risk scoring
+        // 3. Risk scoring (with custom rules integration)
         const ruleResults = runRules(prompt, context, taskType);
-        const riskScoreResult = computeRiskScore(ruleResults);
+        const { riskScore: riskScoreResult } = await computeRiskScoreWithCustomRules(ruleResults, prompt, taskType);
         const blockingQuestions = extractBlockingQuestions(ruleResults);
         const warnings = ruleResults
           .filter(r => r.triggered && r.severity === 'non_blocking')

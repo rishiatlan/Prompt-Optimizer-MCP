@@ -52,19 +52,37 @@ function fatal(message: string, jsonMode: boolean): never {
   process.exit(2);
 }
 
-function lintPrompt(prompt: string, source: string, threshold: number): LintResult {
+async function lintPrompt(prompt: string, source: string, threshold: number): Promise<LintResult> {
   const taskType = detectTaskType(prompt);
   const intentSpec = analyzePrompt(prompt);
   const score = scorePrompt(intentSpec);
   const pass = score.total >= threshold;
 
+  // Built-in rules
   const ruleResults = runRules(prompt, undefined, taskType);
+
+  // Custom rules (loaded from ~/.prompt-optimizer/custom-rules.json)
+  const applicableCustomRules = await customRules.getRulesForTask(taskType);
+  const customIssues: Array<{ rule: string; severity: string; message: string }> = [];
+  for (const rule of applicableCustomRules) {
+    const match = await customRules.evaluateRule(rule, prompt, taskType);
+    if (match && match.matched) {
+      customIssues.push({
+        rule: match.rule_id,
+        severity: match.severity === 'BLOCKING' ? 'blocking' : 'non_blocking',
+        message: match.description,
+      });
+    }
+  }
+
+  // Merge built-in + custom issues
   const sorted = sortIssues(ruleResults).filter(r => r.triggered);
-  const issues = sorted.slice(0, 5).map(r => ({
+  const builtInIssues = sorted.slice(0, 5).map(r => ({
     rule: r.rule_name,
     severity: r.severity,
     message: r.message,
   }));
+  const issues = [...builtInIssues, ...customIssues].slice(0, 5);
 
   return { source, score: score.total, pass, issues };
 }
@@ -343,7 +361,7 @@ async function main(): Promise<void> {
   // Lint all prompts
   const results: LintResult[] = [];
   for (const { source, text } of prompts) {
-    results.push(lintPrompt(text, source, threshold));
+    results.push(await lintPrompt(text, source, threshold));
   }
 
   const passed = results.filter(r => r.pass).length;

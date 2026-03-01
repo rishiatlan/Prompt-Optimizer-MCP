@@ -1,8 +1,9 @@
 // rules.ts — Deterministic ambiguity detection rules. No LLM calls.
 // Rules are task-type aware: code-only rules skip for prose/research tasks.
 
-import type { RuleResult, RiskLevel, RiskScore, RiskDimensions, TaskType, IntentSpec } from './types.js';
+import type { RuleResult, RiskLevel, RiskScore, RiskDimensions, TaskType, IntentSpec, RuleMatch } from './types.js';
 import { isCodeTask, isProseTask } from './types.js';
+import { customRules } from './customRules.js';
 
 // ─── Rule Definitions ─────────────────────────────────────────────────────────
 
@@ -564,5 +565,74 @@ export function computeRiskScore(ruleResults: RuleResult[], _intent?: IntentSpec
     score,
     dimensions,
     level: deriveRiskLevel(score),
+  };
+}
+
+// ─── Custom Rules Integration ────────────────────────────────────────────────
+
+/** Max custom rule annotations in decision_path (determinism cap). */
+const MAX_CUSTOM_DECISION_PATH = 5;
+
+/**
+ * Async wrapper: compute risk score from built-in rules, then augment with custom rules.
+ * Custom rule weights are additive via RuleMatch.custom_weight + risk_dimension.
+ * RISK_WEIGHTS is never mutated. Decision_path custom annotations capped at 5.
+ *
+ * @param ruleResults - Built-in triggered rule results from runRules()
+ * @param prompt - Raw prompt text (for custom rule evaluation)
+ * @param taskType - Detected task type (for custom rule filtering)
+ * @returns { riskScore, customRuleMatches }
+ */
+export async function computeRiskScoreWithCustomRules(
+  ruleResults: RuleResult[],
+  prompt: string,
+  taskType: TaskType,
+): Promise<{ riskScore: RiskScore; customRuleMatches: RuleMatch[] }> {
+  // 1. Compute built-in risk score (sync, unchanged)
+  const baseRiskScore = computeRiskScore(ruleResults);
+
+  // 2. Load and evaluate custom rules
+  const applicableRules = await customRules.getRulesForTask(taskType);
+  const customRuleMatches: RuleMatch[] = [];
+
+  for (const rule of applicableRules) {
+    const match = await customRules.evaluateRule(rule, prompt, taskType);
+    if (match && match.matched) {
+      customRuleMatches.push(match);
+    }
+  }
+
+  // 3. If no custom rules matched, return base score unchanged
+  if (customRuleMatches.length === 0) {
+    return { riskScore: baseRiskScore, customRuleMatches: [] };
+  }
+
+  // 4. Augment dimensions additively with custom rule weights (cap annotations at 5)
+  const augmentedDimensions: RiskDimensions = { ...baseRiskScore.dimensions };
+  const applied = customRuleMatches.slice(0, MAX_CUSTOM_DECISION_PATH);
+
+  for (const match of applied) {
+    if (match.custom_weight && match.risk_dimension) {
+      augmentedDimensions[match.risk_dimension] += match.custom_weight;
+    }
+  }
+
+  // Cap each dimension at 100
+  for (const key of Object.keys(augmentedDimensions) as Array<keyof RiskDimensions>) {
+    augmentedDimensions[key] = Math.min(100, Math.round(augmentedDimensions[key]));
+  }
+
+  // Recalculate total score
+  const rawScore = augmentedDimensions.underspec + augmentedDimensions.hallucination
+    + augmentedDimensions.scope + augmentedDimensions.constraint;
+  const score = Math.min(100, rawScore);
+
+  return {
+    riskScore: {
+      score,
+      dimensions: augmentedDimensions,
+      level: deriveRiskLevel(score),
+    },
+    customRuleMatches: applied,
   };
 }
