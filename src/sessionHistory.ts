@@ -6,6 +6,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
 import { log } from './logger.js';
+import { customRules } from './customRules.js';
 import type {
   Session,
   SessionRecord,
@@ -170,6 +171,20 @@ export class SessionHistoryManager {
         ? 'analytical'
         : 'simple_factual';
 
+      // Load custom rules and determine which applied to this prompt
+      const customRulesList = await customRules.getRulesForTask(session.intent_spec.task_type);
+      const customRulesApplied: string[] = [];
+
+      for (const rule of customRulesList) {
+        const match = await customRules.evaluateRule(rule, session.raw_prompt, session.intent_spec.task_type);
+        if (match?.matched) {
+          customRulesApplied.push(rule.id); // Store bare ID, not namespaced
+        }
+      }
+
+      // Calculate custom rule-set hash (deterministic format)
+      const customRuleSetHash = customRules.calculateRuleSetHash(customRulesList);
+
       return {
         schema_version: 1,
         session_id: session.id,
@@ -186,7 +201,8 @@ export class SessionHistoryManager {
           task_type: session.intent_spec.task_type,
           complexity,
           risk_score: 0, // Will be populated from risk.ts in Phase 3
-          custom_rules_applied: [],
+          custom_rules_applied: customRulesApplied,
+          custom_rule_set_hash: customRuleSetHash,
         },
       };
     } catch (err) {

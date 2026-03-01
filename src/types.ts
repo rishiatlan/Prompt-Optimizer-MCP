@@ -332,6 +332,7 @@ export interface SessionExport {
     complexity: ReasoningComplexity;
     risk_score: number;
     custom_rules_applied: string[];      // IDs of custom rules applied
+    custom_rule_set_hash: string;        // SHA256 of custom rules (Phase 3 prep)
   };
 }
 
@@ -340,6 +341,35 @@ export interface SessionListResponse {
   sessions: SessionRecord[];
   total_sessions: number;
   storage_path: string;                  // ~/.prompt-optimizer/
+}
+
+// ─── Custom Rules (v3.2.1) ──────────────────────────────────────────────────
+
+export interface CustomRule {
+  id: string;                            // snake_case, max 64 chars, regex: ^[a-z][a-z0-9_]{0,63}$
+  description: string;                   // max 200 chars
+  pattern: string;                       // JavaScript regex string, max 500 chars
+  negative_pattern?: string;             // optional exclusion regex, max 500 chars
+  applies_to: 'code' | 'prose' | 'all';  // which task type groups this applies to
+  severity: 'BLOCKING' | 'NON-BLOCKING'; // capitalized
+  risk_dimension: 'hallucination' | 'constraint' | 'underspec' | 'scope'; // which RiskDimension to target
+  risk_weight: number;                   // 1-25
+}
+
+export interface CustomRulesConfig {
+  schema_version: 1;
+  created_at: number;                    // Unix timestamp
+  rules: CustomRule[];
+}
+
+export interface RuleMatch {
+  rule_id: string;                       // namespaced as custom_{id}
+  matched: boolean;
+  description: string;                   // from custom rule description field
+  severity: 'BLOCKING' | 'NON-BLOCKING';
+  custom_weight?: number;                // for custom rules only; never mutates RISK_WEIGHTS
+  risk_dimension?: 'hallucination' | 'constraint' | 'underspec' | 'scope'; // which dimension this contributes to
+  error?: string;                        // if regex compile failed (skip-on-error pattern)
 }
 
 // ─── Compression Config (v3.1) ───────────────────────────────────────────────

@@ -6,6 +6,7 @@ import { resolve, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { analyzePrompt, detectTaskType, scorePrompt, runRules } from './api.js';
 import { sortIssues } from './sort.js';
+import { customRules } from './customRules.js';
 
 // ─── Version (read from package.json at runtime, not hardcoded) ──────────────
 // After compilation, this file lives at dist/src/lint-cli.js. package.json is at repo root.
@@ -126,6 +127,7 @@ async function resolveFiles(fileArgs: string[]): Promise<string[]> {
 interface ParsedArgs {
   help: boolean;
   version: boolean;
+  validateCustomRules: boolean;
   json: boolean;
   strict: boolean;
   relaxed: boolean;
@@ -138,6 +140,7 @@ function parseArgs(argv: string[]): ParsedArgs {
   const result: ParsedArgs = {
     help: false,
     version: false,
+    validateCustomRules: false,
     json: false,
     strict: false,
     relaxed: false,
@@ -177,6 +180,8 @@ function parseArgs(argv: string[]): ParsedArgs {
         fatal('--file requires a value', result.json);
       }
       result.fileArgs.push(argv[i]);
+    } else if (arg === '--validate-custom-rules') {
+      result.validateCustomRules = true;
     } else if (arg.startsWith('-')) {
       fatal(`Unknown flag: ${arg}`, result.json);
     } else {
@@ -203,13 +208,14 @@ Usage:
   echo "prompt" | prompt-lint                 Lint from stdin
 
 Options:
-  --threshold <n>   Minimum quality score 0-100 (default: 60)
-  --strict          Set threshold to 75
-  --relaxed         Set threshold to 40
-  --json            Output JSON (for CI parsing)
-  --file, -f <path> File or glob to lint (repeatable)
-  --help, -h        Show this help
-  --version, -v     Show version
+  --threshold <n>          Minimum quality score 0-100 (default: 60)
+  --strict                 Set threshold to 75
+  --relaxed                Set threshold to 40
+  --json                   Output JSON (for CI parsing)
+  --file, -f <path>        File or glob to lint (repeatable)
+  --validate-custom-rules  Validate custom-rules.json and exit
+  --help, -h               Show this help
+  --version, -v            Show version
 
 Exit codes:
   0  All prompts pass threshold
@@ -232,6 +238,47 @@ async function main(): Promise<void> {
   if (args.version) {
     process.stdout.write(`prompt-lint v${VERSION}\n`);
     process.exit(0);
+  }
+
+  // --validate-custom-rules
+  if (args.validateCustomRules) {
+    const rules = await customRules.loadRules();
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    for (const rule of rules) {
+      const validation = customRules.validateRule(rule);
+      if (!validation.valid) {
+        errors.push(...validation.errors.map(e => `Rule "${rule.id}": ${e}`));
+      }
+    }
+
+    // Try to compile each pattern and negative_pattern
+    for (const rule of rules) {
+      try {
+        new RegExp(rule.pattern);
+      } catch (err) {
+        warnings.push(`Rule "${rule.id}": pattern failed to compile, will be skipped at runtime: ${err instanceof Error ? err.message : String(err)}`);
+      }
+      if (rule.negative_pattern) {
+        try {
+          new RegExp(rule.negative_pattern);
+        } catch (err) {
+          warnings.push(`Rule "${rule.id}": negative_pattern failed to compile, will be skipped at runtime: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+    }
+
+    const output = {
+      valid: errors.length === 0,
+      rule_count: rules.length,
+      validation_errors: errors,
+      validation_warnings: warnings,
+      storage_path: process.env.HOME ? `${process.env.HOME}/.prompt-optimizer/custom-rules.json` : '~/.prompt-optimizer/custom-rules.json',
+    };
+
+    process.stdout.write(JSON.stringify(output, null, 2) + '\n');
+    process.exit(errors.length === 0 ? 0 : 1);
   }
 
   // Validate flag conflicts
