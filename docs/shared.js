@@ -27,7 +27,7 @@
   (function () {
     var s = document.createElement('script');
     s.async = true;
-    s.dataset.goatcounter = 'https://prompt-control-plane.goatcounter.com/count';
+    s.dataset.goatcounter = 'https://pcp.goatcounter.com/count';
     s.src = '//gc.zgo.at/count.js';
     document.head.appendChild(s);
   })();
