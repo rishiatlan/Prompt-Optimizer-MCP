@@ -1,5 +1,5 @@
 // sessionHistory.ts — Session persistence, retrieval, and hashing for v3.2.1.
-// Stores sessions as session-{id}.json in ~/.prompt-optimizer/
+// Stores sessions as session-{id}.json in ~/.prompt-control-plane/
 // No auto-purge (manual deletion only).
 
 import * as fs from 'node:fs/promises';
@@ -14,13 +14,14 @@ import type {
   SessionExport,
   SessionListResponse,
   ReasoningComplexity,
+  PurgeResult,
 } from './types.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const DEFAULT_DATA_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || '/tmp',
-  '.prompt-optimizer',
+  '.prompt-control-plane',
 );
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -43,7 +44,7 @@ export class SessionHistoryManager {
   }
 
   /**
-   * Save session to disk: ~/.prompt-optimizer/session-{id}.json
+   * Save session to disk: ~/.prompt-control-plane/session-{id}.json
    * No throwing — returns success status.
    */
   async saveSession(session: Session): Promise<boolean> {
@@ -66,7 +67,7 @@ export class SessionHistoryManager {
   }
 
   /**
-   * Load session by ID: ~/.prompt-optimizer/session-{id}.json
+   * Load session by ID: ~/.prompt-control-plane/session-{id}.json
    */
   async loadSession(sessionId: string): Promise<Session | null> {
     try {
@@ -162,7 +163,11 @@ export class SessionHistoryManager {
    * Export full session details (including raw prompt).
    * Returns null if not found.
    */
-  async exportSession(sessionId: string): Promise<SessionExport | null> {
+  async exportSession(sessionId: string, options?: {
+    engine_version?: string;
+    policy_mode?: string;
+    policy_hash?: string;
+  }): Promise<SessionExport | null> {
     try {
       const session = await this.loadSession(sessionId);
       if (!session) return null;
@@ -212,11 +217,129 @@ export class SessionHistoryManager {
           risk_score: riskScore,
           custom_rules_applied: customRulesApplied,
           custom_rule_set_hash: customRuleSetHash,
+          // v3.3.0: Enterprise metadata
+          ...(options?.engine_version && { engine_version: options.engine_version }),
+          ...(options?.policy_mode && { policy_mode: options.policy_mode }),
+          ...(options?.policy_hash && { policy_hash: options.policy_hash }),
         },
       };
     } catch (err) {
       log.error('sessionHistory', 'exportSession failed:', err instanceof Error ? err.message : String(err));
       return null;
+    }
+  }
+
+  /**
+   * Purge sessions by policy. Two-step safe: mode must be explicit.
+   * Only deletes session-*.json files — never touches audit.log, config, license, usage.
+   * deleted_session_ids capped at 100, always sorted lexicographic.
+   */
+  async purgeByPolicy(options: {
+    mode: 'all' | 'by_policy';
+    older_than_days?: number;
+    keep_last?: number;
+    dry_run?: boolean;
+  }): Promise<PurgeResult> {
+    const emptyResult: PurgeResult = {
+      deleted_count: 0, retained_count: 0, scanned_count: 0,
+      deleted_session_ids: [], truncated: false,
+      dry_run: options.dry_run ?? false, no_op: false,
+    };
+
+    try {
+      await fs.mkdir(this.dataDir, { recursive: true });
+
+      const files = await fs.readdir(this.dataDir);
+      const sessionFiles = files
+        .filter((f) => f.startsWith('session-') && f.endsWith('.json'));
+
+      if (sessionFiles.length === 0) {
+        return { ...emptyResult, no_op: true };
+      }
+
+      // Load all sessions with timestamps
+      interface SessionEntry {
+        file: string;
+        id: string;
+        created_at: number;
+      }
+      const entries: SessionEntry[] = [];
+
+      for (const file of sessionFiles) {
+        try {
+          const data = await fs.readFile(path.join(this.dataDir, file), 'utf8');
+          const session = JSON.parse(data) as Session;
+          const id = file.replace(/^session-/, '').replace(/\.json$/, '');
+          entries.push({ file, id, created_at: session.created_at });
+        } catch {
+          // Skip corrupt files
+          continue;
+        }
+      }
+
+      // Sort newest-first for keep_last protection
+      entries.sort((a, b) => b.created_at - a.created_at);
+
+      // Determine which sessions to delete
+      let toDelete: SessionEntry[];
+
+      if (options.mode === 'all') {
+        toDelete = [...entries];
+      } else {
+        // mode === 'by_policy' — filter by age
+        if (!options.older_than_days) {
+          return { ...emptyResult, scanned_count: entries.length, retained_count: entries.length, no_op: true };
+        }
+        const cutoffMs = Date.now() - (options.older_than_days * 24 * 60 * 60 * 1000);
+        const cutoffDate = new Date(cutoffMs).toISOString();
+
+        toDelete = entries.filter((e) => e.created_at < cutoffMs);
+        emptyResult.cutoff_date = cutoffDate;
+        emptyResult.effective_older_than_days = options.older_than_days;
+      }
+
+      // Apply keep_last protection: protect the N newest globally
+      if (options.keep_last !== undefined && options.keep_last > 0) {
+        const protectedIds = new Set(
+          entries.slice(0, options.keep_last).map((e) => e.id),
+        );
+        toDelete = toDelete.filter((e) => !protectedIds.has(e.id));
+      }
+
+      const retained = entries.length - toDelete.length;
+
+      // Collect IDs (sorted lexicographic, capped at 100)
+      const deletedIds = toDelete.map((e) => e.id).sort();
+      const truncated = deletedIds.length > 100;
+      const cappedIds = deletedIds.slice(0, 100);
+
+      // Execute deletions (unless dry_run)
+      if (!options.dry_run) {
+        for (const entry of toDelete) {
+          try {
+            await fs.unlink(path.join(this.dataDir, entry.file));
+          } catch {
+            // Best-effort deletion
+          }
+        }
+      }
+
+      return {
+        deleted_count: toDelete.length,
+        retained_count: retained,
+        scanned_count: entries.length,
+        deleted_session_ids: cappedIds,
+        truncated,
+        dry_run: options.dry_run ?? false,
+        no_op: false,
+        ...(emptyResult.cutoff_date && { cutoff_date: emptyResult.cutoff_date }),
+        ...(emptyResult.effective_older_than_days !== undefined && {
+          effective_older_than_days: emptyResult.effective_older_than_days,
+        }),
+      };
+    } catch (err) {
+      log.error('sessionHistory', 'purgeByPolicy failed:', err instanceof Error ? err.message : String(err));
+      return { ...emptyResult, no_op: false };
     }
   }
 

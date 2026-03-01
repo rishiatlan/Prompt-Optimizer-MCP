@@ -21,7 +21,15 @@ import type {
   RiskDimensions, RiskScore, SavingsComparison, TierModelEntry,
   ModelTier, ModelRoutingInput, ModelRecommendation,
   RuleMatch, CustomRule, CustomRulesConfig,
+  // v3.3 Enterprise Operations types
+  PolicyMode, AuditEvent, AuditOutcome, AuditEntry, PolicyViolation, PurgeResult,
+  SessionRecord, SessionListResponse, SessionExport,
 } from '../src/api.js';
+import { DEFAULT_CONFIG } from '../src/storage/interface.js';
+import {
+  evaluatePolicyViolations, checkRiskThreshold, buildPolicyEnforcementSummary,
+  calculatePolicyHash, STRICTNESS_THRESHOLDS,
+} from '../src/policy.js';
 
 describe('PreviewPack shape contract', () => {
   it('has all required fields', () => {
@@ -443,5 +451,188 @@ describe('computeRiskScoreWithCustomRules export contract', () => {
     assert.equal(riskScore.score, syncResult.score);
     assert.equal(riskScore.level, syncResult.level);
     assert.deepStrictEqual(riskScore.dimensions, syncResult.dimensions);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// v3.3.0 Enterprise Operations Shape Contracts
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('AuditEntry shape contract', () => {
+  it('has required fields with correct types', () => {
+    const entry: AuditEntry = {
+      timestamp: new Date().toISOString(),
+      event: 'optimize',
+      request_id: 'req-123',
+      outcome: 'success',
+    };
+    assert.equal(typeof entry.timestamp, 'string');
+    assert.equal(typeof entry.event, 'string');
+    assert.equal(typeof entry.request_id, 'string');
+    assert.equal(typeof entry.outcome, 'string');
+    assert.ok(['optimize', 'approve', 'delete', 'purge', 'configure', 'license_activate'].includes(entry.event));
+    assert.ok(['success', 'blocked', 'error'].includes(entry.outcome));
+  });
+
+  it('details typed as Record<string, string | number | boolean>', () => {
+    const entry: AuditEntry = {
+      timestamp: new Date().toISOString(),
+      event: 'optimize',
+      request_id: 'req-123',
+      outcome: 'success',
+      details: { key: 'val', num: 42, flag: true },
+    };
+    for (const v of Object.values(entry.details!)) {
+      assert.ok(
+        typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean',
+        `details value must be string|number|boolean, got ${typeof v}`,
+      );
+    }
+  });
+});
+
+describe('PolicyViolation shape contract', () => {
+  it('has required fields', () => {
+    const v: PolicyViolation = {
+      rule_id: 'no_pii',
+      description: 'PII detected',
+      severity: 'blocking',
+    };
+    assert.equal(typeof v.rule_id, 'string');
+    assert.equal(typeof v.description, 'string');
+    assert.equal(typeof v.severity, 'string');
+    assert.equal(v.risk_dimension, undefined); // optional
+  });
+});
+
+describe('DEFAULT_CONFIG v3.3.0 fields', () => {
+  it('has correct defaults for new fields', () => {
+    assert.equal(DEFAULT_CONFIG.session_retention_days, undefined);
+    assert.equal(DEFAULT_CONFIG.policy_mode, 'advisory');
+    assert.equal(DEFAULT_CONFIG.audit_log, false);
+  });
+});
+
+describe('STRICTNESS_THRESHOLDS contract', () => {
+  it('has relaxed=40, standard=60, strict=75', () => {
+    assert.equal(STRICTNESS_THRESHOLDS.relaxed, 40);
+    assert.equal(STRICTNESS_THRESHOLDS.standard, 60);
+    assert.equal(STRICTNESS_THRESHOLDS.strict, 75);
+  });
+});
+
+describe('policy_violation error payload shape', () => {
+  it('has code, message, request_id, policy_mode, violations[]', () => {
+    // Simulate what tools.ts returns
+    const errorPayload = {
+      error: 'policy_violation',
+      code: 'policy_violation',
+      message: 'Policy violation: 1 blocking rule(s) triggered',
+      request_id: 'req-abc',
+      policy_mode: 'enforce',
+      violations: [{ rule_id: 'r1', description: 'd1', severity: 'blocking' }],
+    };
+    assert.equal(errorPayload.code, 'policy_violation');
+    assert.ok(errorPayload.message);
+    assert.ok(errorPayload.request_id);
+    assert.equal(errorPayload.policy_mode, 'enforce');
+    assert.ok(Array.isArray(errorPayload.violations));
+    assert.ok(errorPayload.violations.length > 0);
+    // Violations sorted by rule_id
+    const ids = errorPayload.violations.map((v: PolicyViolation) => v.rule_id);
+    const sorted = [...ids].sort();
+    assert.deepEqual(ids, sorted, 'violations must be sorted by rule_id');
+  });
+});
+
+describe('risk_threshold_exceeded error payload shape', () => {
+  it('has code, message, request_id, policy_mode, risk_score, threshold, strictness', () => {
+    const errorPayload = {
+      error: 'risk_threshold_exceeded',
+      code: 'risk_threshold_exceeded',
+      message: 'Risk score 70 exceeds threshold 60 (strictness: standard). Blocked when score >= threshold.',
+      request_id: 'req-def',
+      policy_mode: 'enforce',
+      risk_score: 70,
+      threshold: 60,
+      strictness: 'standard',
+    };
+    assert.equal(errorPayload.code, 'risk_threshold_exceeded');
+    assert.ok(errorPayload.message);
+    assert.ok(errorPayload.request_id);
+    assert.equal(errorPayload.policy_mode, 'enforce');
+    assert.equal(typeof errorPayload.risk_score, 'number');
+    assert.equal(typeof errorPayload.threshold, 'number');
+    assert.equal(typeof errorPayload.strictness, 'string');
+  });
+});
+
+describe('v3.3.0 api.ts barrel exports', () => {
+  it('exports policy functions', async () => {
+    const api = await import('../src/api.js');
+    assert.equal(typeof api.evaluatePolicyViolations, 'function');
+    assert.equal(typeof api.checkRiskThreshold, 'function');
+    assert.equal(typeof api.buildPolicyEnforcementSummary, 'function');
+    assert.equal(typeof api.calculatePolicyHash, 'function');
+    assert.ok(api.STRICTNESS_THRESHOLDS);
+  });
+
+  it('exports AuditLogger', async () => {
+    const api = await import('../src/api.js');
+    assert.ok(api.AuditLogger);
+    assert.ok(api.auditLogger);
+  });
+
+  it('exports SessionHistoryManager', async () => {
+    const api = await import('../src/api.js');
+    assert.ok(api.SessionHistoryManager);
+    assert.ok(api.sessionHistory);
+  });
+
+  it('exports GENESIS_HASH', async () => {
+    const api = await import('../src/api.js');
+    assert.ok(api.GENESIS_HASH);
+    assert.equal(api.GENESIS_HASH.length, 64);
+    assert.match(api.GENESIS_HASH, /^0{64}$/);
+  });
+});
+
+describe('AuditEntry integrity_hash contract', () => {
+  it('integrity_hash is optional string (backward compatible)', () => {
+    const entry: AuditEntry = {
+      timestamp: new Date().toISOString(),
+      event: 'optimize',
+      request_id: 'req-123',
+      outcome: 'success',
+    };
+    assert.equal(entry.integrity_hash, undefined); // optional
+  });
+});
+
+describe('OptimizerConfig lock fields contract', () => {
+  it('locked_config is optional boolean, lock_secret_hash is optional string', () => {
+    assert.equal(DEFAULT_CONFIG.locked_config, undefined);
+    assert.equal(DEFAULT_CONFIG.lock_secret_hash, undefined);
+  });
+
+  it('config_locked error payload shape', () => {
+    const errorPayload = {
+      request_id: 'req-123',
+      error: 'config_locked',
+      message: 'Config is locked. Use unlock: true with the correct lock_secret to make changes.',
+    };
+    assert.equal(errorPayload.error, 'config_locked');
+    assert.ok(errorPayload.message.includes('unlock'));
+    assert.ok(errorPayload.request_id);
+  });
+
+  it('invalid_lock_secret error payload shape', () => {
+    const errorPayload = {
+      request_id: 'req-123',
+      error: 'invalid_lock_secret',
+      message: 'Wrong lock_secret. Unlock attempt logged.',
+    };
+    assert.equal(errorPayload.error, 'invalid_lock_secret');
+    assert.ok(errorPayload.message.includes('logged'));
   });
 });

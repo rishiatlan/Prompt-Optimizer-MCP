@@ -1,6 +1,6 @@
-# Prompt Optimizer MCP
+# Prompt Control Plane
 
-Lint, score, and standardize prompt quality — the ESLint for LLM applications. Free tier included.
+The control plane for AI prompts. Score, enforce policy, lock config, and audit every prompt decision. Free tier included.
 
 [![npm version](https://img.shields.io/npm/v/claude-prompt-optimizer-mcp)](https://www.npmjs.com/package/claude-prompt-optimizer-mcp)
 ![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)
@@ -213,7 +213,7 @@ Changes Made:
 | **MCP Config** (recommended) | Add to `.mcp.json` or `~/.claude/settings.json` — see below |
 | **npx** | `npx -y claude-prompt-optimizer-mcp` |
 | **npm global** | `npm install -g claude-prompt-optimizer-mcp` |
-| **curl** | `curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh \| bash` |
+| **curl** | `curl -fsSL https://rishiatlan.github.io/Prompt-Control-Plane/install.sh \| bash` |
 
 ### MCP Config (Claude Code / Claude Desktop)
 
@@ -230,7 +230,7 @@ Add to your project's `.mcp.json` (or `~/.claude/settings.json` for global acces
 }
 ```
 
-Restart Claude Code. All 15 tools appear automatically. Free tier gives you 10 optimizations to try it out.
+Restart Claude Code. All 19 tools appear automatically. Free tier gives you 10 optimizations to try it out.
 
 <details>
 <summary><strong>Claude Desktop config path</strong></summary>
@@ -266,7 +266,7 @@ Then use in your MCP config:
 <summary><strong>Curl installer (installs globally + prints MCP config)</strong></summary>
 
 ```bash
-curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash
+curl -fsSL https://rishiatlan.github.io/Prompt-Control-Plane/install.sh | bash
 ```
 
 Checks Node.js ≥ 18, installs the package globally, and prints the MCP config JSON for your platform.
@@ -327,7 +327,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: rishiatlan/Prompt-Optimizer-MCP@v2
+      - uses: rishiatlan/Prompt-Control-Plane@v2
         with:
           files: 'prompts/**/*.txt'
           threshold: 70
@@ -338,7 +338,7 @@ jobs:
 **SHA-pinned example (for enterprise users):**
 
 ```yaml
-      - uses: rishiatlan/Prompt-Optimizer-MCP@abc123def  # SHA-pinned
+      - uses: rishiatlan/Prompt-Control-Plane@abc123def  # SHA-pinned
         with:
           version: '2.3.2'  # Required when pinning by SHA
           files: 'prompts/**/*.txt'
@@ -408,10 +408,10 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | Quick quality check | Ask Claude: "Use check_prompt on: [your prompt]" — lightweight pass/fail |
 | Check usage & limits | Ask Claude: "Use get_usage to check my remaining optimizations" |
 | View stats | Ask Claude: "Use prompt_stats to see my optimization history" |
-| Activate Pro license | Ask Claude: "Use set_license with key: po_pro_..." |
+| Activate Pro license | Ask Claude: "Use set_license with key: pcp_..." |
 | Check license status | Ask Claude: "Use license_status" |
 
-## 15 MCP Tools
+## 19 MCP Tools
 
 | # | Tool | Free/Metered | Purpose |
 |---|------|-------------|---------|
@@ -421,7 +421,7 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google, Perplexity) |
 | 5 | `compress_context` | Free | Prune irrelevant context, report token savings |
 | 6 | `check_prompt` | Free | Lightweight pass/fail + score + top 2 issues |
-| 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode |
+| 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, lock/unlock config with passphrase |
 | 8 | `get_usage` | Free | Usage count, limits, remaining, tier info |
 | 9 | `prompt_stats` | Free | Aggregates: total optimized, avg score, top task types, cost savings |
 | 10 | `set_license` | Free | Activate a Pro or Power license key (Ed25519 offline validation) |
@@ -430,6 +430,10 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | 13 | `route_model` | Free | Route to optimal model with `decision_path` audit trail |
 | 14 | `pre_flight` | **Metered** | Full pre-flight pipeline: classify, assess risk, route model, score quality |
 | 15 | `prune_tools` | Free | Score and rank MCP tools by task relevance, optionally prune low-relevance tools |
+| 16 | `list_sessions` | Free | List session history (metadata only, no raw prompts) |
+| 17 | `export_session` | Free | Full session export with rule-set hash + policy hash for reproducibility |
+| 18 | `delete_session` | Free | Delete a single session by ID |
+| 19 | `purge_sessions` | Free | Bulk purge by age policy, with dry-run + keep_last safety |
 
 ## Pricing
 
@@ -439,21 +443,59 @@ console.log(withCtx.cost);   // Higher token count (context included)
 | **Optimizations** | 10 lifetime | 100/month | Unlimited | Unlimited |
 | **Rate limit** | 5/min | 30/min | 60/min | 120/min |
 | **Always-on mode** | — | — | ✓ | ✓ |
-| **All 15 tools** | ✓ | ✓ | ✓ | ✓ |
+| **All 19 tools** | ✓ | ✓ | ✓ | ✓ |
 | **Support** | Community | Email | Priority | Dedicated |
 | **SLA** | — | — | — | Custom |
 
 **Free tier** gives you 10 optimizations to experience the full pipeline. No credit card required.
 
-**Enterprise** includes unlimited usage, custom integrations, and dedicated support. [Contact sales](https://claude-prompt-optimizer.dev/contact) for pricing and details.
+**Enterprise** includes unlimited usage, custom integrations, and dedicated support. [Contact sales](https://rishiatlan.github.io/Prompt-Optimizer-MCP/contact.html) for pricing and details.
 
 ### Activate a License
 
 1. **Free**: No action needed — you get 10 optimizations immediately.
-2. **Pro/Power**: Purchase at the [Prompt Optimizer store](https://rishiatlan.github.io/Prompt-Optimizer-MCP/) and you receive a license key starting with `po_pro_...`
-3. Tell Claude: "Use set_license with key: po_pro_YOUR_KEY_HERE"
+2. **Pro/Power**: Purchase at the [Prompt Control Plane store](https://rishiatlan.github.io/Prompt-Control-Plane/) and you receive a license key starting with `pcp_...`
+3. Tell Claude: "Use set_license with key: pcp_YOUR_KEY_HERE"
 4. Done — your tier upgrades instantly. Verify with `license_status`.
-5. **Enterprise**: [Contact sales](https://claude-prompt-optimizer.dev/contact) for custom license key generation.
+5. **Enterprise**: [Contact sales](https://rishiatlan.github.io/Prompt-Optimizer-MCP/contact.html) for custom license key generation.
+
+## Enterprise Controls
+
+### Policy Enforcement
+
+Switch from advisory to enforce mode. BLOCKING rules (built-in + custom) gate every prompt optimization and approval. Risk threshold gating blocks high-risk approvals based on strictness (relaxed=40, standard=60, strict=75).
+
+```
+configure_optimizer(policy_mode='enforce', strictness='strict')
+```
+
+### Config Lock Mode
+
+Lock your governance config with a passphrase. No one can change policy, strictness, or audit settings without the correct secret. Every lock, unlock, and blocked attempt is audit-logged.
+
+```
+configure_optimizer(lock=true, lock_secret='your-admin-passphrase')
+```
+
+### Tamper-Evident Audit Trail
+
+Every action generates a JSONL audit entry with SHA-256 hash chaining. If any line is deleted or modified, all subsequent hashes break. Local-only, opt-in, never stores prompt content.
+
+```
+configure_optimizer(audit_log=true)
+```
+
+### Data Retention & Deletion
+
+| Action | Tool | What Happens |
+|--------|------|-------------|
+| Delete one session | `delete_session(session_id)` | Removes `session-{id}.json` only |
+| Purge by age | `purge_sessions(older_than_days=30)` | Deletes sessions older than 30 days |
+| Preview purge | `purge_sessions(older_than_days=30, dry_run=true)` | Shows what would be deleted without deleting |
+| Purge all | `purge_sessions(purge_all=true)` | Deletes all sessions (explicit opt-in required) |
+| Keep newest N | `purge_sessions(purge_all=true, keep_last=5)` | Keeps 5 newest, deletes the rest |
+
+Purge only deletes `session-*.json` files. Config, audit log, license, usage, and custom rules are never deleted.
 
 ## How It Works
 
@@ -677,7 +719,7 @@ Pricing is hardcoded from published rates (Anthropic, OpenAI, Google, Perplexity
 <details>
 <summary><strong>Session & Storage</strong></summary>
 
-Sessions and usage data are persisted to `~/.prompt-optimizer/` (file-based storage). Sessions have a 30-minute TTL and auto-cleanup on access.
+Sessions and usage data are persisted to `~/.prompt-control-plane/` (file-based storage). Sessions have a 30-minute TTL and auto-cleanup on access.
 
 Each session tracks:
 - Raw prompt and context
@@ -1029,11 +1071,11 @@ Reason:         Balanced task — Sonnet offers the best
 - **Deterministic and reproducible:** given the same inputs, version, and configuration, outputs are stable. All heuristics and pruning decisions are deterministic (no randomness, no runtime learning). Session exports include `rule_set_hash` (SHA-256 of all built-in rules) and `rule_set_version` for full reproducibility — any rule change produces a different hash.
 - **No LLM calls inside the MCP:** compression, tool pruning, and risk scoring are local transforms.
 - **No telemetry:** the core engine does not send usage or prompt data anywhere.
-- **Local-only state:** persisted artifacts (sessions, usage, config, stats, license) live under `~/.prompt-optimizer/`.
+- **Local-only state:** persisted artifacts (sessions, usage, config, stats, license) live under `~/.prompt-control-plane/`.
 - **Aggressive compression is opt-in:** `mode=aggressive` may truncate the middle of context to fit a token budget; standard mode never truncates the middle.
 - **Optional integrations:** any network calls (e.g., cost lookups for external providers) occur only when an integration tool is explicitly invoked.
 - **License validation:** Ed25519 asymmetric signatures. Public key only in the package. No PII in the key. `chmod 600` on POSIX (best-effort).
-- **Prompt logging:** disabled by default. Opt-in via `PROMPT_OPTIMIZER_LOG_PROMPTS=true`. Never enable in shared environments.
+- **Prompt logging:** disabled by default. Opt-in via `PROMPT_CONTROL_PLANE_LOG_PROMPTS=true`. Never enable in shared environments.
 - **Dependencies:** 2 runtime: `@modelcontextprotocol/sdk` and `zod`. No transitive bloat.
 
 ## Troubleshooting
@@ -1065,7 +1107,7 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] NPM package — `npx claude-prompt-optimizer-mcp` for zero-friction install
 - [x] Structured audience/tone/platform detection — 19 audience patterns, 9 platforms, tone signals
 - [x] Multi-LLM output targets — Claude (XML), OpenAI (system/user), Generic (Markdown)
-- [x] Persistent file-based storage (`~/.prompt-optimizer/`) with async StorageInterface
+- [x] Persistent file-based storage (`~/.prompt-control-plane/`) with async StorageInterface
 - [x] 3-tier freemium system — Free (10 lifetime), Pro (₹499/mo, 100/mo), Power (₹899/mo, unlimited)
 - [x] Ed25519 offline license key activation — no phone-home, no backend
 - [x] Monthly usage enforcement with calendar-month reset
@@ -1083,9 +1125,11 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] v3.1 4 new ambiguity rules: hallucination_risk, agent_underspec, conflicting_constraints, token_budget_mismatch (14 total)
 - [x] v3.1 Pre-flight deltas: compression_delta conditionally surfaced when context provided
 - [x] v3.2.0 Enterprise Unlock: 4-tier system with Enterprise (unlimited, 120/min, dedicated support), contact form, updated gating
-- [x] v3.2.1 Custom Rules: user-defined regex rules in `~/.prompt-optimizer/custom-rules/`, risk dimension integration, CLI validation
+- [x] v3.2.1 Custom Rules: user-defined regex rules in `~/.prompt-control-plane/custom-rules/`, risk dimension integration, CLI validation
 - [x] v3.2.1 Reproducible Exports: auto-calculated `rule_set_hash`, `rule_set_version`, `risk_score` in session exports — no placeholders
 - [x] 15 MCP tools, 14 rules, 595 tests across 28 test suites
+- [x] v3.3.0 Enterprise Operations: policy enforcement, config lock mode, tamper-evident audit trail (SHA-256 hash chain), session lifecycle management
+- [x] 19 MCP tools, 14 rules, 660 tests across 32 test suites
 - [ ] Optional Haiku pass for nuanced ambiguity detection
 - [ ] Prompt template library (common patterns)
 - [ ] Integration with Claude Code hooks for auto-trigger on complex tasks
@@ -1093,7 +1137,7 @@ Reason:         Balanced task — Sonnet offers the best
 
 ## Contributors
 
-- [@aish-varya](https://github.com/aish-varya) — audience/tone/platform detection, goal enrichment, `generic_vague_ask` rule, CLI flags ([PR #1](https://github.com/rishiatlan/Prompt-Optimizer-MCP/pull/1))
+- [@aish-varya](https://github.com/aish-varya) — audience/tone/platform detection, goal enrichment, `generic_vague_ask` rule, CLI flags ([PR #1](https://github.com/rishiatlan/Prompt-Control-Plane/pull/1))
 
 ## Credits
 

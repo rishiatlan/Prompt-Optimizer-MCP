@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claude Prompt Optimizer MCP — Quick Installer
+# Prompt Control Plane — Quick Installer
 # Usage: curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash
 
 set -euo pipefail
@@ -12,7 +12,7 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 echo ""
-echo -e "${CYAN}${BOLD}Claude Prompt Optimizer MCP${NC}"
+echo -e "${CYAN}${BOLD}Prompt Control Plane${NC}"
 echo -e "${CYAN}─────────────────────────────${NC}"
 echo ""
 

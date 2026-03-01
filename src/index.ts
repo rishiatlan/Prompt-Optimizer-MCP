@@ -36,7 +36,7 @@ if (args.includes('--version') || args.includes('-v')) {
 }
 
 if (args.includes('--help') || args.includes('-h')) {
-  console.log(`claude-prompt-optimizer-mcp — Scores, structures, and compiles prompts for any LLM
+  console.log(`Prompt Control Plane — Deterministic scoring, policy enforcement, audit & governance for AI prompts
 
 Usage:
   claude-prompt-optimizer-mcp          Start the MCP server (stdio transport)
@@ -44,13 +44,14 @@ Usage:
   claude-prompt-optimizer-mcp -h       Print this help
 
 Environment:
-  PROMPT_OPTIMIZER_PRO=true            Enable pro tier (env var override)
-  PROMPT_OPTIMIZER_LOG_LEVEL=debug     Log verbosity: debug, info, warn, error
-  PROMPT_OPTIMIZER_LOG_PROMPTS=true    Enable raw prompt logging (never in shared envs)
+  PROMPT_CONTROL_PLANE_PRO=true            Enable pro tier (env var override)
+  PROMPT_CONTROL_PLANE_LOG_LEVEL=debug     Log verbosity: debug, info, warn, error
+  PROMPT_CONTROL_PLANE_LOG_PROMPTS=true    Enable raw prompt logging (never in shared envs)
 
 Paid tiers:
-  Pro (₹499/mo)   — 100 optimizations/month, 30/min rate limit
-  Power (₹899/mo) — Unlimited optimizations, 60/min rate limit, always-on mode
+  Pro (₹499/mo)        — 100 optimizations/month, 30/min rate limit
+  Power (₹899/mo)      — Unlimited optimizations, 60/min rate limit, always-on mode
+  Enterprise (custom)   — Policy enforcement, audit trail, config lock, custom rules
   Activate with the set_license tool. Tier priority: license key > env var > free
 
 Quick setup (any MCP-compatible client):
@@ -71,7 +72,7 @@ More info: https://github.com/rishiatlan/Prompt-Optimizer-MCP`);
 // ─── Server startup ──────────────────────────────────────────────────────────
 
 const bootId = createRequestId();
-log.info(bootId, 'Starting prompt optimizer MCP server...');
+log.info(bootId, 'Starting Prompt Control Plane server...');
 
 const pkgRequire = createRequire(import.meta.url);
 const pkg = pkgRequire(findPackageJson());
@@ -84,15 +85,15 @@ const rateLimiter = new LocalRateLimiter();
 await storage.cleanupSessions();
 
 const server = new McpServer({
-  name: 'claude-prompt-optimizer',
+  name: 'prompt-optimizer',
   version: pkg.version,
 });
 
-registerTools(server, storage, rateLimiter);
+registerTools(server, storage, rateLimiter, pkg.version);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
 
 // Log tier from storage (reflects license > env var > default priority)
 const bootUsage = await storage.getUsage();
-log.info(bootId, `MCP server v${pkg.version} ready (tier=${bootUsage.tier}, tools=15)`);
+log.info(bootId, `MCP server v${pkg.version} ready (tier=${bootUsage.tier}, tools=19)`);

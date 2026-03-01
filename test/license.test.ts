@@ -34,7 +34,7 @@ function signTestLicense(payload: LicensePayload): string {
     signature_hex: signature.toString('hex'),
   };
   const encoded = Buffer.from(JSON.stringify(envelope)).toString('base64url');
-  return `po_pro_${encoded}`;
+  return `pcp_${encoded}`;
 }
 
 // ─── Test Helper: Fresh storage ─────────────────────────────────────────────
@@ -71,7 +71,7 @@ describe('License key validation', () => {
     }
   });
 
-  it('missing po_pro_ prefix returns invalid_prefix', () => {
+  it('missing pcp_ prefix returns invalid_prefix', () => {
     const result = validateLicenseKey('bad_key_here', TEST_PUBLIC_KEY_PEM);
     assert.equal(result.valid, false);
     if (!result.valid) assert.equal(result.error, 'invalid_prefix');
@@ -83,14 +83,14 @@ describe('License key validation', () => {
     if (!result.valid) assert.equal(result.error, 'invalid_prefix');
   });
 
-  it('po_pro_ with no data returns invalid_encoding', () => {
-    const result = validateLicenseKey('po_pro_', TEST_PUBLIC_KEY_PEM);
+  it('pcp_ with no data returns invalid_encoding', () => {
+    const result = validateLicenseKey('pcp_', TEST_PUBLIC_KEY_PEM);
     assert.equal(result.valid, false);
     if (!result.valid) assert.equal(result.error, 'invalid_encoding');
   });
 
   it('corrupted base64 returns invalid_encoding or malformed_key', () => {
-    const result = validateLicenseKey('po_pro_!!!not-base64!!!', TEST_PUBLIC_KEY_PEM);
+    const result = validateLicenseKey('pcp_!!!not-base64!!!', TEST_PUBLIC_KEY_PEM);
     assert.equal(result.valid, false);
     if (!result.valid) {
       assert.ok(
@@ -103,11 +103,11 @@ describe('License key validation', () => {
   it('tampered payload returns invalid_signature', () => {
     const key = signTestLicense(TEST_PAYLOAD);
     // Decode, tamper, re-encode
-    const encoded = key.slice('po_pro_'.length);
+    const encoded = key.slice('pcp_'.length);
     const decoded = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf-8'));
     decoded.payload.tier = 'free'; // tamper
     const tampered = Buffer.from(JSON.stringify(decoded)).toString('base64url');
-    const result = validateLicenseKey(`po_pro_${tampered}`, TEST_PUBLIC_KEY_PEM);
+    const result = validateLicenseKey(`pcp_${tampered}`, TEST_PUBLIC_KEY_PEM);
     assert.equal(result.valid, false);
     if (!result.valid) assert.equal(result.error, 'invalid_signature');
   });
@@ -164,14 +164,14 @@ describe('License key validation', () => {
     const signature = crypto.sign(null, Buffer.from(canonical), testPrivateKey);
     const envelope = { payload, signature_hex: signature.toString('hex') };
     const encoded = Buffer.from(JSON.stringify(envelope)).toString('base64url');
-    const result = validateLicenseKey(`po_pro_${encoded}`, TEST_PUBLIC_KEY_PEM);
+    const result = validateLicenseKey(`pcp_${encoded}`, TEST_PUBLIC_KEY_PEM);
     assert.equal(result.valid, false);
     if (!result.valid) assert.equal(result.error, 'invalid_tier');
   });
 
   it('malformed JSON in envelope returns malformed_key', () => {
     const garbage = Buffer.from('not json at all').toString('base64url');
-    const result = validateLicenseKey(`po_pro_${garbage}`, TEST_PUBLIC_KEY_PEM);
+    const result = validateLicenseKey(`pcp_${garbage}`, TEST_PUBLIC_KEY_PEM);
     assert.equal(result.valid, false);
     if (!result.valid) assert.equal(result.error, 'malformed_key');
   });
@@ -179,7 +179,7 @@ describe('License key validation', () => {
   it('missing payload fields returns malformed_key', () => {
     const envelope = { payload: { tier: 'pro' }, signature_hex: 'deadbeef' };
     const encoded = Buffer.from(JSON.stringify(envelope)).toString('base64url');
-    const result = validateLicenseKey(`po_pro_${encoded}`, TEST_PUBLIC_KEY_PEM);
+    const result = validateLicenseKey(`pcp_${encoded}`, TEST_PUBLIC_KEY_PEM);
     assert.equal(result.valid, false);
     if (!result.valid) assert.equal(result.error, 'malformed_key');
   });
@@ -350,18 +350,18 @@ describe('Tier derivation priority', () => {
   let storage: LocalFsStorage;
 
   // Save and restore env var
-  const originalEnv = process.env.PROMPT_OPTIMIZER_PRO;
+  const originalEnv = process.env.PROMPT_CONTROL_PLANE_PRO;
 
   beforeEach(() => {
     storage = makeTestStorage();
-    delete process.env.PROMPT_OPTIMIZER_PRO;
+    delete process.env.PROMPT_CONTROL_PLANE_PRO;
   });
 
   afterEach(() => {
     if (originalEnv !== undefined) {
-      process.env.PROMPT_OPTIMIZER_PRO = originalEnv;
+      process.env.PROMPT_CONTROL_PLANE_PRO = originalEnv;
     } else {
-      delete process.env.PROMPT_OPTIMIZER_PRO;
+      delete process.env.PROMPT_CONTROL_PLANE_PRO;
     }
     try { fs.rmSync(testDir, { recursive: true }); } catch {}
   });
@@ -372,7 +372,7 @@ describe('Tier derivation priority', () => {
   });
 
   it('no license + env true → pro', async () => {
-    process.env.PROMPT_OPTIMIZER_PRO = 'true';
+    process.env.PROMPT_CONTROL_PLANE_PRO = 'true';
     const usage = await storage.getUsage();
     assert.equal(usage.tier, 'pro');
   });
@@ -394,7 +394,7 @@ describe('Tier derivation priority', () => {
 
   it('valid license overrides env false', async () => {
     // env var not set (defaults to free), but license says pro
-    delete process.env.PROMPT_OPTIMIZER_PRO;
+    delete process.env.PROMPT_CONTROL_PLANE_PRO;
     const data: LicenseData = {
       schema_version: 1,
       tier: 'pro',
@@ -410,7 +410,7 @@ describe('Tier derivation priority', () => {
   });
 
   it('expired license + env true → pro (env fallback)', async () => {
-    process.env.PROMPT_OPTIMIZER_PRO = 'true';
+    process.env.PROMPT_CONTROL_PLANE_PRO = 'true';
     const data: LicenseData = {
       schema_version: 1,
       tier: 'pro',

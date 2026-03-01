@@ -1,8 +1,9 @@
-// src/api.ts — Programmatic API barrel export (v3.1).
+// src/api.ts — Programmatic API barrel export (v3.3).
 // Pure, synchronous, zero side effects. Safe for library use.
 // Does NOT start the MCP server (use `claude-prompt-optimizer-mcp/server` for that).
 // v3 additions: classifyComplexity, routeModel, computeRiskScore, PROFILES, TIER_MODELS.
 // v3.1 additions: pruner, tokenizer, zones, preservePatterns, deltas, constants.
+// v3.3 additions: policy, auditLog, sessionHistory.
 
 // ─── Analyzer ────────────────────────────────────────────────────────────────
 export { analyzePrompt, detectTaskType, classifyComplexity } from './analyzer.js';
@@ -54,6 +55,22 @@ export {
   TASK_TOOL_KEYWORDS, stableStringify,
 } from './constants.js';
 
+// ─── v3.3: Policy Enforcement ─────────────────────────────────────────────
+export {
+  evaluatePolicyViolations, checkRiskThreshold,
+  buildPolicyEnforcementSummary, calculatePolicyHash,
+  STRICTNESS_THRESHOLDS,
+} from './policy.js';
+
+// ─── v3.3: Audit Logger ──────────────────────────────────────────────────
+export { AuditLogger, auditLogger, GENESIS_HASH } from './auditLog.js';
+
+// ─── v3.3: Session History ───────────────────────────────────────────────
+export { SessionHistoryManager, sessionHistory } from './sessionHistory.js';
+
+// ─── v3.3: Custom Rules ─────────────────────────────────────────────────
+export { CustomRulesManager, customRules } from './customRules.js';
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 export type {
   TaskType,
@@ -93,6 +110,16 @@ export type {
   RuleMatch,
   CustomRule,
   CustomRulesConfig,
+  // v3.3 Enterprise Operations types
+  PolicyMode,
+  AuditEvent,
+  AuditOutcome,
+  AuditEntry,
+  PolicyViolation,
+  PurgeResult,
+  SessionRecord,
+  SessionListResponse,
+  SessionExport,
 } from './types.js';
 
 export { isCodeTask, isProseTask, PLAN_LIMITS } from './types.js';

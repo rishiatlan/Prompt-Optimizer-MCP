@@ -51,12 +51,12 @@ function base64urlDecode(input: string): Buffer {
 
 // ─── License Key Validation ──────────────────────────────────────────────────
 
-const LICENSE_PREFIX = 'po_pro_';  // Prefix shared by all paid tiers (pro + power)
+const LICENSE_PREFIX = 'pcp_';  // Prefix shared by all paid tiers (pro, power, enterprise)
 
 /**
  * Validate a license key offline using Ed25519 signature verification.
  *
- * @param key - Full license key string (e.g., "po_pro_eyJ...")
+ * @param key - Full license key string (e.g., "pcp_eyJ...")
  * @param publicKeyPem - Ed25519 public key PEM (defaults to PRODUCTION_PUBLIC_KEY_PEM).
  *                       Pass a test key for unit testing.
  * @returns Validation result with payload on success, error string on failure.

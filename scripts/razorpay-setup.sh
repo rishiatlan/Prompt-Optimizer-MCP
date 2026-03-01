@@ -1,5 +1,5 @@
 #!/bin/bash
-# razorpay-setup.sh — Create Razorpay subscription plans + links for Prompt Optimizer MCP
+# razorpay-setup.sh — Create Razorpay subscription plans + links for Prompt Control Plane
 #
 # Usage:
 #   export RZP_KEY_ID="rzp_test_xxxxx"    # or rzp_live_xxxxx for production
@@ -41,7 +41,7 @@ PRO_PLAN=$(curl -s -u "$AUTH" \
     "period": "monthly",
     "interval": 1,
     "item": {
-      "name": "Prompt Optimizer Pro",
+      "name": "Prompt Control Plane Pro",
       "amount": 49900,
       "currency": "INR",
       "description": "100 optimizations/month, 30 req/min rate limit, offline license key. All 15 tools."
@@ -63,7 +63,7 @@ POWER_PLAN=$(curl -s -u "$AUTH" \
     "period": "monthly",
     "interval": 1,
     "item": {
-      "name": "Prompt Optimizer Power",
+      "name": "Prompt Control Plane Power",
       "amount": 89900,
       "currency": "INR",
       "description": "Unlimited optimizations, 60 req/min, always-on mode, priority support. All 15 tools."
@@ -92,7 +92,7 @@ PRO_SUB=$(curl -s -u "$AUTH" \
     \"quantity\": 1,
     \"customer_notify\": 1,
     \"notes\": {
-      \"product\": \"prompt-optimizer-mcp\",
+      \"product\": \"prompt-control-plane\",
       \"tier\": \"pro\"
     }
   }")
@@ -116,7 +116,7 @@ POWER_SUB=$(curl -s -u "$AUTH" \
     \"quantity\": 1,
     \"customer_notify\": 1,
     \"notes\": {
-      \"product\": \"prompt-optimizer-mcp\",
+      \"product\": \"prompt-control-plane\",
       \"tier\": \"power\"
     }
   }")

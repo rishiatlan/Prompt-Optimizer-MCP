@@ -8,14 +8,17 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 const LOG_LEVELS: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
 
-// ENV controls:
-// PROMPT_OPTIMIZER_LOG_LEVEL = 'debug' | 'info' | 'warn' | 'error' (default: 'info')
-// PROMPT_OPTIMIZER_LOG_PROMPTS = 'true' (default: unset/false — raw prompts NEVER logged)
+// ENV controls (with legacy fallback for backward compatibility):
+// PROMPT_CONTROL_PLANE_LOG_LEVEL = 'debug' | 'info' | 'warn' | 'error' (default: 'info')
+// PROMPT_CONTROL_PLANE_LOG_PROMPTS = 'true' (default: unset/false — raw prompts NEVER logged)
 const CURRENT_LEVEL = LOG_LEVELS[
-  (process.env.PROMPT_OPTIMIZER_LOG_LEVEL as LogLevel) || 'info'
+  (process.env.PROMPT_CONTROL_PLANE_LOG_LEVEL as LogLevel)
+  || (process.env.PROMPT_OPTIMIZER_LOG_LEVEL as LogLevel)  // legacy fallback
+  || 'info'
 ] ?? LOG_LEVELS.info;
 
-const LOG_PROMPTS = process.env.PROMPT_OPTIMIZER_LOG_PROMPTS === 'true';
+const LOG_PROMPTS = process.env.PROMPT_CONTROL_PLANE_LOG_PROMPTS === 'true'
+  || process.env.PROMPT_OPTIMIZER_LOG_PROMPTS === 'true';  // legacy fallback
 
 export function createRequestId(): string {
   return randomUUID();

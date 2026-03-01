@@ -1,7 +1,10 @@
-// tools.ts — MCP tool registrations for the prompt optimizer v3.1.
-// 15 tools total. Metered: optimize_prompt, refine_prompt, pre_flight. Free: all others.
+// tools.ts — MCP tool registrations for Prompt Control Plane v4.0.
+// 19 tools total. Metered: optimize_prompt, refine_prompt, pre_flight. Free: all others.
 // v3 additions: classify_task (FREE), route_model (FREE), pre_flight (METERED — G6).
 // v3.1 additions: prune_tools (FREE).
+// v3.2.1 additions: list_sessions (FREE), export_session (FREE).
+// v3.3.0 additions: delete_session (FREE), purge_sessions (FREE).
+// v4.0.0: Enterprise tier gates, full rebrand to Prompt Control Plane.
 // Build-mode invariants enforced: I1 (deterministic ordering), I2 (request_id on all),
 // I3 (metering-after-success), I4 (rate limit via canUseOptimization), I5 (degraded health in response).
 
@@ -72,15 +75,11 @@ function sanitizeLimits(limits: typeof PLAN_LIMITS.free): SerializedTierLimits {
 
 export const PRO_PURCHASE_URL = 'https://rzp.io/rzp/FXZk3gcZ';
 export const POWER_PURCHASE_URL = 'https://rzp.io/rzp/u0TSscp';
-export const ENTERPRISE_PURCHASE_URL = 'https://claude-prompt-optimizer.dev/contact';
+export const ENTERPRISE_PURCHASE_URL = 'https://rishiatlan.github.io/Prompt-Control-Plane/contact';
 
-// ─── Strictness Threshold Map ────────────────────────────────────────────────
-
-const STRICTNESS_THRESHOLDS: Record<string, number> = {
-  relaxed: 40,
-  standard: 60,
-  strict: 75,
-};
+// ─── Strictness Threshold Map (canonical source: policy.ts) ─────────────────
+// Re-imported from policy.ts for backward compatibility. Used in check_prompt.
+import { STRICTNESS_THRESHOLDS } from './policy.js';
 
 // ─── Tool Registrations ──────────────────────────────────────────────────────
 
@@ -88,6 +87,7 @@ export function registerTools(
   server: McpServer,
   storage: StorageInterface,
   rateLimiter: RateLimiter,
+  engineVersion?: string,
 ): void {
 
   /** Build an ExecutionContext for the current request. */
@@ -158,6 +158,35 @@ export function registerTools(
           log.warn(requestId, 'Storage degraded — proceeding with fail-open (Phase A)');
         }
 
+        // Policy enforcement gate (v3.3.0) — Enterprise only (v4.0.0)
+        if (ctx.config.policy_mode === 'enforce' && ctx.tier === 'enterprise') {
+          const { evaluatePolicyViolations } = await import('./policy.js');
+          const policyRuleResults = runRules(raw_prompt, context);
+          const violations = evaluatePolicyViolations(policyRuleResults, ctx.config);
+          if (violations.length > 0) {
+            // Audit blocked attempt
+            if (ctx.config.audit_log) {
+              const { auditLogger } = await import('./auditLog.js');
+              await auditLogger.append({
+                timestamp: new Date().toISOString(),
+                event: 'optimize',
+                request_id: requestId,
+                policy_mode: 'enforce',
+                outcome: 'blocked',
+                details: { violation_count: violations.length },
+              });
+            }
+            return errorResponse({
+              request_id: requestId,
+              error: 'policy_violation',
+              code: 'policy_violation',
+              message: `Policy enforcement blocked optimization: ${violations.length} BLOCKING rule(s) triggered.`,
+              policy_mode: 'enforce',
+              violations,
+            });
+          }
+        }
+
         // Pipeline
         const intentSpec = analyzePrompt(raw_prompt, context);
         const qualityBefore = scorePrompt(intentSpec, context);
@@ -226,10 +255,27 @@ export function registerTools(
           }
         }
 
+        // Audit success (v3.3.0)
+        if (ctx.config.audit_log) {
+          const { auditLogger } = await import('./auditLog.js');
+          await auditLogger.append({
+            timestamp: new Date().toISOString(),
+            event: 'optimize',
+            session_id: session.id,
+            request_id: requestId,
+            task_type: intentSpec.task_type,
+            policy_mode: ctx.config.policy_mode || 'advisory',
+            outcome: 'success',
+          });
+        }
+
         log.info(requestId, `optimize_prompt: score=${qualityBefore.total}, target=${outputTarget}, task=${intentSpec.task_type}`);
         log.prompt(requestId, 'raw_prompt', raw_prompt);
 
-        return jsonResponse(preview);
+        return jsonResponse({
+          ...preview,
+          policy_mode: ctx.config.policy_mode || 'advisory',
+        });
       } catch (err) {
         log.error(requestId, 'optimize_prompt failed:', err instanceof Error ? err.message : String(err));
         return errorResponse({
@@ -423,9 +469,99 @@ export function registerTools(
           });
         }
 
+        // Policy enforcement gate (v3.3.0) — Enterprise only (v4.0.0)
+        if (ctx.config.policy_mode === 'enforce' && ctx.tier === 'enterprise') {
+          const { evaluatePolicyViolations, checkRiskThreshold } = await import('./policy.js');
+
+          // Check BLOCKING violations
+          const policyRuleResults = runRules(session.raw_prompt, session.context, session.intent_spec.task_type);
+          const violations = evaluatePolicyViolations(policyRuleResults, ctx.config);
+          if (violations.length > 0) {
+            if (ctx.config.audit_log) {
+              const { auditLogger } = await import('./auditLog.js');
+              await auditLogger.append({
+                timestamp: new Date().toISOString(),
+                event: 'approve',
+                session_id: session_id,
+                request_id: requestId,
+                policy_mode: 'enforce',
+                outcome: 'blocked',
+                details: { reason: 'policy_violation', violation_count: violations.length },
+              });
+            }
+            return errorResponse({
+              request_id: requestId,
+              error: 'policy_violation',
+              code: 'policy_violation',
+              message: `Policy enforcement blocked approval: ${violations.length} BLOCKING rule(s) triggered.`,
+              policy_mode: 'enforce',
+              violations,
+            });
+          }
+
+          // Check risk threshold
+          const { riskScore: riskScoreResult } = await computeRiskScoreWithCustomRules(
+            policyRuleResults, session.raw_prompt, session.intent_spec.task_type,
+          );
+          const riskCheck = checkRiskThreshold(riskScoreResult.score, ctx.config.strictness);
+          if (riskCheck.exceeded) {
+            if (ctx.config.audit_log) {
+              const { auditLogger } = await import('./auditLog.js');
+              await auditLogger.append({
+                timestamp: new Date().toISOString(),
+                event: 'approve',
+                session_id: session_id,
+                request_id: requestId,
+                risk_score: riskCheck.score,
+                policy_mode: 'enforce',
+                outcome: 'blocked',
+                details: { reason: 'risk_threshold_exceeded', threshold: riskCheck.threshold, strictness: ctx.config.strictness },
+              });
+            }
+            return errorResponse({
+              request_id: requestId,
+              error: 'risk_threshold_exceeded',
+              code: 'risk_threshold_exceeded',
+              message: `Risk score ${riskCheck.score} exceeds ${ctx.config.strictness} threshold ${riskCheck.threshold} (blocked when score >= threshold).`,
+              policy_mode: 'enforce',
+              risk_score: riskCheck.score,
+              threshold: riskCheck.threshold,
+              strictness: ctx.config.strictness,
+            });
+          }
+        }
+
         await updateSession(storage, session_id, { state: 'APPROVED' });
 
         await storage.updateStats({ type: 'approve' });
+
+        // Audit success (v3.3.0)
+        if (ctx.config.audit_log) {
+          const { auditLogger } = await import('./auditLog.js');
+          await auditLogger.append({
+            timestamp: new Date().toISOString(),
+            event: 'approve',
+            session_id: session_id,
+            request_id: requestId,
+            policy_mode: ctx.config.policy_mode || 'advisory',
+            outcome: 'success',
+          });
+        }
+
+        // Calculate policy_hash for response (v3.3.0)
+        let policyHash: string | undefined;
+        if (ctx.config.policy_mode === 'enforce') {
+          const { calculatePolicyHash } = await import('./policy.js');
+          const { calculateBuiltInRuleSetHash } = await import('./rules.js');
+          const { customRules } = await import('./customRules.js');
+          const customRulesList = await customRules.getRulesForTask(session.intent_spec.task_type);
+          policyHash = calculatePolicyHash({
+            builtInRuleSetHash: calculateBuiltInRuleSetHash(),
+            customRuleSetHash: customRules.calculateRuleSetHash(customRulesList),
+            policyMode: ctx.config.policy_mode,
+            strictness: ctx.config.strictness,
+          });
+        }
 
         log.info(requestId, `approve_prompt: session=${session_id}`);
         return jsonResponse({
@@ -436,6 +572,8 @@ export function registerTools(
           cost_estimate: session.cost_estimate,
           model_recommendation: session.cost_estimate.recommended_model,
           recommendation_reason: session.cost_estimate.recommendation_reason,
+          policy_mode: ctx.config.policy_mode || 'advisory',
+          ...(policyHash && { policy_hash: policyHash }),
         });
       } catch (err) {
         log.error(requestId, 'approve_prompt failed:', err instanceof Error ? err.message : String(err));
@@ -599,7 +737,7 @@ export function registerTools(
 
   server.tool(
     'configure_optimizer',
-    'Configure optimizer behavior: mode, threshold, strictness, default target, ephemeral mode, session limits.',
+    'Configure optimizer behavior: mode, threshold, strictness, default target, ephemeral mode, session limits. Supports config locking with passphrase protection.',
     {
       mode: z.enum(['manual', 'always_on']).optional().describe('Optimization mode'),
       threshold: z.number().min(0).max(100).optional().describe('Quality threshold (0-100)'),
@@ -610,12 +748,148 @@ export function registerTools(
       max_sessions: z.number().min(1).max(10000).optional().describe('Max session count'),
       max_session_size_kb: z.number().min(1).max(1024).optional().describe('Max session size in KB'),
       max_session_dir_mb: z.number().min(1).max(100).optional().describe('Max session directory size in MB'),
+      // v3.3.0: Enterprise Operations
+      session_retention_days: z.number().int().min(1).max(365).optional().describe('Auto-purge sessions older than N days (undefined = no auto-purge)'),
+      policy_mode: z.enum(['advisory', 'enforce']).optional().describe('Policy enforcement mode (default: advisory)'),
+      audit_log: z.boolean().optional().describe('Enable append-only JSONL audit trail (default: false)'),
+      // Config lock mode
+      lock: z.boolean().optional().describe('Lock config — prevents changes until unlocked with the same secret'),
+      unlock: z.boolean().optional().describe('Unlock config — requires the same secret used to lock'),
+      lock_secret: z.string().min(4).max(128).optional().describe('Passphrase to lock/unlock config (min 4 chars). Stored as SHA-256 hash only.'),
     },
     async (params) => {
       const ctx = await buildCtx();
       const { requestId } = ctx;
 
       try {
+        const { createHash } = await import('node:crypto');
+
+        // ─── Enterprise tier gates (v4.0.0) ──────────────────────────────
+        if ((params.lock || params.unlock) && ctx.tier !== 'enterprise') {
+          return errorResponse({
+            request_id: requestId,
+            error: 'tier_feature_unavailable',
+            message: 'Config lock/unlock requires Enterprise tier.',
+            current_tier: ctx.tier,
+            enterprise_purchase_url: ENTERPRISE_PURCHASE_URL,
+          });
+        }
+
+        // ─── Lock/Unlock handling ────────────────────────────────────────
+        if (params.lock) {
+          if (!params.lock_secret) {
+            return errorResponse({
+              request_id: requestId,
+              error: 'lock_secret_required',
+              message: 'lock_secret is required when locking config. Provide a passphrase (min 4 chars).',
+            });
+          }
+          const secretHash = createHash('sha256').update(params.lock_secret, 'utf8').digest('hex');
+          const config = await storage.setConfig({ locked_config: true, lock_secret_hash: secretHash });
+
+          // Audit the lock
+          if (config.audit_log) {
+            const { auditLogger } = await import('./auditLog.js');
+            await auditLogger.append({
+              timestamp: new Date().toISOString(),
+              event: 'configure',
+              request_id: requestId,
+              policy_mode: config.policy_mode || 'advisory',
+              outcome: 'success',
+              details: { action: 'lock' },
+            });
+          }
+
+          log.info(requestId, 'configure_optimizer: config locked');
+          return jsonResponse({
+            request_id: requestId,
+            locked: true,
+            message: 'Config is now locked. Use unlock: true with the same lock_secret to unlock.',
+          });
+        }
+
+        if (params.unlock) {
+          if (!params.lock_secret) {
+            return errorResponse({
+              request_id: requestId,
+              error: 'lock_secret_required',
+              message: 'lock_secret is required when unlocking config.',
+            });
+          }
+          if (!ctx.config.lock_secret_hash) {
+            return errorResponse({
+              request_id: requestId,
+              error: 'not_locked',
+              message: 'Config is not locked.',
+            });
+          }
+          const secretHash = createHash('sha256').update(params.lock_secret, 'utf8').digest('hex');
+          if (secretHash !== ctx.config.lock_secret_hash) {
+            // Audit the failed unlock attempt
+            if (ctx.config.audit_log) {
+              const { auditLogger } = await import('./auditLog.js');
+              await auditLogger.append({
+                timestamp: new Date().toISOString(),
+                event: 'configure',
+                request_id: requestId,
+                policy_mode: ctx.config.policy_mode || 'advisory',
+                outcome: 'blocked',
+                details: { action: 'unlock', reason: 'wrong_secret' },
+              });
+            }
+            return errorResponse({
+              request_id: requestId,
+              error: 'invalid_lock_secret',
+              message: 'Wrong lock_secret. Unlock attempt logged.',
+            });
+          }
+          const config = await storage.setConfig({ locked_config: false, lock_secret_hash: undefined });
+
+          // Audit the unlock
+          if (config.audit_log || ctx.config.audit_log) {
+            const { auditLogger } = await import('./auditLog.js');
+            await auditLogger.append({
+              timestamp: new Date().toISOString(),
+              event: 'configure',
+              request_id: requestId,
+              policy_mode: config.policy_mode || 'advisory',
+              outcome: 'success',
+              details: { action: 'unlock' },
+            });
+          }
+
+          log.info(requestId, 'configure_optimizer: config unlocked');
+          return jsonResponse({
+            request_id: requestId,
+            locked: false,
+            message: 'Config is now unlocked.',
+          });
+        }
+
+        // ─── Config locked gate ──────────────────────────────────────────
+        if (ctx.config.locked_config) {
+          // Audit the blocked attempt
+          if (ctx.config.audit_log) {
+            const { auditLogger } = await import('./auditLog.js');
+            await auditLogger.append({
+              timestamp: new Date().toISOString(),
+              event: 'configure',
+              request_id: requestId,
+              policy_mode: ctx.config.policy_mode || 'advisory',
+              outcome: 'blocked',
+              details: { reason: 'config_locked' },
+            });
+          }
+
+          return errorResponse({
+            request_id: requestId,
+            error: 'config_locked',
+            message: 'Config is locked. Use unlock: true with the correct lock_secret to make changes.',
+          });
+        }
+
+        // ─── Normal config changes ───────────────────────────────────────
+
         // always_on tier check
         if (params.mode === 'always_on' && !PLAN_LIMITS[ctx.tier]?.always_on) {
           return errorResponse({
@@ -624,6 +898,20 @@ export function registerTools(
             message: 'always_on mode requires Pro tier.',
             upgrade_hint: true,
           });
+        }
+
+        // Enterprise-only settings (v4.0.0)
+        const ENTERPRISE_ONLY_SETTINGS = ['policy_mode', 'audit_log', 'session_retention_days'] as const;
+        for (const setting of ENTERPRISE_ONLY_SETTINGS) {
+          if (params[setting] !== undefined && ctx.tier !== 'enterprise') {
+            return errorResponse({
+              request_id: requestId,
+              error: 'tier_feature_unavailable',
+              message: `${setting} requires Enterprise tier.`,
+              current_tier: ctx.tier,
+              enterprise_purchase_url: ENTERPRISE_PURCHASE_URL,
+            });
+          }
         }
 
         // Build partial config from provided params
@@ -639,8 +927,25 @@ export function registerTools(
         if (params.max_sessions !== undefined) { updates.max_sessions = params.max_sessions; appliedChanges.push(`max_sessions → ${params.max_sessions}`); }
         if (params.max_session_size_kb !== undefined) { updates.max_session_size_kb = params.max_session_size_kb; appliedChanges.push(`max_session_size_kb → ${params.max_session_size_kb}`); }
         if (params.max_session_dir_mb !== undefined) { updates.max_session_dir_mb = params.max_session_dir_mb; appliedChanges.push(`max_session_dir_mb → ${params.max_session_dir_mb}`); }
+        // v3.3.0: Enterprise Operations
+        if (params.session_retention_days !== undefined) { updates.session_retention_days = params.session_retention_days; appliedChanges.push(`session_retention_days → ${params.session_retention_days}`); }
+        if (params.policy_mode !== undefined) { updates.policy_mode = params.policy_mode; appliedChanges.push(`policy_mode → ${params.policy_mode}`); }
+        if (params.audit_log !== undefined) { updates.audit_log = params.audit_log; appliedChanges.push(`audit_log → ${params.audit_log}`); }
 
         const config = await storage.setConfig(updates);
+
+        // Audit configure event (v3.3.0)
+        if (config.audit_log) {
+          const { auditLogger } = await import('./auditLog.js');
+          await auditLogger.append({
+            timestamp: new Date().toISOString(),
+            event: 'configure',
+            request_id: requestId,
+            policy_mode: config.policy_mode || 'advisory',
+            outcome: 'success',
+            details: { changes: appliedChanges.join('; ') },
+          });
+        }
 
         log.info(requestId, `configure_optimizer: ${appliedChanges.join(', ')}`);
         return jsonResponse({
@@ -759,7 +1064,7 @@ export function registerTools(
     'set_license',
     'Activate a Pro or Power license key. Validates the Ed25519 signature offline and unlocks the corresponding tier.',
     {
-      license_key: z.string().min(10).max(2048).describe('License key string (starts with po_pro_)'),
+      license_key: z.string().min(10).max(2048).describe('License key string (starts with pcp_)'),
     },
     async ({ license_key }) => {
       const ctx = await buildCtx();
@@ -794,6 +1099,19 @@ export function registerTools(
         };
 
         await storage.setLicense(licenseData);
+
+        // Audit license activation (v3.3.0)
+        if (ctx.config.audit_log) {
+          const { auditLogger } = await import('./auditLog.js');
+          await auditLogger.append({
+            timestamp: new Date().toISOString(),
+            event: 'license_activate',
+            request_id: requestId,
+            policy_mode: ctx.config.policy_mode || 'advisory',
+            outcome: 'success',
+            details: { tier: result.payload.tier, license_id: result.payload.license_id },
+          });
+        }
 
         log.info(requestId, `set_license: activated tier=${result.payload.tier}, license_id=${result.payload.license_id}`);
         return jsonResponse({
@@ -894,9 +1212,11 @@ export function registerTools(
         // Complexity classification
         const complexityResult = classifyComplexity(prompt, context);
 
-        // Risk scoring (with custom rules integration)
+        // Risk scoring (custom rules: enterprise only — v4.0.0)
         const ruleResults = runRules(prompt, context, taskType);
-        const { riskScore } = await computeRiskScoreWithCustomRules(ruleResults, prompt, taskType);
+        const { riskScore } = ctx.tier === 'enterprise'
+          ? await computeRiskScoreWithCustomRules(ruleResults, prompt, taskType)
+          : { riskScore: computeRiskScore(ruleResults) };
 
         // Suggested profile (G5: deterministic mapping)
         const suggestedProfileName = suggestProfile(complexityResult.complexity, riskScore.score);
@@ -992,10 +1312,12 @@ export function registerTools(
         if (!resolvedTaskType) resolvedTaskType = 'other';
         if (!resolvedComplexity) resolvedComplexity = 'analytical';
 
-        // Risk scoring (with custom rules integration)
+        // Risk scoring (custom rules: enterprise only — v4.0.0)
         const contextTokens = estimateTokens((prompt || '') + (context || ''));
         const ruleResults = prompt ? runRules(prompt, context, resolvedTaskType) : [];
-        const { riskScore: riskScoreResult } = await computeRiskScoreWithCustomRules(ruleResults, prompt || '', resolvedTaskType);
+        const { riskScore: riskScoreResult } = ctx.tier === 'enterprise'
+          ? await computeRiskScoreWithCustomRules(ruleResults, prompt || '', resolvedTaskType)
+          : { riskScore: computeRiskScore(ruleResults) };
 
         // Build routing input
         const routingInput: ModelRoutingInput = {
@@ -1083,9 +1405,11 @@ export function registerTools(
         // 2. Complexity classification
         const complexityResult = classifyComplexity(prompt, context);
 
-        // 3. Risk scoring (with custom rules integration)
+        // 3. Risk scoring (custom rules: enterprise only — v4.0.0)
         const ruleResults = runRules(prompt, context, taskType);
-        const { riskScore: riskScoreResult } = await computeRiskScoreWithCustomRules(ruleResults, prompt, taskType);
+        const { riskScore: riskScoreResult } = ctx.tier === 'enterprise'
+          ? await computeRiskScoreWithCustomRules(ruleResults, prompt, taskType)
+          : { riskScore: computeRiskScore(ruleResults) };
         const blockingQuestions = extractBlockingQuestions(ruleResults);
         const warnings = ruleResults
           .filter(r => r.triggered && r.severity === 'non_blocking')
@@ -1147,6 +1471,15 @@ export function registerTools(
           }
         }
 
+        // Policy enforcement summary (v3.3.0 — only when enforce mode)
+        let policyEnforcement: { mode: string; violations: unknown[]; risk_threshold_exceeded: boolean; blocked: boolean } | undefined;
+        if (ctx.config.policy_mode === 'enforce') {
+          const { evaluatePolicyViolations, checkRiskThreshold, buildPolicyEnforcementSummary } = await import('./policy.js');
+          const violations = evaluatePolicyViolations(ruleResults, ctx.config);
+          const riskCheck = checkRiskThreshold(riskScoreResult.score, ctx.config.strictness);
+          policyEnforcement = buildPolicyEnforcementSummary(violations, riskCheck);
+        }
+
         log.info(requestId, `pre_flight: ${complexityResult.complexity}/${riskScoreResult.level} → ${recommendation.primary.model}`);
         return jsonResponse({
           request_id: requestId,
@@ -1170,6 +1503,8 @@ export function registerTools(
           },
           profile: profile || suggestedProfileName,
           ...(compressionDelta && { compression_delta: compressionDelta }),
+          policy_mode: ctx.config.policy_mode || 'advisory',
+          ...(policyEnforcement && { policy_enforcement: policyEnforcement }),
           summary,
         });
       } catch (err) {
@@ -1311,7 +1646,30 @@ export function registerTools(
         session_id = hardenInput(session_id);
         const { sessionHistory } = await import('./sessionHistory.js');
 
-        const exported = await sessionHistory.exportSession(session_id);
+        // Calculate policy_hash for export (v3.3.0)
+        let exportPolicyHash: string | undefined;
+        if (ctx.config.policy_mode === 'enforce') {
+          const { calculatePolicyHash } = await import('./policy.js');
+          const { calculateBuiltInRuleSetHash } = await import('./rules.js');
+          const { customRules: cr } = await import('./customRules.js');
+          // We need taskType from the session — load it first
+          const sessionForHash = await sessionHistory.loadSession(session_id);
+          if (sessionForHash) {
+            const customRulesList = await cr.getRulesForTask(sessionForHash.intent_spec.task_type);
+            exportPolicyHash = calculatePolicyHash({
+              builtInRuleSetHash: calculateBuiltInRuleSetHash(),
+              customRuleSetHash: cr.calculateRuleSetHash(customRulesList),
+              policyMode: ctx.config.policy_mode,
+              strictness: ctx.config.strictness,
+            });
+          }
+        }
+
+        const exported = await sessionHistory.exportSession(session_id, {
+          engine_version: engineVersion,
+          policy_mode: ctx.config.policy_mode || 'advisory',
+          policy_hash: exportPolicyHash,
+        });
         if (!exported) {
           return errorResponse({
             request_id: requestId,
@@ -1331,6 +1689,179 @@ export function registerTools(
           request_id: requestId,
           error: 'internal_error',
           message: `export_session failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
+
+  // ─── Tool 18: delete_session (FREE, v3.3.0) ──────────────────────────────
+
+  server.tool(
+    'delete_session',
+    'Delete a single optimization session by ID. Returns deleted status. Free tool, not metered.',
+    {
+      session_id: z.string().min(1).max(100).describe('Session ID to delete'),
+    },
+    async ({ session_id }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        session_id = hardenInput(session_id);
+        const { sessionHistory } = await import('./sessionHistory.js');
+
+        const deleted = await sessionHistory.deleteSession(session_id);
+
+        if (!deleted) {
+          return errorResponse({
+            request_id: requestId,
+            error: 'not_found',
+            message: `Session ${session_id} not found`,
+            session_id,
+          });
+        }
+
+        // Audit delete (v3.3.0)
+        if (ctx.config.audit_log) {
+          const { auditLogger } = await import('./auditLog.js');
+          await auditLogger.append({
+            timestamp: new Date().toISOString(),
+            event: 'delete',
+            session_id,
+            request_id: requestId,
+            policy_mode: ctx.config.policy_mode || 'advisory',
+            outcome: 'success',
+          });
+        }
+
+        log.info(requestId, `delete_session: deleted ${session_id}`);
+        return jsonResponse({
+          request_id: requestId,
+          schema_version: 1,
+          deleted: true,
+          session_id,
+        });
+      } catch (err) {
+        log.error(requestId, 'delete_session failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `delete_session failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
+
+  // ─── Tool 19: purge_sessions (FREE, v3.3.0) ──────────────────────────────
+
+  server.tool(
+    'purge_sessions',
+    'Purge optimization sessions by age policy or delete all. Safe-by-default: requires explicit parameters. Free tool, not metered.',
+    {
+      older_than_days: z.number().int().min(1).max(365).optional().describe('Delete sessions older than N days'),
+      keep_last: z.number().int().min(0).max(1000).optional().describe('Always protect the N newest sessions'),
+      purge_all: z.boolean().optional().describe('Explicit opt-in to delete ALL sessions'),
+      dry_run: z.boolean().default(false).describe('Preview what would be deleted without actually deleting'),
+    },
+    async ({ older_than_days, keep_last, purge_all, dry_run }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        const { sessionHistory } = await import('./sessionHistory.js');
+
+        // Default resolution (safe-by-default)
+        let result;
+        let effectiveOlderThanDays = older_than_days;
+
+        if (purge_all === true) {
+          // Explicit delete-all
+          result = await sessionHistory.purgeByPolicy({
+            mode: 'all',
+            keep_last,
+            dry_run: dry_run ?? false,
+          });
+        } else if (older_than_days !== undefined) {
+          // Filter by age
+          result = await sessionHistory.purgeByPolicy({
+            mode: 'by_policy',
+            older_than_days,
+            keep_last,
+            dry_run: dry_run ?? false,
+          });
+        } else if (ctx.config.session_retention_days !== undefined) {
+          // Use config default
+          effectiveOlderThanDays = ctx.config.session_retention_days;
+          result = await sessionHistory.purgeByPolicy({
+            mode: 'by_policy',
+            older_than_days: ctx.config.session_retention_days,
+            keep_last,
+            dry_run: dry_run ?? false,
+          });
+        } else {
+          // No-op: nothing configured
+          log.info(requestId, 'purge_sessions: no-op (no retention configured)');
+          return jsonResponse({
+            request_id: requestId,
+            schema_version: 1,
+            message: 'No retention configured; pass older_than_days or purge_all: true',
+            deleted_count: 0,
+            retained_count: 0,
+            scanned_count: 0,
+            deleted_session_ids: [],
+            truncated: false,
+            dry_run: dry_run ?? false,
+            no_op: true,
+            policy_mode: ctx.config.policy_mode || 'advisory',
+          });
+        }
+
+        // Audit purge (v3.3.0 — even dry_run gets logged for audit trail)
+        if (ctx.config.audit_log) {
+          const { auditLogger } = await import('./auditLog.js');
+          await auditLogger.append({
+            timestamp: new Date().toISOString(),
+            event: 'purge',
+            request_id: requestId,
+            policy_mode: ctx.config.policy_mode || 'advisory',
+            outcome: 'success',
+            details: {
+              deleted_count: result.deleted_count,
+              dry_run: result.dry_run,
+              ...(purge_all && { purge_all: true }),
+              ...(effectiveOlderThanDays !== undefined && { older_than_days: effectiveOlderThanDays }),
+            },
+          });
+        }
+
+        log.info(requestId, `purge_sessions: deleted=${result.deleted_count}, retained=${result.retained_count}, dry_run=${result.dry_run}`);
+        return jsonResponse({
+          request_id: requestId,
+          schema_version: 1,
+          deleted_count: result.deleted_count,
+          retained_count: result.retained_count,
+          scanned_count: result.scanned_count,
+          deleted_session_ids: result.deleted_session_ids,
+          truncated: result.truncated,
+          dry_run: result.dry_run,
+          no_op: result.no_op,
+          ...(result.cutoff_date && { cutoff_date: result.cutoff_date }),
+          ...(result.effective_older_than_days !== undefined && {
+            effective_older_than_days: result.effective_older_than_days,
+          }),
+          policy_applied: {
+            older_than_days: effectiveOlderThanDays ?? null,
+            keep_last: keep_last ?? null,
+            purge_all: purge_all ?? false,
+          },
+          policy_mode: ctx.config.policy_mode || 'advisory',
+        });
+      } catch (err) {
+        log.error(requestId, 'purge_sessions failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `purge_sessions failed: ${err instanceof Error ? err.message : 'unknown error'}`,
         });
       }
     },

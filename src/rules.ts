@@ -499,7 +499,7 @@ export function getElevatedRisk(results: RuleResult[]): RiskLevel | undefined {
 export const RISK_ESCALATION_THRESHOLD = 40;
 
 /** Built-in rules version. Rule count derived from the rules array — never hardcoded. */
-export const RULES_VERSION = `3.2.1-${rules.length}r`;
+export const RULES_VERSION = `4.0.0-${rules.length}r`;
 
 /**
  * Deterministic SHA-256 hash of all built-in rules.

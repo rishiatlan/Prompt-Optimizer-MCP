@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Prompt Optimizer — Shared JS
+   Prompt Control Plane — Shared JS
    Theme toggle (dark/light), mobile nav toggle
    ═══════════════════════════════════════════════════════════════════════════ */
 
@@ -7,7 +7,7 @@
   'use strict';
 
   // ─── Theme Toggle ─────────────────────────────────────────────────────
-  const THEME_KEY = 'po-theme';
+  const THEME_KEY = 'pcp-theme';
 
   function getPreferred() {
     const saved = localStorage.getItem(THEME_KEY);

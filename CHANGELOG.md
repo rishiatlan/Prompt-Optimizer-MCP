@@ -1,5 +1,69 @@
 # Changelog
 
+## [4.0.0] - 2026-03-01
+
+### Changed — Rebrand
+- **Product brand**: "Prompt Optimizer MCP" → **Prompt Control Plane** (display name only)
+- **npm package**: remains `claude-prompt-optimizer-mcp` (unchanged)
+- **GitHub repo**: remains `rishiatlan/Prompt-Optimizer-MCP` (unchanged)
+- **MCP config key**: remains `"prompt-optimizer"` (unchanged)
+- **Environment variables**: `PROMPT_OPTIMIZER_*` → `PROMPT_CONTROL_PLANE_*` (legacy fallback supported)
+- **Storage path**: `~/.prompt-optimizer/` → `~/.prompt-control-plane/`
+- **License key prefix**: `po_pro_` → `pcp_`
+- **localStorage key**: `po-theme` → `pcp-theme`
+- **Tagline**: "The control plane for AI prompts"
+
+### Added — Enterprise Tier Gates
+- Enterprise-only settings in `configure_optimizer`: `policy_mode`, `audit_log`, `session_retention_days`
+- Config lock/unlock requires Enterprise tier
+- Custom rules integration gated to Enterprise in MCP tools (ungated in CLI linter)
+- `tier_feature_unavailable` error response with upgrade URL
+- ~15 new tier gate tests
+
+### Changed — Docs Site
+- Navigation updated across all pages: Home | Features | Models | Docs | Pricing
+- New `plans.html` page for 4-tier pricing comparison with Enterprise Trust section
+- New `docs.html` page with full developer documentation, architecture flowchart, PreviewPack reference
+- Enterprise tier highlights: Policy Enforcement, Audit Logging, Config Lock, Custom Rules, Session Retention
+- Hero section updated with new tagline and branding
+- All meta/OG/Twitter descriptions updated
+
+### Notes
+- **No behavioral changes** to the core pipeline (scoring, routing, compression, compilation).
+- Enterprise features properly tier-gated (were previously accessible to all tiers).
+- Existing license keys with `po_pro_` prefix must be re-issued with `pcp_` prefix.
+- Architecture constraint preserved: **zero LLM calls inside. Deterministic. Offline. Reproducible.**
+
+## [3.3.0] - 2026-03-01
+
+### Added
+- **Policy enforcement mode**: `policy_mode` config (`advisory` | `enforce`). When set to `enforce`, BLOCKING rules (built-in + custom) block `optimize_prompt` and `approve_prompt`. Risk threshold gating blocks `approve_prompt` when score >= strictness threshold (relaxed=40, standard=60, strict=75).
+- **Audit logging with hash chaining**: Opt-in JSONL audit trail (`audit_log: true`). Local-only, append-only, never stores prompt content. Each entry includes `integrity_hash` — SHA-256 chain linking every entry to its predecessor. Tamper-evident: if any line is deleted or modified, all subsequent hashes break. Verify with `auditLogger.verifyChain()`.
+- **Config lock mode**: Passphrase-protected config locking (`lock: true, lock_secret: "..."`) prevents unauthorized changes. Only the correct passphrase can unlock. Wrong attempts are audit-logged. Stored as SHA-256 hash — secret never persisted.
+- **Tool 18 — `delete_session`** (FREE): Delete a single session by ID. Returns `deleted: true/false`.
+- **Tool 19 — `purge_sessions`** (FREE): Safe-by-default session purge with `older_than_days`, `keep_last`, `purge_all`, `dry_run`. Three-tier resolution: explicit purge_all → age filter → config default → no-op.
+- **`session_retention_days` config**: Optional auto-retention policy for `purge_sessions` default behavior.
+- **Policy hash**: SHA-256 of built-in + custom rule-set hashes + policy mode + strictness. Included in `approve_prompt` success response and `export_session` metadata for reproducibility.
+- **`policy_mode` in responses**: Visible in optimize_prompt, approve_prompt, pre_flight, and export_session outputs.
+- **`src/policy.ts`**: Pure policy evaluation module — `evaluatePolicyViolations`, `checkRiskThreshold`, `buildPolicyEnforcementSummary`, `calculatePolicyHash`.
+- **`src/auditLog.ts`**: AuditLogger class with no-throw invariant, JSONL append, 10-key detail cap, tamper-evident hash chain.
+- **65 new tests**: auditLog (18), sessionLifecycle (15), policyEnforcement (15), enterpriseWorkflow (2), contracts additions (15).
+
+### Changed
+- Tool count: 17 → 19
+- `STRICTNESS_THRESHOLDS` moved to `src/policy.ts` as canonical source (re-exported for backward compatibility)
+- `registerTools` signature now accepts `engineVersion?: string` for metadata propagation
+- Test count: 595 → 660
+- Test files: 28 → 32
+
+### Notes
+- **No breaking changes** to existing 17 MCP tools, CLI, or programmatic API.
+- New tools are FREE and unlimited.
+- Audit log is opt-in and local-only. Never stores raw_prompt or compiled_prompt. Tamper-evident via SHA-256 hash chain.
+- Config lock uses passphrase-based protection (SHA-256 hash stored, secret never persisted). All lock/unlock/blocked attempts are audit-logged.
+- Storage layout unchanged: `~/.prompt-optimizer/session-{id}.json`. Purge only deletes session files — never touches config, usage, license, audit, or custom rules.
+- Architecture constraint preserved: **zero LLM calls inside. Deterministic. Offline. Reproducible.**
+
 ## [3.2.1] - 2026-03-01
 
 ### Added

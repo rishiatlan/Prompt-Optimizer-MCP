@@ -21,6 +21,10 @@ export const DEFAULT_CONFIG: OptimizerConfig = {
   max_sessions: 200,
   max_session_size_kb: 50,
   max_session_dir_mb: 20,     // absolute cap — prevents disk abuse
+  // v3.3.0: Enterprise Operations
+  session_retention_days: undefined,  // no auto-purge
+  policy_mode: 'advisory',
+  audit_log: false,
 };
 
 export const DEFAULT_USAGE: UsageData = {
@@ -57,6 +61,12 @@ export type {
   Session,
   Tier,
   LicenseData,
+  PolicyMode,
+  AuditEntry,
+  AuditEvent,
+  AuditOutcome,
+  PolicyViolation,
+  PurgeResult,
 } from '../types.js';
 
 export { PLAN_LIMITS } from '../types.js';

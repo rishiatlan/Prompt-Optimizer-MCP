@@ -1,4 +1,4 @@
-// types.ts — All TypeScript interfaces for the prompt optimizer v2.0.
+// types.ts — All TypeScript interfaces for Prompt Control Plane v4.0.
 // This is the interface contract: Phase B must not change these shapes.
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
@@ -333,6 +333,10 @@ export interface SessionExport {
     risk_score: number;
     custom_rules_applied: string[];      // IDs of custom rules applied
     custom_rule_set_hash: string;        // SHA256 of custom rules applied
+    // v3.3.0: Enterprise metadata
+    engine_version?: string;             // package.json version at export time
+    policy_mode?: string;                // advisory | enforce
+    policy_hash?: string;                // SHA256 of builtIn+custom+policyMode+strictness
   };
 }
 
@@ -340,7 +344,7 @@ export interface SessionListResponse {
   schema_version: 1;
   sessions: SessionRecord[];
   total_sessions: number;
-  storage_path: string;                  // ~/.prompt-optimizer/
+  storage_path: string;                  // ~/.prompt-control-plane/
 }
 
 // ─── Custom Rules (v3.2.1) ──────────────────────────────────────────────────
@@ -445,6 +449,59 @@ export interface UsageData {
   tier: Tier;
 }
 
+// ─── Policy Mode (v3.3.0) ────────────────────────────────────────────────────
+
+export type PolicyMode = 'advisory' | 'enforce';
+
+// ─── Audit Types (v3.3.0) ───────────────────────────────────────────────────
+
+export type AuditEvent = 'optimize' | 'approve' | 'delete' | 'purge' | 'configure' | 'license_activate';
+export type AuditOutcome = 'success' | 'blocked' | 'error';
+
+/**
+ * Audit trail entry. Append-only JSONL format.
+ * PRIVACY INVARIANT: Never stores raw_prompt, compiled_prompt, or prompt_preview.
+ * details field: max 10 keys, typed values only (string | number | boolean).
+ */
+export interface AuditEntry {
+  timestamp: string;                  // ISO 8601
+  event: AuditEvent;
+  session_id?: string;
+  request_id: string;
+  task_type?: string;
+  risk_score?: number;
+  routing_tier?: string;
+  rule_set_hash?: string;
+  policy_mode?: string;
+  outcome: AuditOutcome;
+  details?: Record<string, string | number | boolean>;
+  integrity_hash?: string;           // SHA-256 chain: hash(prev_hash + JSON(entry)). Tamper-evident.
+}
+
+/**
+ * Policy violation returned when enforce mode blocks an action.
+ */
+export interface PolicyViolation {
+  rule_id: string;
+  description: string;
+  severity: string;
+  risk_dimension?: string;
+}
+
+// ─── Purge Result (v3.3.0) ──────────────────────────────────────────────────
+
+export interface PurgeResult {
+  deleted_count: number;
+  retained_count: number;
+  scanned_count: number;
+  deleted_session_ids: string[];     // capped at 100, always sorted lexicographic
+  truncated: boolean;
+  dry_run: boolean;
+  no_op: boolean;
+  cutoff_date?: string;              // ISO 8601, when mode='by_policy'
+  effective_older_than_days?: number;
+}
+
 // ─── Optimizer Config ─────────────────────────────────────────────────────────
 
 export interface OptimizerConfig {
@@ -458,6 +515,12 @@ export interface OptimizerConfig {
   max_sessions: number;              // default 200
   max_session_size_kb: number;       // default 50
   max_session_dir_mb: number;        // default 20 — absolute cap on session directory size
+  // v3.3.0: Enterprise Operations
+  session_retention_days?: number;   // undefined = no auto-purge
+  policy_mode?: PolicyMode;          // default 'advisory'
+  audit_log?: boolean;               // default false — opt-in JSONL audit trail
+  locked_config?: boolean;           // default false — when true, configure_optimizer refuses changes
+  lock_secret_hash?: string;         // SHA-256 of admin passphrase (set when locking, required to unlock)
 }
 
 // ─── Stats Data ───────────────────────────────────────────────────────────────

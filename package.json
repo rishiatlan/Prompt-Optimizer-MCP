@@ -1,8 +1,8 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "3.2.1",
+  "version": "4.0.0",
   "type": "module",
-  "description": "The prompt linter for LLM applications — scores, analyzes, standardizes prompts, and routes to optimal models via MCP. Free tier included.",
+  "description": "The control plane for AI prompts — deterministic scoring, policy enforcement, audit & governance via MCP. Free tier included.",
   "main": "dist/src/api.js",
   "types": "dist/src/api.d.ts",
   "exports": {
@@ -35,6 +35,8 @@
     "mcp",
     "model-context-protocol",
     "claude",
+    "prompt-control-plane",
+    "prompt-governance",
     "prompt-optimization",
     "prompt-engineering",
     "token-cost",
@@ -49,7 +51,9 @@
     "multi-llm",
     "prompt-linter",
     "lint",
-    "prompt-quality"
+    "prompt-quality",
+    "audit-trail",
+    "policy-enforcement"
   ],
   "repository": {
     "type": "git",

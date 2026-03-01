@@ -61,7 +61,7 @@ async function lintPrompt(prompt: string, source: string, threshold: number): Pr
   // Built-in rules
   const ruleResults = runRules(prompt, undefined, taskType);
 
-  // Custom rules (loaded from ~/.prompt-optimizer/custom-rules.json)
+  // Custom rules (loaded from ~/.prompt-control-plane/custom-rules.json)
   const applicableCustomRules = await customRules.getRulesForTask(taskType);
   const customIssues: Array<{ rule: string; severity: string; message: string }> = [];
   for (const rule of applicableCustomRules) {
@@ -292,7 +292,7 @@ async function main(): Promise<void> {
       rule_count: rules.length,
       validation_errors: errors,
       validation_warnings: warnings,
-      storage_path: process.env.HOME ? `${process.env.HOME}/.prompt-optimizer/custom-rules.json` : '~/.prompt-optimizer/custom-rules.json',
+      storage_path: process.env.HOME ? `${process.env.HOME}/.prompt-control-plane/custom-rules.json` : '~/.prompt-control-plane/custom-rules.json',
     };
 
     process.stdout.write(JSON.stringify(output, null, 2) + '\n');

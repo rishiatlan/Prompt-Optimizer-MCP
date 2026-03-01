@@ -69,7 +69,7 @@ function signTestLicense(payload: LicensePayload): string {
   const signature = crypto.sign(null, Buffer.from(canonical), testPrivateKey);
   const envelope = { payload, signature_hex: signature.toString('hex') };
   const encoded = Buffer.from(JSON.stringify(envelope)).toString('base64url');
-  return `po_pro_${encoded}`;
+  return `pcp_${encoded}`;
 }
 
 const TEST_PROMPT = 'Write a Python function that calculates compound interest. Include type hints, error handling for negative values, and a docstring explaining the formula.';

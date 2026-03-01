@@ -11,7 +11,7 @@ import type { CustomRule, CustomRulesConfig, TaskType, RuleMatch } from './types
 
 const DEFAULT_DATA_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || '/tmp',
-  '.prompt-optimizer',
+  '.prompt-control-plane',
 );
 
 const MAX_RULES = 25;

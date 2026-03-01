@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-A prompt linter for LLM applications — deterministic scoring, analysis, and standardization of AI prompts. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle. Ships as an MCP server, programmatic API, CLI linter (`prompt-lint`), and GitHub Action.
+**Prompt Control Plane** — a deterministic prompt governance engine for LLM applications. Scoring, policy enforcement, config locking, and tamper-evident auditing of AI prompts. Acts as a **deterministic prompt compiler + contract enforcer + governance layer** — turns raw user intent into a structured, constrained, reviewable prompt bundle. Ships as an MCP server, programmatic API, CLI linter (`prompt-lint`), and GitHub Action.
 
-**v3.2.1: Production-ready freemium product** with 4-tier access (Free/Pro ₹499\/mo/Power ₹899\/mo/Enterprise custom), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 15 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), GitHub Action, **reasoning complexity classifier**, **5 optimization profiles**, **deterministic model routing with decision_path audit trail**, **dimensional risk scoring**, **Perplexity support** (recommendation-only), **smart compression pipeline (H1-H5 heuristics)**, **zone scanner**, **preserve patterns**, **tool pruning engine**, **pre-flight deltas**, **multi-page docs site with dark/light mode**, **custom rules** (`~/.prompt-optimizer/custom-rules/`), and **reproducible session exports** (auto-calculated `rule_set_hash` + `rule_set_version` + `risk_score`).
+**v4.0.0: Enterprise-ready governance product (Prompt Control Plane)** with 4-tier access (Free/Pro ₹499\/mo/Power ₹899\/mo/Enterprise custom), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 19 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), GitHub Action, **reasoning complexity classifier**, **5 optimization profiles**, **deterministic model routing with decision_path audit trail**, **dimensional risk scoring**, **Perplexity support** (recommendation-only), **smart compression pipeline (H1-H5 heuristics)**, **zone scanner**, **preserve patterns**, **tool pruning engine**, **pre-flight deltas**, **multi-page docs site with dark/light mode**, **custom rules** (`~/.prompt-control-plane/custom-rules/`), **reproducible session exports** (auto-calculated `rule_set_hash` + `rule_set_version` + `risk_score`), **policy enforcement mode** (advisory/enforce with BLOCKING rule gating + risk threshold), **tamper-evident audit logging** (local JSONL, SHA-256 hash chain, no prompt content), **config lock mode** (passphrase-protected, audit-logged), and **session lifecycle management** (delete, purge with dry_run, retention policy).
 
 **Zero LLM calls inside the MCP.** All intelligence comes from the host Claude. The MCP provides structure, rules, and discipline.
 
@@ -14,7 +14,7 @@ A prompt linter for LLM applications — deterministic scoring, analysis, and st
 
 ```bash
 npm run build    # tsc → dist/
-npm test         # node --test dist/test/*.test.js (28 test files, 595 tests)
+npm test         # node --test dist/test/*.test.js (32 test files, ~676 tests)
 npm run start    # node dist/src/index.js
 ```
 
@@ -47,9 +47,9 @@ Published to npm as `claude-prompt-optimizer-mcp`. Four install channels:
 
 | Var | Default | Purpose |
 |-----|---------|---------|
-| `PROMPT_OPTIMIZER_PRO` | unset | Set to `true` to enable pro tier (env var override). Tier priority: license key > env var > default free. |
-| `PROMPT_OPTIMIZER_LOG_LEVEL` | `info` | Log verbosity: debug, info, warn, error |
-| `PROMPT_OPTIMIZER_LOG_PROMPTS` | unset (false) | Set to `true` to enable raw prompt logging. **Never enable in shared environments.** |
+| `PROMPT_CONTROL_PLANE_PRO` | unset | Set to `true` to enable pro tier (env var override). Tier priority: license key > env var > default free. |
+| `PROMPT_CONTROL_PLANE_LOG_LEVEL` | `info` | Log verbosity: debug, info, warn, error |
+| `PROMPT_CONTROL_PLANE_LOG_PROMPTS` | unset (false) | Set to `true` to enable raw prompt logging. **Never enable in shared environments.** |
 
 ## Architecture
 
@@ -68,12 +68,12 @@ User prompt → Host Claude → [calls MCP tools] → Deterministic analysis
 
 ### Phase A / Phase B Split
 
-- **Phase A (current):** Local file-based storage (`~/.prompt-optimizer/`), env var tier override, instance-scoped rate limiting
+- **Phase A (current):** Local file-based storage (`~/.prompt-control-plane/`), env var tier override, instance-scoped rate limiting
 - **Phase B (future):** Cloudflare Worker + Supabase + Stripe. Same `StorageInterface`, same tool contracts, only implementation swaps
 
 The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requires zero tool handler changes. Enforced by `test/contracts.test.ts`.
 
-## 15 MCP Tools
+## 19 MCP Tools
 
 | # | Tool | Free/Metered | Purpose |
 |---|------|-------------|---------|
@@ -83,7 +83,7 @@ The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requi
 | 4 | `estimate_cost` | Free | Multi-provider token + cost estimator (Anthropic, OpenAI, Google, Perplexity) |
 | 5 | `compress_context` | Free | Smart compression with H1-H5 heuristics, zone protection, preserve patterns |
 | 6 | `check_prompt` | Free | Lightweight pass/fail + score + top 2 issues |
-| 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode, session limits |
+| 7 | `configure_optimizer` | Free | Set mode, threshold, strictness, target, ephemeral mode, session limits, policy_mode, audit_log, session_retention_days |
 | 8 | `get_usage` | Free | Usage count, limits, remaining, tier info |
 | 9 | `prompt_stats` | Free | Aggregates: total, avg score, top task types, cost savings |
 | 10 | `set_license` | Free | Activate Pro license key (Ed25519 offline validation) |
@@ -92,6 +92,10 @@ The async `StorageInterface` and `ExecutionContext` pattern ensure Phase B requi
 | 13 | `route_model` | Free | Route to optimal model with full `decision_path` audit trail |
 | 14 | `pre_flight` | **Metered** | Full pre-flight pipeline: classify → risk → route → score. 1 use. |
 | 15 | `prune_tools` | Free | Score/rank tools by relevance; optionally prune low-relevance to save tokens |
+| 16 | `list_sessions` | Free | List all sessions (metadata only, no raw prompts, newest-first) |
+| 17 | `export_session` | Free | Full session export with rule-set hash, risk score, policy metadata |
+| 18 | `delete_session` | Free | Delete a single session by ID |
+| 19 | `purge_sessions` | Free | Safe-by-default session purge with age filters, keep_last, dry_run |
 
 ### Output Targets
 
@@ -117,7 +121,7 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 |------|------|
 | `src/index.ts` | Entry point — CLI flags, MCP server + stdio transport, wires storage + rate limiter |
 | `src/api.ts` | Barrel export for programmatic API — re-exports all pure functions + `optimize()` convenience pipeline |
-| `src/tools.ts` | 15 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
+| `src/tools.ts` | 19 MCP tool registrations with Zod schemas, freemium gate, ExecutionContext, error handling |
 | `src/types.ts` | All interfaces: TierLimits, PLAN_LIMITS, PreviewPack, ExecutionContext, StorageInterface, OutputTarget, LicenseData |
 | `src/license.ts` | Ed25519 offline license key validation (public key only, zero npm deps) |
 | `src/analyzer.ts` | Intent decomposition: raw prompt → IntentSpec. Three-layer task detection. `classifyComplexity()` for 6-type reasoning complexity classification. |
@@ -132,7 +136,7 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `src/rateLimit.ts` | `LocalRateLimiter` — instance-scoped, tier-keyed sliding window |
 | `src/sort.ts` | Deterministic ordering helpers: CHECKLIST_ORDER, sortCountsDescKeyAsc, sortIssues, sortCostEntries |
 | `src/storage/interface.ts` | StorageInterface type, defaults (DEFAULT_CONFIG, DEFAULT_USAGE, DEFAULT_STATS) |
-| `src/storage/localFs.ts` | File-based StorageInterface implementation (`~/.prompt-optimizer/`) |
+| `src/storage/localFs.ts` | File-based StorageInterface implementation (`~/.prompt-control-plane/`) |
 | `src/storage/index.ts` | Re-export — Phase B swaps one line |
 | `src/constants.ts` | Frozen configuration values for compression, pruning, and rules. PRUNE_THRESHOLD, LICENSE_SCAN_LINES, ALWAYS_RELEVANT_TOOLS. |
 | `src/tokenizer.ts` | Centralized token estimation: `estimatePromptTokens()` (words×1.3), `estimateToolTokens()` (chars/4). |
@@ -142,10 +146,13 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `src/pruner.ts` | Deterministic tool relevance scorer and pruner. Task-type-aware scoring, mention protection, always-relevant tools. |
 | `src/lint-cli.ts` | Standalone CLI linter (`prompt-lint` binary). No MCP dependency — reuses `api.ts` functions directly. |
 | `src/sessionHistory.ts` | Session persistence, export with auto-calculated `rule_set_hash`, `rule_set_version`, `risk_score`. |
-| `src/customRules.ts` | Read-only custom rules loader from `~/.prompt-optimizer/custom-rules/`. Hash calculation, evaluation, validation. |
+| `src/customRules.ts` | Read-only custom rules loader from `~/.prompt-control-plane/custom-rules/`. Hash calculation, evaluation, validation. |
+| `src/policy.ts` | Pure policy evaluation: `evaluatePolicyViolations`, `checkRiskThreshold`, `buildPolicyEnforcementSummary`, `calculatePolicyHash`. Canonical `STRICTNESS_THRESHOLDS`. |
+| `src/auditLog.ts` | AuditLogger class: JSONL append-only, local-only, opt-in. No-throw invariant. Details capped at 10 keys. Never stores prompt content. |
 | `docs/index.html` | Landing page — hero, providers strip, how-it-works, 4-tier pricing, install |
-| `docs/features.html` | Features sub-page — capabilities, all 15 tools, use cases, comparison, API |
+| `docs/features.html` | Features sub-page — capabilities, all 19 tools, use cases, comparison, API |
 | `docs/models.html` | Supported models page — 4 providers, 11 models, routing, output formats |
+| `docs/plans.html` | Pricing plans comparison — 4-tier feature matrix, FAQ, CTA |
 | `docs/contact.html` | Enterprise contact form — Formspree integration, thank-you redirect |
 | `docs/thank-you.html` | Post-form confirmation — next steps, noindex |
 | `docs/how-i-built-this.html` | Blog post — "From Idea to Product in 49 Hours" |
@@ -185,6 +192,10 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `test/compression-overloads.test.ts` | 5 compressContext overload signatures, type detection, backward compatibility |
 | `test/sessionHistory.test.ts` | Session persistence, export auto-calculation, CRUD, filtering, edge cases |
 | `test/reproducibility.test.ts` | RULES_VERSION format, hash stability, risk score in exports, auto-calculation, API barrel exports |
+| `test/auditLog.test.ts` | JSONL append, multiple entries, required fields, ISO 8601 timestamps, no-throw, details capping, privacy |
+| `test/sessionLifecycle.test.ts` | deleteSession CRUD, purgeByPolicy (age filter, keep_last, dry_run, storage isolation, sorted IDs) |
+| `test/policyEnforcement.test.ts` | evaluatePolicyViolations (advisory/enforce), checkRiskThreshold (>= semantics), policy hash determinism |
+| `test/enterpriseWorkflow.test.ts` | Full buyer lifecycle: configure → enforce → block → purge → audit trail verification |
 
 ## Key Type Contracts
 
@@ -216,9 +227,9 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 ## License System
 
 - **Ed25519 asymmetric signatures** — public key in `src/license.ts`, private key never in repo
-- **License key format:** `po_pro_<base64url({ payload, signature_hex })>`
+- **License key format:** `pcp_<base64url({ payload, signature_hex })>`
 - **Payload:** `{ tier, issued_at, expires_at, license_id }` — no PII, no email
-- **Tier priority chain:** license key (cryptographically verified) > `PROMPT_OPTIMIZER_PRO` env var > default free
+- **Tier priority chain:** license key (cryptographically verified) > `PROMPT_CONTROL_PLANE_PRO` env var > default free
 - **`getLicense()` re-checks expiry** on every read; marks `valid=false` + `validation_error='expired'` if newly expired
 - **`setLicense()` sets chmod 600** on POSIX (best-effort, skip on Windows)
 - **Gate responses** include `pro_purchase_url` + `power_purchase_url` + `enterprise_purchase_url` + `next_step` when tier limit is hit (not on rate limits)
@@ -335,7 +346,7 @@ v3.2 adds the Enterprise tier and a multi-page documentation site. **No behavior
 ### Multi-Page Docs Site
 Monolithic `index.html` (1094 lines, 11 sections) split into focused pages:
 - `index.html` — Hero, providers strip, how-it-works, 4-tier pricing, install
-- `features.html` — Core capabilities, all 15 tools, use cases, comparison, API
+- `features.html` — Core capabilities, all 19 tools, use cases, comparison, API
 - `models.html` — 4 providers × 11 models, routing, output formats
 - `contact.html` — Enterprise contact form (Formspree)
 - `thank-you.html` — Post-form confirmation
@@ -344,7 +355,50 @@ Monolithic `index.html` (1094 lines, 11 sections) split into focused pages:
 - `shared.css` — Dark/light theme tokens, nav, footer, cards, grids, pricing, tags
 - `shared.js` — Theme toggle with `localStorage` persistence, mobile hamburger
 - `[data-theme="light"]` override pattern — user preference respected via `prefers-color-scheme`
-- All pages use consistent nav with: Home | Features | Models | Pricing | Docs | Blog + theme toggle
+- All pages use consistent nav with: Home | Features | Models | Docs | Plans | Blog + theme toggle
+
+## v3.3 Enterprise Operations & Control
+
+v3.3 adds operational completeness for enterprise buyers — the governance layer a CTO needs before approving AI in production. **Zero LLM calls — still deterministic, offline, reproducible.**
+
+### Policy Enforcement
+- `policy_mode: 'advisory' | 'enforce'` — config-driven, default advisory
+- `enforce` mode gates: `optimize_prompt` blocked on BLOCKING violations, `approve_prompt` blocked on violations OR risk threshold
+- **BLOCKING scope**: Both built-in AND custom BLOCKING rules enforced (not just custom)
+- Risk threshold: `score >= threshold` → blocked (relaxed=40, standard=60, strict=75)
+- `STRICTNESS_THRESHOLDS` canonical source in `src/policy.ts`
+- Error payloads: `policy_violation` (with violations[]), `risk_threshold_exceeded` (with score, threshold, strictness)
+- `policy_hash` in approve_prompt success + export_session metadata
+
+### Config Lock Mode
+- `locked_config: true` + `lock_secret_hash` — passphrase-protected config locking
+- Lock: `configure_optimizer(lock=true, lock_secret='passphrase')` — stores SHA-256 hash, never the secret
+- Unlock: `configure_optimizer(unlock=true, lock_secret='passphrase')` — must match original
+- Wrong secret → `invalid_lock_secret` error + audit-logged
+- Any config change while locked → `config_locked` error + audit-logged
+- Provides "who can change governance" control without RBAC infrastructure
+
+### Tamper-Evident Audit Trail
+- `audit_log: true` — opt-in, local-only, JSONL append to `~/.prompt-control-plane/audit.log`
+- **Hash chaining**: Each entry includes `integrity_hash = SHA-256(prev_hash + JSON(entry))`. First entry chains from `GENESIS_HASH` (64 zeros).
+- If any line is deleted or modified, all subsequent hashes break → tamper detected
+- `auditLogger.verifyChain()` — verify integrity programmatically
+- Events: optimize, approve, delete, purge, configure, license_activate
+- Outcomes: success, blocked, error
+- **Privacy invariant**: Never stores `raw_prompt` or `compiled_prompt`. Details capped at 10 keys.
+- No-throw: audit write failures never break the pipeline
+
+### Session Lifecycle
+- `delete_session` (Tool 18): Delete single session by ID
+- `purge_sessions` (Tool 19): Safe-by-default purge with `older_than_days`, `keep_last`, `purge_all`, `dry_run`
+- `session_retention_days` config: Default age policy for purge
+- Storage isolation: Purge only deletes `session-*.json` — never touches audit.log, config.json, usage.json, license.json, custom-rules.json
+- `deleted_session_ids` always sorted lexicographic, capped at 100
+
+### Key Constants
+- `STRICTNESS_THRESHOLDS` = `{ relaxed: 40, standard: 60, strict: 75 }` — in `src/policy.ts`
+- `GENESIS_HASH` = 64 zeros — well-known first hash in audit chain
+- Tool count: 17 → 19 (v3.1=15 → v3.2.1=17 → v3.3.0=19)
 
 ## Breaking Changes (v1 → v2)
 

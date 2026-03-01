@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>How I Built Prompt Optimizer MCP — From Idea to Product in 49 Hours</title>
+  <title>How I Built Prompt Control Plane — From Idea to Product in 49 Hours</title>
   <meta name="description" content="The full story of building an MCP server that optimizes AI prompts — from zero to published on npm and 6+ directories in under 2 weeks, with only 10 hours of active coding.">
-  <meta property="og:title" content="How I Built Prompt Optimizer MCP">
+  <meta property="og:title" content="How I Built Prompt Control Plane">
   <meta property="og:description" content="49 hours wall clock, 10 hours active coding, 21 commits. The full story of building a prompt optimization MCP server and turning it into a freemium product.">
   <meta property="og:type" content="article">
   <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/how-i-built-this.html">
   <meta property="article:author" content="Rishi Banerjee">
   <meta property="article:published_time" content="2026-02-28">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="How I Built Prompt Optimizer MCP">
+  <meta name="twitter:title" content="How I Built Prompt Control Plane">
   <meta name="twitter:description" content="49 hours wall clock, 10 hours active coding, 21 commits. From idea to freemium product with $0 infrastructure.">
 
   <!-- Schema.org Article structured data -->
@@ -20,7 +20,7 @@
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "How I Built Prompt Optimizer MCP — From Idea to Product in 49 Hours",
+    "headline": "How I Built Prompt Control Plane — From Idea to Product in 49 Hours",
     "author": {
       "@type": "Person",
       "name": "Rishi Banerjee",
@@ -538,7 +538,7 @@
   <!-- Nav -->
   <nav>
     <div class="container">
-      <a href="./" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <a href="./" class="logo">Prompt Control <span>Plane</span></a>
       <button class="nav-toggle" aria-label="Menu">
         <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
       </button>
@@ -546,8 +546,8 @@
         <a href="./">Home</a>
         <a href="features.html">Features</a>
         <a href="models.html">Models</a>
-        <a href="./#pricing">Pricing</a>
         <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <a href="plans.html">Pricing</a>
         <a href="how-i-built-this.html" class="active">Blog</a>
         <button class="theme-toggle" aria-label="Toggle theme">
           <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -592,6 +592,7 @@
         <li><a href="#whats-next">What's Next</a></li>
         <li><a href="#timeline">The Actual Timeline &mdash; 49 Hours, 21 Commits</a></li>
         <li><a href="#by-the-numbers">By the Numbers</a></li>
+        <li><a href="#v4-update">Update: v4.0.0 &mdash; Prompt Control Plane</a></li>
         <li><a href="#acknowledgments">Acknowledgments</a></li>
       </ol>
     </div>
@@ -715,7 +716,7 @@
         <li><strong>MCP SDK</strong> &mdash; the official Anthropic library for building MCP servers</li>
         <li><strong>Zod</strong> &mdash; runtime schema validation for all tool inputs</li>
         <li><strong>Node.js crypto</strong> &mdash; Ed25519 signatures for license keys (zero external dependencies)</li>
-        <li><strong>No database.</strong> Local file storage in <code>~/.prompt-optimizer/</code></li>
+        <li><strong>No database.</strong> Local file storage in <code>~/.prompt-control-plane/</code></li>
       </ul>
 
       <p>That&rsquo;s it. Two runtime dependencies: the MCP SDK and Zod. Everything else is Node.js built-ins.</p>
@@ -1105,12 +1106,12 @@
           <div class="metric-label">Active coding time (49 hrs wall clock)</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value">~4,000</div>
+          <div class="metric-value">~18,000</div>
           <div class="metric-label">Lines of TypeScript</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value"><span class="green">129</span></div>
-          <div class="metric-label">Tests across 9 files</div>
+          <div class="metric-value"><span class="green">676</span></div>
+          <div class="metric-label">Tests across 28 files</div>
         </div>
         <div class="metric-card">
           <div class="metric-value">2</div>
@@ -1121,7 +1122,7 @@
           <div class="metric-label">Monthly infrastructure cost</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value">11</div>
+          <div class="metric-value">19</div>
           <div class="metric-label">MCP tools</div>
         </div>
         <div class="metric-card">
@@ -1133,8 +1134,8 @@
           <div class="metric-label">Output targets (Claude, OpenAI, Generic)</div>
         </div>
         <div class="metric-card">
-          <div class="metric-value">8</div>
-          <div class="metric-label">Cost models across 3 providers</div>
+          <div class="metric-value">11</div>
+          <div class="metric-label">Cost models across 4 providers</div>
         </div>
         <div class="metric-card">
           <div class="metric-value">4</div>
@@ -1157,6 +1158,22 @@
           <div class="metric-label">AI calls made by the optimizer</div>
         </div>
       </div>
+
+      <!-- v4.0.0 Update -->
+      <section id="v4-update">
+        <h2>Update: v4.0.0 &mdash; Prompt Control Plane</h2>
+        <p>Since the initial build, the product has evolved from a 11-tool prompt linter into a full <strong>prompt control plane</strong> with 19 MCP tools, 676 tests, and enterprise-grade governance:</p>
+        <ul style="line-height:2;">
+          <li><strong>v3.0:</strong> Decision engine &mdash; reasoning complexity classifier, 5 optimization profiles, deterministic model routing with <code>decision_path</code> audit trail, dimensional risk scoring, Perplexity support</li>
+          <li><strong>v3.1:</strong> Smart compression (H1&ndash;H5 heuristics), tool pruning engine, zone scanner, preserve patterns, 4 new ambiguity rules (14 total)</li>
+          <li><strong>v3.2:</strong> Enterprise tier, multi-page docs site with dark/light mode, CLI linter (<code>prompt-lint</code>), GitHub Action (<code>Prompt Lint</code>)</li>
+          <li><strong>v3.3:</strong> Enterprise operations &mdash; policy enforcement (advisory + enforce), tamper-evident audit trail (JSONL, hash-chained), config lock with passphrase, session lifecycle management, session retention policies</li>
+          <li><strong>v4.0:</strong> Rebranded to <strong>Prompt Control Plane</strong>. Enterprise tier gates enforced. Custom rules engine (up to 25 rules). Reproducible exports with rule-set hashes. Professional documentation site with architecture flowchart, pricing page, and enterprise trust section.</li>
+        </ul>
+        <p>The core principle never changed: <strong>zero LLM calls inside</strong>. Everything is still deterministic, offline, and reproducible. The product just grew from &ldquo;lint your prompts&rdquo; to &ldquo;govern your entire prompt pipeline.&rdquo;</p>
+      </section>
+
+      <hr>
 
       <!-- Acknowledgments -->
       <section id="acknowledgments">

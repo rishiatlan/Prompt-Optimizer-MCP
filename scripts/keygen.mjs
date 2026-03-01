@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// keygen.mjs — Ed25519 license key generator for Prompt Optimizer MCP Pro.
+// keygen.mjs — Ed25519 license key generator for Prompt Control Plane.
 // Runs locally on YOUR machine only. Never deploy this. Never commit the private key.
 //
 // Usage:
@@ -46,7 +46,7 @@ function signLicense(payload, privateKeyPem) {
     signature_hex: signature.toString('hex'),
   };
   const encoded = Buffer.from(JSON.stringify(envelope)).toString('base64url');
-  return `po_pro_${encoded}`;
+  return `pcp_${encoded}`;
 }
 
 function loadPrivateKey() {
@@ -152,9 +152,9 @@ function cmdVerify(key) {
   const publicKeyPem = loadPublicKey();
 
   // Inline validation (mirrors src/license.ts logic)
-  const PREFIX = 'po_pro_';
+  const PREFIX = 'pcp_';
   if (!key.startsWith(PREFIX)) {
-    console.error('INVALID: missing po_pro_ prefix');
+    console.error('INVALID: missing pcp_ prefix');
     process.exit(1);
   }
 
@@ -209,7 +209,7 @@ switch (command) {
     cmdVerify(arg);
     break;
   default:
-    console.log(`keygen.mjs — Ed25519 license key generator
+    console.log(`keygen.mjs — Ed25519 license key generator for Prompt Control Plane
 
 Usage:
   node scripts/keygen.mjs init                    Generate Ed25519 keypair (one-time)

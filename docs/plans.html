@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing &amp; Comparison — Prompt Control Plane | Pricing, Features &amp; Enterprise</title>
+  <meta name="description" content="Compare all Prompt Control Plane tiers: Free, Pro, Power, and Enterprise. Full feature comparison across 19 tools, enterprise governance features, and pricing details.">
+  <meta name="keywords" content="prompt optimizer pricing, prompt linter plans, MCP server pricing, enterprise prompt governance, prompt policy enforcement pricing, audit trail, config lock, custom rules">
+  <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/plans.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Pricing &amp; Comparison — Prompt Control Plane">
+  <meta property="og:description" content="Compare all tiers: Free, Pro, Power, Enterprise. 19 tools, enterprise governance, audit trails, policy enforcement.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/plans.html">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pricing &amp; Comparison — Prompt Control Plane">
+  <meta name="twitter:description" content="Compare all tiers: Free, Pro, Power, Enterprise. 19 tools, enterprise governance, audit trails, policy enforcement.">
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Pricing & Comparison — Prompt Control Plane",
+    "description": "Full feature comparison across all Prompt Control Plane tiers. 19 tools, enterprise governance, audit trails, policy enforcement.",
+    "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/plans.html",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Prompt Control Plane",
+      "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="shared.css">
+
+  <style>
+    /* ─── Page-specific: Hero ──────────────────────────────────────────────── */
+    .plans-hero {
+      padding: 80px 0 64px;
+      text-align: center;
+    }
+    .plans-hero h1 {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .plans-hero h1 .highlight { color: var(--accent); }
+    .plans-hero .subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* ─── Comparison Table ─────────────────────────────────────────────────── */
+    .comparison-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 640px;
+    }
+    .comparison-table thead th {
+      text-align: center;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 12px 10px;
+      border-bottom: 2px solid var(--border);
+      font-weight: 700;
+    }
+    .comparison-table thead th:first-child {
+      text-align: left;
+    }
+    .comparison-table tbody td {
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .comparison-table tbody td:first-child {
+      text-align: left;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .comparison-table .group-header td {
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      padding-top: 20px;
+      border-bottom: 1px solid var(--accent-glow);
+      background: var(--accent-glow);
+    }
+    .check { color: var(--green); font-weight: 700; font-size: 15px; }
+    .dash { color: var(--text-muted); opacity: 0.4; }
+    .enterprise-only { color: var(--accent); font-weight: 600; font-size: 11px; }
+
+    /* ─── Enterprise Deep-Dive ─────────────────────────────────────────────── */
+    .enterprise-feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 24px;
+      margin-bottom: 20px;
+    }
+    .enterprise-feature h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .enterprise-feature h3 .ef-icon {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .enterprise-feature p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .enterprise-feature .ef-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .enterprise-feature .ef-code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      color: var(--green);
+      line-height: 1.7;
+      overflow-x: auto;
+      white-space: pre;
+      margin-bottom: 14px;
+    }
+    .ef-output {
+      color: var(--text-muted) !important;
+    }
+
+    /* ─── CTA ──────────────────────────────────────────────────────────────── */
+    .plans-cta {
+      padding: 64px 0;
+      text-align: center;
+    }
+    .plans-cta h2 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .plans-cta p {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <a href="./" class="logo">Prompt Control <span>Plane</span></a>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-links">
+        <a href="./">Home</a>
+        <a href="features.html">Features</a>
+        <a href="models.html">Models</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <a href="plans.html" class="active">Pricing</a>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Hero
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="plans-hero">
+    <div class="container">
+      <span class="badge badge-accent">Pricing</span>
+      <h1><span class="highlight">Pricing</span></h1>
+      <p class="subtitle">Every plan includes the full scoring engine. Enterprise unlocks policy enforcement, audit trails, and config governance.</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Pricing Grid
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section" id="pricing">
+    <div class="container-wide text-center">
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="tier">Free</div>
+          <div class="price">$0</div>
+          <div class="price-note">forever</div>
+          <ul>
+            <li>10 lifetime optimizations</li>
+            <li>5 per minute rate limit</li>
+            <li>All 19 tools</li>
+            <li>All 3 output formats</li>
+            <li>Unlimited scoring &amp; checking</li>
+          </ul>
+          <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP" class="btn btn-secondary">Start Free</a>
+        </div>
+        <div class="pricing-card featured">
+          <div class="tier">Pro</div>
+          <div class="price">&#x20b9;499</div>
+          <div class="price-note">per month (~$6)</div>
+          <ul>
+            <li>100 optimizations / month</li>
+            <li>30 per minute rate limit</li>
+            <li>All 19 tools</li>
+            <li>Always-on mode</li>
+            <li>Offline license key</li>
+          </ul>
+          <a href="https://rzp.io/rzp/FXZk3gcZ" class="btn btn-primary">Get Pro</a>
+        </div>
+        <div class="pricing-card">
+          <div class="tier">Power</div>
+          <div class="price">&#x20b9;899</div>
+          <div class="price-note">per month (~$11)</div>
+          <ul>
+            <li>Unlimited optimizations</li>
+            <li>60 per minute rate limit</li>
+            <li>All 19 tools</li>
+            <li>Always-on mode</li>
+            <li>Priority support</li>
+          </ul>
+          <a href="https://rzp.io/rzp/u0TSscp" class="btn btn-primary">Get Power</a>
+        </div>
+        <div class="pricing-card">
+          <div class="tier">Enterprise</div>
+          <div class="price">Custom</div>
+          <div class="price-note">contact us</div>
+          <ul>
+            <li>Unlimited optimizations</li>
+            <li>120 per minute rate limit</li>
+            <li>Policy enforcement (advisory + enforce modes)</li>
+            <li>Tamper-evident audit trail (JSONL, hash-chained)</li>
+            <li>Config lock with passphrase protection</li>
+            <li>Custom rules engine (up to 25 rules)</li>
+            <li>Session lifecycle management</li>
+            <li>Session retention policies (auto-purge)</li>
+            <li>Dedicated support</li>
+          </ul>
+          <a href="contact.html" class="btn btn-secondary">Contact Sales</a>
+          <a href="docs.html#enterprise-features" class="btn btn-secondary" style="margin-top:8px;">See all Enterprise features</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Full Feature Comparison Table
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section section-alt" id="comparison">
+    <div class="container-wide">
+      <h2 class="section-title text-center">Full Feature Comparison</h2>
+      <p class="section-subtitle text-center">Every tool, every tier. All 19 tools are available on all plans &mdash; metering applies only to optimization calls.</p>
+
+      <div class="comparison-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th style="width: 40%;">Feature</th>
+              <th>Free</th>
+              <th>Pro</th>
+              <th>Power</th>
+              <th>Enterprise</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Limits -->
+            <tr class="group-header">
+              <td colspan="5">Limits &amp; Rate</td>
+            </tr>
+            <tr>
+              <td>Monthly optimizations</td>
+              <td>10 lifetime</td>
+              <td>100 / mo</td>
+              <td>Unlimited</td>
+              <td>Unlimited</td>
+            </tr>
+            <tr>
+              <td>Rate limit</td>
+              <td>5 / min</td>
+              <td>30 / min</td>
+              <td>60 / min</td>
+              <td>120 / min</td>
+            </tr>
+            <tr>
+              <td>Always-on mode</td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- Analysis Tools -->
+            <tr class="group-header">
+              <td colspan="5">Analysis Tools</td>
+            </tr>
+            <tr>
+              <td>optimize_prompt <span class="tag tag-metered">metered</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>check_prompt <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>classify_task <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- Routing Tools -->
+            <tr class="group-header">
+              <td colspan="5">Routing Tools</td>
+            </tr>
+            <tr>
+              <td>route_model <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>pre_flight <span class="tag tag-metered">metered</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- Refinement Tools -->
+            <tr class="group-header">
+              <td colspan="5">Refinement Tools</td>
+            </tr>
+            <tr>
+              <td>refine_prompt <span class="tag tag-metered">metered</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>approve_prompt <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- Cost Tools -->
+            <tr class="group-header">
+              <td colspan="5">Cost &amp; Compression Tools</td>
+            </tr>
+            <tr>
+              <td>estimate_cost <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>compress_context <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>prune_tools <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- Config Tools -->
+            <tr class="group-header">
+              <td colspan="5">Configuration Tools</td>
+            </tr>
+            <tr>
+              <td>configure_optimizer <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>get_usage <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>prompt_stats <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- License Tools -->
+            <tr class="group-header">
+              <td colspan="5">License Tools</td>
+            </tr>
+            <tr>
+              <td>set_license <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>license_status <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- Session Tools -->
+            <tr class="group-header">
+              <td colspan="5">Session Tools</td>
+            </tr>
+            <tr>
+              <td>list_sessions <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>export_session <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>delete_session <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>purge_sessions <span class="tag tag-free">free</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+
+            <!-- Enterprise-Only Features -->
+            <tr class="group-header">
+              <td colspan="5">Enterprise-Only Governance</td>
+            </tr>
+            <tr>
+              <td>Policy Enforcement</td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>Audit Logging</td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>Config Lock</td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>Custom Rules</td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+            <tr>
+              <td>Session Retention Policies</td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="dash">&mdash;</span></td>
+              <td><span class="check">&#10003;</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Enterprise Features Deep-Dive
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section" id="enterprise-deep-dive">
+    <div class="container">
+      <h2 class="section-title text-center">Enterprise Features</h2>
+      <p class="section-subtitle text-center">The governance layer you need before approving AI in production.</p>
+
+      <!-- Policy Enforcement -->
+      <div class="enterprise-feature">
+        <h3><span class="ef-icon">&#x1f6e1;</span> Policy Enforcement</h3>
+        <p>Switch from advisory mode (flags issues) to enforce mode (blocks prompts that fail policy). BLOCKING rules &mdash; both built-in and custom &mdash; gate every optimization. Risk threshold gating blocks high-risk approvals above a configurable score. Deterministic: same input produces the same verdict every time.</p>
+        <div class="ef-label">How to enable</div>
+        <div class="ef-code">configure_optimizer({ mode: "enforce", threshold: 60 })</div>
+        <div class="ef-label">Example output when blocked</div>
+        <div class="ef-code ef-output">{
+  "status": "blocked",
+  "reason": "risk_score_exceeded",
+  "risk_score": 72,
+  "threshold": 60,
+  "blocking_rules": ["hallucination_risk", "agent_underspec"],
+  "recommendation": "Add source context and safety constraints"
+}</div>
+      </div>
+
+      <!-- Audit Logging -->
+      <div class="enterprise-feature">
+        <h3><span class="ef-icon">&#x1f4dc;</span> Audit Logging</h3>
+        <p>Every action generates a JSONL audit entry with SHA-256 hash chaining. If any line is deleted or modified, the chain breaks and tampering is detectable. Local-only, opt-in, and never stores raw prompt content. Answers the question: who changed what, when, and was it allowed?</p>
+        <div class="ef-label">How to enable</div>
+        <div class="ef-code">configure_optimizer({ audit_logging: true })</div>
+        <div class="ef-label">Example audit entry</div>
+        <div class="ef-code ef-output">{
+  "timestamp": "2026-03-01T10:15:32.441Z",
+  "action": "optimize_prompt",
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tier": "enterprise",
+  "risk_score": 34,
+  "verdict": "allowed",
+  "prev_hash": "8f14e45f...abc123",
+  "hash": "7c222fb2...def456"
+}</div>
+      </div>
+
+      <!-- Config Lock -->
+      <div class="enterprise-feature">
+        <h3><span class="ef-icon">&#x1f512;</span> Config Lock</h3>
+        <p>Lock your governance configuration with a passphrase. Once locked, no one can change policy, strictness, threshold, or audit settings without the correct secret. Every attempt &mdash; successful or blocked &mdash; is audit-logged. Tamper-evident: the lock state itself is hash-protected.</p>
+        <div class="ef-label">How to enable</div>
+        <div class="ef-code">configure_optimizer({ lock: true, passphrase: "your-secret" })</div>
+        <div class="ef-label">What happens on unauthorized change</div>
+        <div class="ef-code ef-output">{
+  "status": "error",
+  "error": "config_locked",
+  "message": "Configuration is locked. Provide the correct passphrase to modify settings.",
+  "audit_logged": true
+}</div>
+      </div>
+
+      <!-- Custom Rules -->
+      <div class="enterprise-feature">
+        <h3><span class="ef-icon">&#x1f4cb;</span> Custom Rules</h3>
+        <p>Define your own regex-based rules in a JSON file. Each rule specifies a pattern, severity (BLOCKING or NON-BLOCKING), a risk dimension (hallucination, constraint, underspec, or scope), and a risk weight. Up to 25 custom rules. Rules are hashed for reproducibility and included in session exports.</p>
+        <div class="ef-label">Example custom rule</div>
+        <div class="ef-code">{
+  "id": "no_pii_in_prompt",
+  "description": "Flag prompts that include email addresses",
+  "pattern": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+  "applies_to": "all",
+  "severity": "BLOCKING",
+  "risk_dimension": "constraint",
+  "risk_weight": 20
+}</div>
+        <div class="ef-label">Validate with CLI</div>
+        <div class="ef-code">prompt-lint --validate-custom-rules</div>
+      </div>
+
+      <!-- Session Retention -->
+      <div class="enterprise-feature">
+        <h3><span class="ef-icon">&#x1f5d1;</span> Session Retention Policies</h3>
+        <p>Auto-purge sessions older than a configurable retention period. Dry-run mode previews what would be deleted before committing. The <code>keep_last</code> parameter protects your newest N sessions from purge. Only session files are affected &mdash; config, audit logs, and license data are never deleted.</p>
+        <div class="ef-label">How to use</div>
+        <div class="ef-code">purge_sessions({ older_than_days: 90, keep_last: 5, dry_run: true })</div>
+        <div class="ef-label">Example dry-run output</div>
+        <div class="ef-code ef-output">{
+  "dry_run": true,
+  "sessions_matched": 12,
+  "sessions_protected": 5,
+  "sessions_to_delete": 7,
+  "oldest": "2025-11-15T08:22:00Z",
+  "newest_deleted": "2025-12-01T14:30:00Z"
+}</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Enterprise Trust
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section" id="enterprise-trust">
+    <div class="container">
+      <h2 class="section-title">Built for Enterprise Trust</h2>
+      <p class="section-subtitle">Addressing the concerns your security and compliance teams will ask about.</p>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:24px; margin-top:32px;">
+
+        <div class="card">
+          <h3 style="margin-top:0;">Security</h3>
+          <ul style="padding-left:1.2rem; line-height:1.8;">
+            <li>Zero LLM calls inside — prompts never leave your machine</li>
+            <li>No cloud services, no telemetry, no phone-home</li>
+            <li>Runs entirely on localhost via MCP stdio transport</li>
+            <li>Ed25519 offline license validation — no network needed</li>
+            <li>Config lock with SHA-256 hashed passphrase protection</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Privacy</h3>
+          <ul style="padding-left:1.2rem; line-height:1.8;">
+            <li>All data stored locally in <code>~/.prompt-control-plane/</code></li>
+            <li>No user accounts, no email collection, no PII stored</li>
+            <li>License keys contain only: tier, dates, license_id</li>
+            <li>Audit log never stores raw prompts or compiled outputs</li>
+            <li>Works behind corporate VPNs and air-gapped networks</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Compliance &amp; Governance</h3>
+          <ul style="padding-left:1.2rem; line-height:1.8;">
+            <li>Deterministic — same input produces same output, always</li>
+            <li>Tamper-evident audit trail with hash-chained JSONL entries</li>
+            <li>Policy enforcement blocks non-compliant prompts at approval</li>
+            <li>Reproducible exports with rule-set hashes for audit</li>
+            <li>Open source — full code review available on GitHub</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0;">Deployment</h3>
+          <ul style="padding-left:1.2rem; line-height:1.8;">
+            <li>No infrastructure to manage — runs as a local process</li>
+            <li>Compatible with Claude Code, Cursor, Windsurf, and any MCP client</li>
+            <li>No database, no containers, no cloud accounts required</li>
+            <li>Single npm install — works on macOS, Linux, and Windows</li>
+            <li>Zero dependencies on external AI services</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       FAQ
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section section-alt" id="faq">
+    <div class="container">
+      <h2 class="section-title text-center">Frequently Asked Questions</h2>
+      <p class="section-subtitle text-center">Common questions about plans, billing, and enterprise features.</p>
+
+      <div class="faq-item">
+        <div class="faq-q">What counts as an "optimization"?</div>
+        <div class="faq-a">Only three tools are metered: <code>optimize_prompt</code>, <code>refine_prompt</code>, and <code>pre_flight</code>. Everything else &mdash; scoring, checking, routing, cost estimation, compression, pruning, session management &mdash; is unlimited on all tiers.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Do I need an account to use the free tier?</div>
+        <div class="faq-a">No. The free tier works out of the box with zero configuration. No account, no API key, no credit card. Just install the MCP server and start using it.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">How does the license key work?</div>
+        <div class="faq-a">License keys use Ed25519 asymmetric signatures and are validated entirely offline. No phone-home, no account server. The key contains your tier and expiry date, cryptographically signed. Activate it once with <code>set_license</code> and it works until expiry.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Can I switch between tiers?</div>
+        <div class="faq-a">Yes. Tier priority is: license key (cryptographically verified) &gt; <code>PROMPT_CONTROL_PLANE_PRO</code> environment variable &gt; default free. Upgrading is instant &mdash; activate a new license key and your limits update immediately.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">What happens when I hit the free tier limit?</div>
+        <div class="faq-a">Metered tools return a clear error with your current usage, the limit, and purchase URLs for Pro and Power tiers. Non-metered tools continue working without restriction.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Is enterprise self-hosted or cloud?</div>
+        <div class="faq-a">Everything runs locally. There is no cloud component. The MCP server runs on your machine, all data stays on your filesystem, and audit logs are local JSONL files. Enterprise just unlocks governance features &mdash; it does not change the deployment model.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CTA
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="plans-cta">
+    <div class="container">
+      <h2>Ready to get started?</h2>
+      <p>Start free with 10 optimizations. Upgrade anytime with an offline license key.</p>
+      <div class="cta-row">
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP" class="btn btn-primary">Start Free</a>
+        <a href="contact.html" class="btn btn-secondary">Contact Enterprise</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="./">Home</a>
+        <a href="features.html">Features</a>
+        <a href="models.html">Models</a>
+        <a href="plans.html">Pricing</a>
+        <a href="contact.html">Enterprise</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+      </div>
+      <p>Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a>. MIT License.</p>
+    </div>
+  </footer>
+
+  <script src="shared.js"></script>
+</body>
+</html>

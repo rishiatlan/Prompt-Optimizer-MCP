@@ -1,5 +1,5 @@
 // storage/localFs.ts — File-based StorageInterface implementation.
-// Data dir: ~/.prompt-optimizer/ (or custom via constructor).
+// Data dir: ~/.prompt-control-plane/ (or custom via constructor).
 // SECURITY INVARIANT: No public method throws. All errors → safe defaults + logged.
 
 import * as fs from 'node:fs';
@@ -25,7 +25,7 @@ import { validateLicenseKey } from '../license.js';
 
 const DEFAULT_DATA_DIR = path.join(
   process.env.HOME || process.env.USERPROFILE || '/tmp',
-  '.prompt-optimizer',
+  '.prompt-control-plane',
 );
 const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_JSON_BYTES = 1_048_576; // 1MB — defensive stringify cap
@@ -173,7 +173,7 @@ export class LocalFsStorage implements StorageInterface {
         (license.expires_at === 'never' || new Date(license.expires_at) > new Date())
       ) {
         data.tier = license.tier;
-      } else if (process.env.PROMPT_OPTIMIZER_PRO === 'true') {
+      } else if (process.env.PROMPT_CONTROL_PLANE_PRO === 'true' || process.env.PROMPT_OPTIMIZER_PRO === 'true') {
         data.tier = 'pro';
       }
       return data;

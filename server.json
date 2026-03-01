@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.rishiatlan/prompt-optimizer-mcp",
-  "description": "The prompt linter for LLM applications. Scores, analyzes, standardizes prompts & routes to optimal models. Zero AI calls inside. Freemium.",
+  "name": "io.github.rishiatlan/claude-prompt-optimizer",
+  "description": "Prompt Control Plane — deterministic prompt linting, scoring, policy enforcement & audit. Zero AI calls inside. Freemium.",
   "repository": {
     "url": "https://github.com/rishiatlan/Prompt-Optimizer-MCP",
     "source": "github"
   },
-  "version": "3.0.0",
+  "version": "4.0.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "claude-prompt-optimizer-mcp",
-      "version": "3.0.0",
+      "version": "4.0.0",
       "transport": {
         "type": "stdio"
       },
@@ -21,14 +21,14 @@
           "isRequired": false,
           "format": "string",
           "isSecret": false,
-          "name": "PROMPT_OPTIMIZER_PRO"
+          "name": "PROMPT_CONTROL_PLANE_PRO"
         },
         {
           "description": "Log verbosity level: debug, info, warn, error",
           "isRequired": false,
           "format": "string",
           "isSecret": false,
-          "name": "PROMPT_OPTIMIZER_LOG_LEVEL"
+          "name": "PROMPT_CONTROL_PLANE_LOG_LEVEL"
         }
       ]
     }

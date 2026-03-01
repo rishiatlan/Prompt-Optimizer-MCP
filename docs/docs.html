@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — Prompt Control Plane | Developer Reference</title>
+  <meta name="description" content="Complete developer documentation for Prompt Control Plane. 19 MCP tools, CLI linter, GitHub Action, programmatic API, enterprise features, and architecture reference. Zero LLM calls, fully deterministic.">
+  <meta name="keywords" content="prompt control plane docs, MCP documentation, prompt linter API, prompt-lint CLI, prompt governance tools, enterprise prompt policy, audit trail, config lock, developer reference">
+  <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/docs.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Documentation — Prompt Control Plane">
+  <meta property="og:description" content="Complete developer documentation for Prompt Control Plane. 19 tools, CLI, GitHub Action, API, enterprise features.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/docs.html">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Documentation — Prompt Control Plane">
+  <meta name="twitter:description" content="Complete developer reference. 19 MCP tools, CLI linter, GitHub Action, programmatic API, enterprise governance features.">
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "name": "Documentation — Prompt Control Plane",
+    "description": "Complete developer documentation for Prompt Control Plane — 19 MCP tools, CLI linter, GitHub Action, programmatic API, enterprise features.",
+    "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/docs.html",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Prompt Control Plane",
+      "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="shared.css">
+  <script src="shared.js"></script>
+
+  <style>
+    /* ─── Docs Layout: sidebar + main ──────────────────────────────────────── */
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 48px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      align-items: start;
+    }
+
+    /* ─── Sidebar TOC ────────────────────────────────────────────────────────── */
+    .docs-sidebar {
+      position: sticky;
+      top: 80px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+    .docs-sidebar .toc-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    .docs-sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .docs-sidebar li {
+      margin-bottom: 2px;
+    }
+    .docs-sidebar a {
+      display: block;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-radius: 6px;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+    }
+    .docs-sidebar a:hover {
+      color: var(--text);
+      background: var(--accent-glow);
+    }
+    .docs-sidebar a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-glow);
+      font-weight: 600;
+    }
+    .docs-sidebar .toc-sub {
+      padding-left: 16px;
+    }
+    .docs-sidebar .toc-sub a {
+      font-size: 12px;
+      padding: 3px 12px;
+    }
+
+    /* Mobile TOC toggle */
+    .toc-mobile-toggle {
+      display: none;
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .toc-mobile-toggle::after {
+      content: '\25BC';
+      float: right;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .toc-mobile-toggle.open::after {
+      content: '\25B2';
+    }
+
+    @media (max-width: 860px) {
+      .docs-layout {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .docs-sidebar {
+        position: static;
+        max-height: none;
+        display: none;
+        margin-bottom: 32px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+      }
+      .docs-sidebar.open {
+        display: block;
+      }
+      .toc-mobile-toggle {
+        display: block;
+      }
+    }
+
+    /* ─── Docs Hero ──────────────────────────────────────────────────────────── */
+    .docs-hero {
+      padding: 80px 0 48px;
+      text-align: center;
+    }
+    .docs-hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .docs-hero .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    @media (max-width: 700px) {
+      .docs-hero { padding: 56px 0 32px; }
+      .docs-hero h1 { font-size: 28px; }
+    }
+
+    /* ─── Docs Main Content ──────────────────────────────────────────────────── */
+    .docs-main {
+      padding: 32px 0 80px;
+      min-width: 0;
+    }
+    .docs-main h2 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-top: 56px;
+      margin-bottom: 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .docs-main h2:first-child {
+      margin-top: 0;
+      border-top: none;
+      padding-top: 0;
+    }
+    .docs-main h3 {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 10px;
+    }
+    .docs-main h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .docs-main p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .docs-main ul, .docs-main ol {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 16px;
+      padding-left: 24px;
+    }
+    .docs-main li {
+      margin-bottom: 6px;
+    }
+
+    /* ─── Code blocks ────────────────────────────────────────────────────────── */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      color: var(--green);
+      overflow-x: auto;
+      line-height: 1.7;
+      white-space: pre;
+      margin-bottom: 20px;
+    }
+    .code-block .comment { color: var(--text-muted); }
+    .code-block .keyword { color: var(--accent); }
+    .code-block .string { color: var(--orange); }
+    .code-block .fn { color: var(--blue); }
+
+    /* ─── Inline code ────────────────────────────────────────────────────────── */
+    .docs-main code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12.5px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+    .code-block code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: inherit;
+    }
+
+    /* ─── Tool Cards ─────────────────────────────────────────────────────────── */
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .tool-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .tool-name {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .tool-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .tool-params {
+      margin-bottom: 12px;
+    }
+    .tool-params-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .param-row {
+      display: flex;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 13px;
+      align-items: baseline;
+    }
+    .param-name {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .param-type {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      padding: 0 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+    .param-desc {
+      color: var(--text-muted);
+      font-size: 12.5px;
+    }
+    .param-required {
+      font-size: 10px;
+      color: var(--orange);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .tool-output {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .tool-output-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ─── Category Header ────────────────────────────────────────────────────── */
+    .tool-category {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 28px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tool-category-icon {
+      font-size: 18px;
+    }
+    .tool-category-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .tool-category-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Enterprise badge ───────────────────────────────────────────────────── */
+    .tag-enterprise {
+      background: rgba(124, 92, 252, 0.12);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* ─── Architecture SVG ───────────────────────────────────────────────────── */
+    .arch-diagram {
+      margin: 32px 0;
+      text-align: center;
+    }
+    .arch-diagram svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .arch-diagram svg text {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+    }
+    .arch-diagram svg .node-rect {
+      rx: 8;
+      ry: 8;
+      stroke-width: 1.5;
+    }
+    .arch-diagram svg .arrow-line {
+      stroke-width: 1.5;
+      fill: none;
+    }
+    .arch-diagram svg .arrow-head {
+      stroke-width: 1.5;
+    }
+
+    /* ─── Step numbers ───────────────────────────────────────────────────────── */
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    /* ─── Callout ────────────────────────────────────────────────────────────── */
+    .callout {
+      background: var(--accent-glow);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+    }
+    .callout p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+    .callout-warning {
+      background: rgba(251, 146, 60, 0.08);
+      border-left-color: var(--orange);
+    }
+
+    /* ─── Directory tree ─────────────────────────────────────────────────────── */
+    .dir-tree {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text-muted);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .dir-tree .dir { color: var(--accent); font-weight: 600; }
+    .dir-tree .file { color: var(--text-muted); }
+    .dir-tree .desc { color: var(--text-muted); opacity: 0.6; }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <a href="./" class="logo">Prompt Control <span>Plane</span></a>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-links">
+        <a href="./">Home</a>
+        <a href="features.html">Features</a>
+        <a href="models.html">Models</a>
+        <a href="docs.html" class="active">Docs</a>
+        <a href="plans.html">Pricing</a>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="docs-hero">
+    <div class="container">
+      <div class="badge">Developer Reference &middot; <strong>v4.0</strong></div>
+      <h1>Documentation</h1>
+      <p class="subtitle">
+        Everything you need to integrate, configure, and get the most from Prompt Control Plane.
+      </p>
+    </div>
+  </section>
+
+  <!-- Docs Layout: sidebar + main -->
+  <div class="docs-layout">
+
+    <!-- Mobile TOC toggle -->
+    <button class="toc-mobile-toggle" id="toc-toggle">Table of Contents</button>
+
+    <!-- Sidebar TOC -->
+    <aside class="docs-sidebar" id="toc-sidebar">
+      <div class="toc-title">On this page</div>
+      <ul>
+        <li><a href="#getting-started">Getting Started</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li>
+          <a href="#tool-reference">Tool Reference</a>
+          <ul class="toc-sub">
+            <li><a href="#tools-analysis">Analysis</a></li>
+            <li><a href="#tools-routing">Routing</a></li>
+            <li><a href="#tools-refinement">Refinement</a></li>
+            <li><a href="#tools-cost">Cost &amp; Compression</a></li>
+            <li><a href="#tools-config">Configuration</a></li>
+            <li><a href="#tools-license">License</a></li>
+            <li><a href="#tools-sessions">Sessions</a></li>
+          </ul>
+        </li>
+        <li><a href="#verification">Verification</a></li>
+        <li><a href="#enterprise">Enterprise Features</a></li>
+        <li><a href="#cli">CLI Linter</a></li>
+        <li><a href="#github-action">GitHub Action</a></li>
+        <li><a href="#api">Programmatic API</a></li>
+        <li><a href="#env-vars">Environment Variables</a></li>
+        <li><a href="#storage">Storage</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <main class="docs-main">
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- GETTING STARTED                                                     -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="getting-started">Getting Started</h2>
+
+      <h3>Installation</h3>
+      <p>Choose any of the four install methods below. The recommended approach is the MCP config, which requires zero global installs.</p>
+
+      <h4><span class="step-num">1</span> MCP Config (recommended)</h4>
+      <p>Add the following to your <code>.mcp.json</code> or <code>claude_desktop_config.json</code>:</p>
+      <div class="code-block">{
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"prompt-optimizer"</span>: {
+      <span class="string">"command"</span>: <span class="string">"npx"</span>,
+      <span class="string">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"claude-prompt-optimizer-mcp"</span>]
+    }
+  }
+}</div>
+
+      <h4><span class="step-num">2</span> npx (no install)</h4>
+      <div class="code-block">npx -y claude-prompt-optimizer-mcp</div>
+
+      <h4><span class="step-num">3</span> npm global</h4>
+      <div class="code-block">npm install -g claude-prompt-optimizer-mcp</div>
+
+      <h4><span class="step-num">4</span> curl</h4>
+      <div class="code-block">curl -fsSL https://rishiatlan.github.io/Prompt-Optimizer-MCP/install.sh | bash</div>
+
+      <h3>Your First Optimization</h3>
+      <p>Once installed, use the <code>optimize_prompt</code> tool in any MCP-compatible client (Claude Code, Cursor, Windsurf). Here is a step-by-step walkthrough:</p>
+
+      <p><span class="step-num">1</span> <strong>Send a raw prompt</strong> to <code>optimize_prompt</code>:</p>
+      <div class="code-block"><span class="comment">// In your MCP client, call:</span>
+optimize_prompt({
+  raw_prompt: <span class="string">"Write something about our product launch"</span>,
+  target: <span class="string">"claude"</span>
+})</div>
+
+      <p><span class="step-num">2</span> <strong>Review the PreviewPack</strong> response. It contains:</p>
+      <ul>
+        <li><code>quality_before</code> &mdash; A score from 0&ndash;100 across 5 dimensions (Clarity, Specificity, Completeness, Constraints, Efficiency)</li>
+        <li><code>compiled_prompt</code> &mdash; The structured, optimized prompt formatted for your target LLM</li>
+        <li><code>blocking_questions</code> &mdash; Ambiguities that must be resolved before approval</li>
+        <li><code>cost_estimate</code> &mdash; Token counts and costs across 11 models from 4 providers</li>
+        <li><code>model_recommendation</code> &mdash; The recommended model for this task</li>
+      </ul>
+
+      <p><span class="step-num">3</span> <strong>Answer blocking questions</strong> (if any) using <code>refine_prompt</code>:</p>
+      <div class="code-block">refine_prompt({
+  session_id: <span class="string">"abc-123"</span>,
+  answers: { <span class="string">"q_audience"</span>: <span class="string">"existing customers"</span> }
+})</div>
+
+      <p><span class="step-num">4</span> <strong>Approve</strong> the final result:</p>
+      <div class="code-block">approve_prompt({ session_id: <span class="string">"abc-123"</span> })</div>
+
+      <div class="callout">
+        <p><strong>Key principle:</strong> All analysis is deterministic. The same input always produces the same output. Zero LLM calls happen inside the MCP &mdash; all intelligence comes from the host model (Claude, GPT, etc.).</p>
+      </div>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- ARCHITECTURE                                                        -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="architecture">Architecture</h2>
+
+      <p>Prompt Control Plane processes your prompts <strong>before</strong> they reach any LLM. It is a pre-LLM quality gate &mdash; every prompt is scored, analyzed, compiled, and policy-checked before execution. Zero LLM calls inside.</p>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 680 700" xmlns="http://www.w3.org/2000/svg">
+          <!-- Definitions -->
+          <defs>
+            <marker id="arrowDown" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8" fill="var(--accent)" />
+            </marker>
+            <marker id="arrowRight" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <!-- Row 1: User writes prompt -->
+          <rect class="node-rect" x="220" y="10" width="240" height="36" fill="var(--surface)" stroke="var(--border)" />
+          <text x="340" y="33" text-anchor="middle" fill="var(--text)" font-weight="600">User writes a prompt</text>
+
+          <!-- Arrow down -->
+          <line class="arrow-line" x1="340" y1="46" x2="340" y2="72" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+          <text x="356" y="64" fill="var(--text-muted)" font-size="10" font-style="italic">raw prompt</text>
+
+          <!-- Big box: Prompt Control Plane -->
+          <rect class="node-rect" x="80" y="72" width="520" height="400" fill="var(--surface)" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 3" rx="8" />
+          <text x="340" y="96" text-anchor="middle" fill="var(--accent)" font-weight="700" font-size="14">Prompt Control Plane</text>
+          <text x="340" y="112" text-anchor="middle" fill="var(--text-muted)" font-size="10">All processing happens here &mdash; before the prompt reaches any LLM</text>
+
+          <!-- Policy Gate (Enterprise) — left side -->
+          <rect class="node-rect" x="110" y="130" width="160" height="32" fill="var(--surface)" stroke="var(--accent)" />
+          <text x="190" y="150" text-anchor="middle" fill="var(--accent)" font-weight="600" font-size="11">Policy Gate</text>
+          <text x="190" y="176" text-anchor="middle" fill="var(--text-muted)" font-size="9">Enterprise only</text>
+
+          <!-- Main pipeline (center-right) -->
+          <rect class="node-rect" x="310" y="130" width="260" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="440" y="150" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">1. Analyze Intent</text>
+
+          <line class="arrow-line" x1="440" y1="162" x2="440" y2="178" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+
+          <rect class="node-rect" x="310" y="178" width="260" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="440" y="198" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">2. Score Quality (0&ndash;100)</text>
+
+          <line class="arrow-line" x1="440" y1="210" x2="440" y2="226" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+
+          <rect class="node-rect" x="310" y="226" width="260" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="440" y="246" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">3. Run 14 Rules + Custom Rules*</text>
+
+          <line class="arrow-line" x1="440" y1="258" x2="440" y2="274" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+
+          <rect class="node-rect" x="310" y="274" width="260" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="440" y="294" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">4. Compute Risk Score (0&ndash;100)</text>
+
+          <line class="arrow-line" x1="440" y1="306" x2="440" y2="322" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+
+          <rect class="node-rect" x="310" y="322" width="260" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="440" y="342" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">5. Compile &#x2192; Claude / OpenAI / MD</text>
+
+          <line class="arrow-line" x1="440" y1="354" x2="440" y2="370" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+
+          <rect class="node-rect" x="310" y="370" width="260" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="440" y="390" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">6. Estimate Cost (4 providers)</text>
+
+          <line class="arrow-line" x1="440" y1="402" x2="440" y2="418" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+
+          <rect class="node-rect" x="310" y="418" width="260" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="440" y="438" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">7. Route to Optimal Model</text>
+
+          <!-- Audit Log (Enterprise) — left side bottom -->
+          <line class="arrow-line" x1="190" y1="176" x2="190" y2="420" stroke="var(--accent)" stroke-dasharray="4 2" />
+          <rect class="node-rect" x="110" y="420" width="160" height="32" fill="var(--surface)" stroke="var(--accent)" />
+          <text x="190" y="440" text-anchor="middle" fill="var(--accent)" font-weight="600" font-size="11">Audit Log</text>
+          <text x="190" y="466" text-anchor="middle" fill="var(--text-muted)" font-size="9">Enterprise only</text>
+
+          <!-- Enterprise annotations -->
+          <text x="570" y="242" fill="var(--accent)" font-size="9">*Enterprise</text>
+
+          <!-- PreviewPack output -->
+          <line class="arrow-line" x1="340" y1="472" x2="340" y2="500" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+
+          <rect class="node-rect" x="170" y="500" width="340" height="40" fill="var(--surface)" stroke="var(--green)" stroke-width="2" rx="6" />
+          <text x="340" y="525" text-anchor="middle" fill="var(--green)" font-weight="700" font-size="13">PreviewPack</text>
+
+          <!-- PreviewPack field labels -->
+          <text x="340" y="558" text-anchor="middle" fill="var(--text-muted)" font-size="10">compiled_prompt + quality_score + risk_score + cost_estimate + model_recommendation</text>
+
+          <!-- User reviews -->
+          <line class="arrow-line" x1="340" y1="568" x2="340" y2="594" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+          <rect class="node-rect" x="200" y="594" width="280" height="32" fill="var(--surface)" stroke="var(--border)" />
+          <text x="340" y="614" text-anchor="middle" fill="var(--text)" font-weight="600" font-size="11">User reviews / refines / approves</text>
+
+          <!-- Final arrow to LLM -->
+          <line class="arrow-line" x1="340" y1="626" x2="340" y2="652" stroke="var(--accent)" marker-end="url(#arrowDown)" />
+          <text x="356" y="644" fill="var(--text-muted)" font-size="10" font-style="italic">approved prompt</text>
+
+          <rect class="node-rect" x="220" y="652" width="240" height="36" fill="var(--surface)" stroke="var(--border)" stroke-width="2" />
+          <text x="340" y="675" text-anchor="middle" fill="var(--text)" font-weight="600">LLM Execution</text>
+        </svg>
+      </div>
+
+      <p>The pipeline is executed in this order: Analyze intent, Score quality (5 dimensions, 0&ndash;100), Run 14 built-in rules plus custom rules (Enterprise), Compute dimensional risk score, Compile to target format (Claude XML, OpenAI system/user, or Markdown), Estimate cost across 4 providers and 11 models, Route to optimal model. The result is packaged into a <strong>PreviewPack</strong> for human review &mdash; nothing reaches the LLM until the user approves.</p>
+
+      <!-- PreviewPack breakdown -->
+      <h3 id="previewpack">What&rsquo;s in a PreviewPack?</h3>
+      <p>Every call to <code>optimize_prompt</code>, <code>refine_prompt</code>, or <code>pre_flight</code> returns a PreviewPack &mdash; a complete analysis bundle for human review before anything is sent to an LLM.</p>
+
+      <div class="tool-card">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border); text-align:left;">
+              <th style="padding:8px 12px;">Field</th>
+              <th style="padding:8px 12px;">Type</th>
+              <th style="padding:8px 12px;">Description</th>
+              <th style="padding:8px 12px;">Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>request_id</code></td>
+              <td style="padding:8px 12px;">string</td>
+              <td style="padding:8px 12px;">Unique ID for traceability</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>session_id</code></td>
+              <td style="padding:8px 12px;">string</td>
+              <td style="padding:8px 12px;">Session identifier for iterative refinement</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>quality_before</code></td>
+              <td style="padding:8px 12px;">QualityScore</td>
+              <td style="padding:8px 12px;">Score 0&ndash;100 across 5 dimensions (clarity, specificity, completeness, constraints, efficiency)</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>compiled_prompt</code></td>
+              <td style="padding:8px 12px;">string</td>
+              <td style="padding:8px 12px;">The optimized prompt in target format (Claude XML, OpenAI, or Markdown)</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>intent_spec</code></td>
+              <td style="padding:8px 12px;">IntentSpec</td>
+              <td style="padding:8px 12px;">Decomposed intent: task type, audience, tone, constraints, definition of done</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>compilation_checklist</code></td>
+              <td style="padding:8px 12px;">object</td>
+              <td style="padding:8px 12px;">9-item structural coverage checklist (role, goal, constraints, etc.)</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>blocking_questions</code></td>
+              <td style="padding:8px 12px;">Question[]</td>
+              <td style="padding:8px 12px;">Questions that must be resolved before the prompt is ready</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>assumptions</code></td>
+              <td style="padding:8px 12px;">Assumption[]</td>
+              <td style="padding:8px 12px;">Assumptions made during compilation (review &amp; override)</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>cost_estimate</code></td>
+              <td style="padding:8px 12px;">CostEstimate</td>
+              <td style="padding:8px 12px;">Token counts + cost across 11 models from 4 providers</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>model_recommendation</code></td>
+              <td style="padding:8px 12px;">string</td>
+              <td style="padding:8px 12px;">Optimal model based on task complexity, risk, and budget</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>changes_made</code></td>
+              <td style="padding:8px 12px;">string[]</td>
+              <td style="padding:8px 12px;">List of modifications applied during compilation</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px 12px;"><code>target</code></td>
+              <td style="padding:8px 12px;">OutputTarget</td>
+              <td style="padding:8px 12px;"><code>claude</code> (XML), <code>openai</code> (system/user), or <code>generic</code> (Markdown)</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;"><code>storage_health</code></td>
+              <td style="padding:8px 12px;"><code>"ok" | "degraded"</code></td>
+              <td style="padding:8px 12px;">Storage status &mdash; pipeline continues in degraded mode with fail-open semantics</td>
+              <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="margin-top:1rem;"><strong>Enterprise-only pipeline stages</strong> that influence the PreviewPack:</p>
+      <ul style="margin-top:0.5rem; padding-left:1.5rem;">
+        <li><strong>Policy Gate</strong> &mdash; can block or warn before compilation begins (Enterprise only)</li>
+        <li><strong>Custom Rules</strong> &mdash; additional rules in steps 3&ndash;4 affect risk score and blocking questions (Enterprise only)</li>
+        <li><strong>Audit Log</strong> &mdash; every PreviewPack approval is written to a tamper-evident JSONL log (Enterprise only)</li>
+      </ul>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- VERIFICATION                                                        -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="verification" style="margin-top:48px;">Verification</h2>
+      <p>Every claim Prompt Control Plane makes is backed by deterministic tests you can run yourself.</p>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:16px;">
+        <tr style="border-bottom:2px solid var(--border);text-align:left;">
+          <th style="padding:8px 10px;">What</th>
+          <th style="padding:8px 10px;">How It&rsquo;s Verified</th>
+          <th style="padding:8px 10px;">Test Count</th>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 10px;">Token estimation</td>
+          <td style="padding:6px 10px;">1.3&times; word multiplier, determinism verified across 10+ iterations per prompt</td>
+          <td style="padding:6px 10px;">24 tests</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 10px;">Cost calculation</td>
+          <td style="padding:6px 10px;"><code style="font-size:11px;">(tokens/1M)&times;rate</code>, 6-decimal rounding, all 4 providers verified present</td>
+          <td style="padding:6px 10px;">94+ tests</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 10px;">Quality scoring</td>
+          <td style="padding:6px 10px;">5 dimensions &times; 20 points, ceiling 100/100, scoring_version: 2</td>
+          <td style="padding:6px 10px;">40+ tests</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 10px;">Risk scoring</td>
+          <td style="padding:6px 10px;">14 rules &times; dimensional weights, 10 golden fixture prompts (G21 guardrail)</td>
+          <td style="padding:6px 10px;">35+ tests</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 10px;">Compression</td>
+          <td style="padding:6px 10px;">Property-based: compressed &le; original for 100 random inputs (G36 invariant)</td>
+          <td style="padding:6px 10px;">100+ tests</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 10px;">Output shape</td>
+          <td style="padding:6px 10px;">Frozen contract tests: PreviewPack, CostEstimate, LicenseData shapes locked</td>
+          <td style="padding:6px 10px;">150+ tests</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:6px 10px;">Determinism</td>
+          <td style="padding:6px 10px;">Same prompt &rarr; identical score, routing, cost, compilation (100+ iterations)</td>
+          <td style="padding:6px 10px;">All 676</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 10px;">Audit integrity</td>
+          <td style="padding:6px 10px;">SHA-256 hash chain, tamper-evident, <code style="font-size:11px;">verifyChain()</code></td>
+          <td style="padding:6px 10px;">Enterprise</td>
+        </tr>
+      </table>
+      <p style="margin-top:12px;font-size:12px;color:var(--text-muted);">Run <code style="color:var(--accent);font-size:11px;">npm test</code> yourself &mdash; 676 tests complete in under 5 seconds. Full source at <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP" style="color:var(--accent);">GitHub</a>.</p>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- TOOL REFERENCE                                                      -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="tool-reference">Tool Reference</h2>
+      <p>Prompt Control Plane exposes 19 tools via MCP. Three are metered (count against your plan); the rest are free and unlimited. Every response includes a <code>request_id</code> for traceability.</p>
+
+      <div class="tool-card" style="margin-bottom:32px;">
+        <h3 style="margin-top:0;">All 19 Tools at a Glance</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border); text-align:left;">
+              <th style="padding:6px 10px;">Tool</th>
+              <th style="padding:6px 10px;">Category</th>
+              <th style="padding:6px 10px;">Cost</th>
+              <th style="padding:6px 10px;">Plan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>optimize_prompt</code></td><td>Analysis</td><td><span class="tag tag-metered">Metered</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>check_prompt</code></td><td>Analysis</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>classify_task</code></td><td>Analysis</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>route_model</code></td><td>Routing</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>pre_flight</code></td><td>Routing</td><td><span class="tag tag-metered">Metered</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>refine_prompt</code></td><td>Refinement</td><td><span class="tag tag-metered">Metered</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>approve_prompt</code></td><td>Refinement</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>estimate_cost</code></td><td>Cost</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>compress_context</code></td><td>Cost</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>prune_tools</code></td><td>Cost</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>configure_optimizer</code></td><td>Config</td><td><span class="tag tag-free">Free</span></td><td>All Plans*</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>get_usage</code></td><td>Config</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>prompt_stats</code></td><td>Config</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>set_license</code></td><td>License</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>license_status</code></td><td>License</td><td><span class="tag tag-free">Free</span></td><td>All Plans</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>list_sessions</code></td><td>Sessions</td><td><span class="tag tag-free">Free</span></td><td style="color:var(--accent);font-weight:600;">Enterprise</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>export_session</code></td><td>Sessions</td><td><span class="tag tag-free">Free</span></td><td style="color:var(--accent);font-weight:600;">Enterprise</td></tr>
+            <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 10px;"><code>delete_session</code></td><td>Sessions</td><td><span class="tag tag-free">Free</span></td><td style="color:var(--accent);font-weight:600;">Enterprise</td></tr>
+            <tr><td style="padding:6px 10px;"><code>purge_sessions</code></td><td>Sessions</td><td><span class="tag tag-free">Free</span></td><td style="color:var(--accent);font-weight:600;">Enterprise</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px;">*configure_optimizer: Enterprise settings (policy_mode, audit_log, config lock, session_retention_days) require Enterprise tier.</p>
+      </div>
+
+      <!-- ── Analysis ────────────────────────────────────────────────────── -->
+      <div class="tool-category" id="tools-analysis">
+        <span class="tool-category-icon">&#x1F50D;</span>
+        <span class="tool-category-name">Analysis</span>
+        <span class="tool-category-count">3 tools</span>
+      </div>
+
+      <!-- optimize_prompt -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">optimize_prompt</span>
+          <span class="tag tag-metered">Metered</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">The main entry point. Analyzes a raw prompt, detects ambiguities, compiles an optimized version, scores quality, and estimates cost across providers. Returns a PreviewPack for review.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">raw_prompt</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">The raw user prompt to optimize (max 100KB)</span></div>
+          <div class="param-row"><span class="param-name">context</span> <span class="param-type">string</span> <span class="param-desc">Optional context: repo info, file contents, preferences</span></div>
+          <div class="param-row"><span class="param-name">target</span> <span class="param-type">"claude" | "openai" | "generic"</span> <span class="param-desc">Output target format (default: "claude")</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>PreviewPack</code> &mdash; Contains <code>session_id</code>, <code>quality_before</code> (0&ndash;100), <code>compiled_prompt</code>, <code>blocking_questions</code>, <code>assumptions</code>, <code>cost_estimate</code>, <code>model_recommendation</code>, <code>compilation_checklist</code>, and <code>changes_made</code>.</p>
+      </div>
+
+      <!-- check_prompt -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">check_prompt</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Quick pass/fail check of a prompt. Returns a quality score, the top issues detected, and a suggestion for improvement. No compilation, no session. Ideal for CI gates or lightweight checks.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">raw_prompt</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">The prompt to check</span></div>
+          <div class="param-row"><span class="param-name">context</span> <span class="param-type">string</span> <span class="param-desc">Optional context</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc">Quality score (0&ndash;100), pass/fail verdict based on configured strictness threshold, top 2 issues, and an improvement suggestion.</p>
+      </div>
+
+      <!-- classify_task -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">classify_task</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Classifies a prompt by task type (13 types), reasoning complexity (6 levels), dimensional risk score, and suggests an optimization profile. Useful for understanding a prompt before committing to optimization.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">prompt</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">The prompt to classify</span></div>
+          <div class="param-row"><span class="param-name">context</span> <span class="param-type">string</span> <span class="param-desc">Optional context</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>taskType</code>, <code>complexity</code> (simple_factual / analytical / multi_step / creative / long_context / agent_orchestration), <code>riskScore</code> (0&ndash;100), <code>riskDimensions</code> (underspec, hallucination, scope, constraint), <code>suggestedProfile</code>, and <code>signals</code>.</p>
+      </div>
+
+      <!-- ── Routing ─────────────────────────────────────────────────────── -->
+      <div class="tool-category" id="tools-routing">
+        <span class="tool-category-icon">&#x1F9ED;</span>
+        <span class="tool-category-name">Routing</span>
+        <span class="tool-category-count">2 tools</span>
+      </div>
+
+      <!-- route_model -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">route_model</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Routes to the optimal model based on task complexity, risk, budget, and latency preferences. Returns a full recommendation with a <code>decision_path</code> audit trail showing every routing decision. Two-step routing: (1) complexity + risk determine the default tier, (2) budget/latency overrides produce the final tier.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">prompt</span> <span class="param-type">string</span> <span class="param-desc">Raw prompt text for auto-classification</span></div>
+          <div class="param-row"><span class="param-name">context</span> <span class="param-type">string</span> <span class="param-desc">Optional context</span></div>
+          <div class="param-row"><span class="param-name">taskType</span> <span class="param-type">TaskType</span> <span class="param-desc">Override auto-detected task type</span></div>
+          <div class="param-row"><span class="param-name">complexity</span> <span class="param-type">ReasoningComplexity</span> <span class="param-desc">Override auto-detected complexity</span></div>
+          <div class="param-row"><span class="param-name">profile</span> <span class="param-type">OptimizationProfile</span> <span class="param-desc">One of: cost_minimizer, balanced, quality_first, creative, enterprise_safe</span></div>
+          <div class="param-row"><span class="param-name">budgetSensitivity</span> <span class="param-type">"low" | "medium" | "high"</span> <span class="param-desc">Budget constraint</span></div>
+          <div class="param-row"><span class="param-name">latencySensitivity</span> <span class="param-type">"low" | "medium" | "high"</span> <span class="param-desc">Latency constraint</span></div>
+          <div class="param-row"><span class="param-name">target</span> <span class="param-type">OutputTarget</span> <span class="param-desc">Provider preference (default: "claude")</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>ModelRecommendation</code> &mdash; Contains <code>primary</code> (model, provider, temperature, maxTokens), <code>fallback</code>, <code>confidence</code> (0&ndash;100), <code>costEstimate</code>, <code>rationale</code>, <code>tradeoffs</code>, <code>savings_vs_default</code>, and <code>decision_path</code> array.</p>
+      </div>
+
+      <!-- pre_flight -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">pre_flight</span>
+          <span class="tag tag-metered">Metered</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Full pre-flight analysis in a single call: classifies task, assesses risk, routes model, and scores quality. Returns a complete decision bundle. Counts as 1 metered use (does NOT call <code>optimize_prompt</code> internally).</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">prompt</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">The prompt to analyze</span></div>
+          <div class="param-row"><span class="param-name">context</span> <span class="param-type">string</span> <span class="param-desc">Optional context</span></div>
+          <div class="param-row"><span class="param-name">profile</span> <span class="param-type">OptimizationProfile</span> <span class="param-desc">Optimization profile</span></div>
+          <div class="param-row"><span class="param-name">budgetSensitivity</span> <span class="param-type">"low" | "medium" | "high"</span> <span class="param-desc">Budget constraint</span></div>
+          <div class="param-row"><span class="param-name">latencySensitivity</span> <span class="param-type">"low" | "medium" | "high"</span> <span class="param-desc">Latency constraint</span></div>
+          <div class="param-row"><span class="param-name">target</span> <span class="param-type">OutputTarget</span> <span class="param-desc">Output target</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc">Task classification, complexity result, risk score with dimensions, model recommendation with decision_path, quality score, cost estimate, and pre-flight deltas (estimated token savings from compression and pruning).</p>
+      </div>
+
+      <!-- ── Refinement ──────────────────────────────────────────────────── -->
+      <div class="tool-category" id="tools-refinement">
+        <span class="tool-category-icon">&#x270F;&#xFE0F;</span>
+        <span class="tool-category-name">Refinement</span>
+        <span class="tool-category-count">2 tools</span>
+      </div>
+
+      <!-- refine_prompt -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">refine_prompt</span>
+          <span class="tag tag-metered">Metered</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Refines a prompt by answering blocking questions or providing manual edits. Re-runs the full analysis pipeline and returns an updated PreviewPack.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">session_id</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">Session ID from optimize_prompt</span></div>
+          <div class="param-row"><span class="param-name">answers</span> <span class="param-type">Record&lt;string, string&gt;</span> <span class="param-desc">Answers to blocking questions: { question_id: answer }</span></div>
+          <div class="param-row"><span class="param-name">edits</span> <span class="param-type">string</span> <span class="param-desc">Manual edits or additional context</span></div>
+          <div class="param-row"><span class="param-name">target</span> <span class="param-type">OutputTarget</span> <span class="param-desc">Change output target</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc">Updated <code>PreviewPack</code> with re-scored quality, re-compiled prompt, and reduced blocking questions.</p>
+      </div>
+
+      <!-- approve_prompt -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">approve_prompt</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Sign-off gate. Approves the compiled prompt and returns the final optimized prompt ready for use. Fails if blocking questions remain. In Enterprise enforce mode, runs a policy enforcement check before allowing approval.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">session_id</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">Session ID from optimize_prompt</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc">The final compiled prompt, quality score before compilation, and the compilation checklist summary.</p>
+      </div>
+
+      <!-- ── Cost & Compression ──────────────────────────────────────────── -->
+      <div class="tool-category" id="tools-cost">
+        <span class="tool-category-icon">&#x1F4B0;</span>
+        <span class="tool-category-name">Cost &amp; Compression</span>
+        <span class="tool-category-count">3 tools</span>
+      </div>
+
+      <!-- estimate_cost -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">estimate_cost</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Estimates token count and cost across all supported providers for any prompt text. No session needed. Covers 11 models from Anthropic, OpenAI, Google, and Perplexity.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">prompt_text</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">The prompt text to estimate</span></div>
+          <div class="param-row"><span class="param-name">target</span> <span class="param-type">OutputTarget</span> <span class="param-desc">Target platform for model recommendations</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>CostEstimate</code> &mdash; Contains <code>input_tokens</code>, <code>estimated_output_tokens</code>, per-model <code>costs</code> array (model, provider, input/output cost in USD), <code>recommended_model</code>, and <code>recommendation_reason</code>.</p>
+        <p class="tool-output-desc" style="margin-top:8px;font-size:12px;color:var(--text-muted);">Pricing covers 11 models across 4 providers (Anthropic, OpenAI, Google, Perplexity), updated Feb 2026. Token estimation uses a 1.3&times; word multiplier (empirical approximation). Cost formula: <code>(tokens&nbsp;/&nbsp;1M)&nbsp;&times;&nbsp;rate</code>, rounded to 6 decimal places. Savings compared against GPT-4o baseline ($2.50/$10.00 per 1M). See <a href="models.html" style="color:var(--accent);">Models</a> for full pricing table.</p>
+      </div>
+
+      <!-- compress_context -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">compress_context</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Compresses context (code, docs) by removing irrelevant sections while respecting protected zones (fenced code, tables, lists, JSON, YAML). Uses the H1&ndash;H5 heuristic pipeline: license strip, comment collapse, duplicate collapse, stub collapse, and middle truncation.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">context</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">The context text to compress</span></div>
+          <div class="param-row"><span class="param-name">intent</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">What the task is about (used to determine relevance)</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>compressed_context</code>, <code>removed_sections</code>, <code>original_tokens</code>, <code>compressed_tokens</code>, <code>tokens_saved</code>, <code>savings_percent</code>, <code>heuristics_applied</code> (e.g., ["H2", "H3"]), and <code>mode</code>.</p>
+      </div>
+
+      <!-- prune_tools -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">prune_tools</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Scores and ranks MCP tools by relevance to a task intent. In prune mode, marks the lowest-scoring tools for removal to save context tokens. Respects mention protection and the always-relevant tool set (search, read, write, edit, bash).</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">intent</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">Task description or user intent</span></div>
+          <div class="param-row"><span class="param-name">tools</span> <span class="param-type">ToolDefinition[]</span> <span class="param-required">required</span> <span class="param-desc">Array of { name, description } (max 500)</span></div>
+          <div class="param-row"><span class="param-name">mode</span> <span class="param-type">"rank" | "prune"</span> <span class="param-desc">rank: score all. prune: also mark bottom-M for removal (default: "rank")</span></div>
+          <div class="param-row"><span class="param-name">prune_count</span> <span class="param-type">number</span> <span class="param-desc">Number of lowest-scoring tools to prune (default: 5, prune mode only)</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc">Ranked tool list with <code>relevance_score</code> (0&ndash;100), <code>signals</code>, and <code>tokens_saved_estimate</code> per tool. Plus <code>pruned_count</code>, <code>pruned_tools</code>, and total <code>tokens_saved_estimate</code>.</p>
+      </div>
+
+      <!-- ── Configuration ───────────────────────────────────────────────── -->
+      <div class="tool-category" id="tools-config">
+        <span class="tool-category-icon">&#x2699;&#xFE0F;</span>
+        <span class="tool-category-name">Configuration</span>
+        <span class="tool-category-count">3 tools</span>
+      </div>
+
+      <!-- configure_optimizer -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">configure_optimizer</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Configures optimizer behavior. Supports mode, threshold, strictness, default target, ephemeral mode, session limits, and Enterprise features (policy mode, audit log, config lock with passphrase protection).</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">mode</span> <span class="param-type">"manual" | "always_on"</span> <span class="param-desc">Optimization mode</span></div>
+          <div class="param-row"><span class="param-name">threshold</span> <span class="param-type">number (0-100)</span> <span class="param-desc">Quality threshold</span></div>
+          <div class="param-row"><span class="param-name">strictness</span> <span class="param-type">"relaxed" | "standard" | "strict"</span> <span class="param-desc">Strictness level (maps to threshold: relaxed=40, standard=60, strict=75)</span></div>
+          <div class="param-row"><span class="param-name">auto_compile</span> <span class="param-type">boolean</span> <span class="param-desc">Auto-compile prompts</span></div>
+          <div class="param-row"><span class="param-name">default_target</span> <span class="param-type">OutputTarget</span> <span class="param-desc">Default output target</span></div>
+          <div class="param-row"><span class="param-name">ephemeral_mode</span> <span class="param-type">boolean</span> <span class="param-desc">Ephemeral mode: sessions in-memory only</span></div>
+          <div class="param-row"><span class="param-name">max_sessions</span> <span class="param-type">number (1-10000)</span> <span class="param-desc">Max session count</span></div>
+          <div class="param-row"><span class="param-name">max_session_size_kb</span> <span class="param-type">number (1-1024)</span> <span class="param-desc">Max session size in KB</span></div>
+          <div class="param-row"><span class="param-name">max_session_dir_mb</span> <span class="param-type">number (1-100)</span> <span class="param-desc">Max session directory size in MB</span></div>
+          <div class="param-row"><span class="param-name">session_retention_days</span> <span class="param-type">number (1-365)</span> <span class="param-desc">Auto-purge sessions older than N days <span class="tag-enterprise">Enterprise</span></span></div>
+          <div class="param-row"><span class="param-name">policy_mode</span> <span class="param-type">"advisory" | "enforce"</span> <span class="param-desc">Policy enforcement mode <span class="tag-enterprise">Enterprise</span></span></div>
+          <div class="param-row"><span class="param-name">audit_log</span> <span class="param-type">boolean</span> <span class="param-desc">Enable append-only JSONL audit trail <span class="tag-enterprise">Enterprise</span></span></div>
+          <div class="param-row"><span class="param-name">lock</span> <span class="param-type">boolean</span> <span class="param-desc">Lock config (requires lock_secret) <span class="tag-enterprise">Enterprise</span></span></div>
+          <div class="param-row"><span class="param-name">unlock</span> <span class="param-type">boolean</span> <span class="param-desc">Unlock config (requires same lock_secret) <span class="tag-enterprise">Enterprise</span></span></div>
+          <div class="param-row"><span class="param-name">lock_secret</span> <span class="param-type">string (4-128)</span> <span class="param-desc">Passphrase for lock/unlock (stored as SHA-256 hash only)</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc">The full <code>OptimizerConfig</code> object and list of <code>applied_changes</code>.</p>
+      </div>
+
+      <!-- get_usage -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">get_usage</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Returns current usage count, plan limits, remaining quota, tier information, and first/last used timestamps.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-desc">No parameters required.</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>total_optimizations</code>, <code>limits</code> (TierLimits), <code>remaining</code> (lifetime + monthly), <code>tier</code>, <code>first_used_at</code>, <code>last_used_at</code>.</p>
+      </div>
+
+      <!-- prompt_stats -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">prompt_stats</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Returns aggregated optimization statistics: total optimized, total approved, average quality score, top task types, blocking question frequency, and estimated cost savings in USD.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">period</span> <span class="param-type">"7d" | "30d" | "lifetime"</span> <span class="param-desc">Stats period (default: "lifetime")</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>total_optimized</code>, <code>total_approved</code>, <code>average_score_before</code>, <code>task_type_counts</code>, <code>blocking_question_counts</code>, <code>estimated_cost_savings_usd</code>.</p>
+      </div>
+
+      <!-- ── License ─────────────────────────────────────────────────────── -->
+      <div class="tool-category" id="tools-license">
+        <span class="tool-category-icon">&#x1F511;</span>
+        <span class="tool-category-name">License</span>
+        <span class="tool-category-count">2 tools</span>
+      </div>
+
+      <!-- set_license -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">set_license</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Activates a Pro, Power, or Enterprise license key. Uses Ed25519 asymmetric signature verification (public key only, offline, zero dependencies). The license payload contains tier, issued_at, expires_at, and license_id &mdash; no PII.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">license_key</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">License key string (starts with pcp_)</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>status</code> ("activated"), <code>tier</code>, <code>expires_at</code>, <code>license_id</code>, and <code>limits</code> for the activated tier.</p>
+      </div>
+
+      <!-- license_status -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">license_status</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag tag-free">All Plans</span>
+        </div>
+        <p class="tool-desc">Checks current license status, tier, and expiry. Re-validates expiry on every read. Returns purchase URLs if no license is active.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-desc">No parameters required.</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>LicenseData</code> (or null with purchase links if inactive): <code>tier</code>, <code>issued_at</code>, <code>expires_at</code>, <code>license_id</code>, <code>valid</code>, <code>validation_error</code> (if expired).</p>
+      </div>
+
+      <!-- ── Sessions ────────────────────────────────────────────────────── -->
+      <div class="tool-category" id="tools-sessions">
+        <span class="tool-category-icon">&#x1F4C2;</span>
+        <span class="tool-category-name">Sessions</span>
+        <span class="tool-category-count">4 tools</span>
+      </div>
+
+      <!-- list_sessions -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">list_sessions</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag" style="background:var(--accent);color:#fff;">Enterprise</span>
+        </div>
+        <p class="tool-desc">Lists all optimization sessions with metadata (no raw prompts). Returns newest-first, with task type, quality score, state, and prompt hash.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">createdAfter</span> <span class="param-type">number</span> <span class="param-desc">Only sessions after this Unix timestamp</span></div>
+          <div class="param-row"><span class="param-name">createdBefore</span> <span class="param-type">number</span> <span class="param-desc">Only sessions before this Unix timestamp</span></div>
+          <div class="param-row"><span class="param-name">limit</span> <span class="param-type">number (1-100)</span> <span class="param-desc">Max sessions to return (default: 100)</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>SessionListResponse</code> &mdash; Array of <code>SessionRecord</code> (session_id, state, task_type, quality_before, prompt_hash, target) plus <code>total_sessions</code> and <code>storage_path</code>.</p>
+      </div>
+
+      <!-- export_session -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">export_session</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag" style="background:var(--accent);color:#fff;">Enterprise</span>
+        </div>
+        <p class="tool-desc">Exports full session details including raw prompt, compiled prompt, and reproducibility metadata. Auto-calculates rule_set_hash, rule_set_version, risk_score, and custom_rules_applied.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">session_id</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">Session ID to export</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>SessionExport</code> &mdash; Contains raw_prompt, compiled_prompt, quality_before/after, rule_set_hash, rule_set_version, and metadata (target, task_type, complexity, risk_score, custom_rules_applied, engine_version, policy_mode, policy_hash).</p>
+      </div>
+
+      <!-- delete_session -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">delete_session</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag" style="background:var(--accent);color:#fff;">Enterprise</span>
+        </div>
+        <p class="tool-desc">Deletes a single optimization session by ID. Audit-logged in Enterprise tier.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">session_id</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">Session ID to delete</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>deleted: true</code> and <code>session_id</code>, or a not_found error.</p>
+      </div>
+
+      <!-- purge_sessions -->
+      <div class="tool-card">
+        <div class="tool-card-header">
+          <span class="tool-name">purge_sessions</span>
+          <span class="tag tag-free">Free</span>
+          <span class="tag" style="background:var(--accent);color:#fff;">Enterprise</span>
+        </div>
+        <p class="tool-desc">Bulk-purges optimization sessions by age policy or deletes all. Safe-by-default: requires explicit parameters. Supports dry_run preview, keep_last protection, and config-based session_retention_days fallback.</p>
+        <div class="tool-params">
+          <div class="tool-params-title">Parameters</div>
+          <div class="param-row"><span class="param-name">older_than_days</span> <span class="param-type">number (1-365)</span> <span class="param-desc">Delete sessions older than N days</span></div>
+          <div class="param-row"><span class="param-name">keep_last</span> <span class="param-type">number (0-1000)</span> <span class="param-desc">Always protect the N newest sessions</span></div>
+          <div class="param-row"><span class="param-name">purge_all</span> <span class="param-type">boolean</span> <span class="param-desc">Explicit opt-in to delete ALL sessions</span></div>
+          <div class="param-row"><span class="param-name">dry_run</span> <span class="param-type">boolean</span> <span class="param-desc">Preview what would be deleted (default: false)</span></div>
+        </div>
+        <div class="tool-output">Returns</div>
+        <p class="tool-output-desc"><code>PurgeResult</code> &mdash; <code>deleted_count</code>, <code>retained_count</code>, <code>scanned_count</code>, <code>deleted_session_ids</code> (capped at 100), <code>dry_run</code>, <code>cutoff_date</code>, <code>effective_older_than_days</code>.</p>
+      </div>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- ENTERPRISE FEATURES                                                 -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="enterprise">Enterprise Features</h2>
+      <p>Enterprise tier unlocks governance features designed for regulated environments. All features are local-only, deterministic, and require no external services.</p>
+
+      <h3>Policy Enforcement <span class="tag-enterprise">Enterprise</span></h3>
+      <p>Switch from advisory mode (issues are reported but never block) to enforce mode, where BLOCKING rules gate every prompt operation.</p>
+      <h4>Setup</h4>
+      <div class="code-block">configure_optimizer({
+  policy_mode: <span class="string">"enforce"</span>
+})</div>
+      <h4>Advisory vs Enforce</h4>
+      <ul>
+        <li><strong>advisory</strong> (default) &mdash; Rules fire and are reported in the PreviewPack, but no operation is blocked. Suitable for onboarding and iteration.</li>
+        <li><strong>enforce</strong> &mdash; BLOCKING rules prevent <code>approve_prompt</code> from succeeding. The response includes a <code>policy_violations</code> array describing each violation. Risk threshold gating also blocks high-risk prompts from approval.</li>
+      </ul>
+      <h4>When violations are found</h4>
+      <p>In enforce mode, <code>approve_prompt</code> returns an error with <code>policy_violations</code> listing each triggered BLOCKING rule (rule_id, description, severity, risk_dimension). The user must resolve the issues via <code>refine_prompt</code> or adjust the prompt before re-attempting approval.</p>
+
+      <h3>Audit Logging <span class="tag-enterprise">Enterprise</span></h3>
+      <p>Append-only, tamper-evident JSONL audit trail. Every significant action generates an entry with SHA-256 hash chaining.</p>
+      <h4>Enable</h4>
+      <div class="code-block">configure_optimizer({
+  audit_log: <span class="keyword">true</span>
+})</div>
+      <h4>JSONL format</h4>
+      <p>Each line is a JSON object with these fields:</p>
+      <div class="code-block">{
+  <span class="string">"timestamp"</span>: <span class="string">"2026-03-01T10:30:00.000Z"</span>,
+  <span class="string">"event"</span>: <span class="string">"optimize"</span>,        <span class="comment">// optimize | approve | delete | purge | configure | license_activate</span>
+  <span class="string">"session_id"</span>: <span class="string">"abc-123"</span>,
+  <span class="string">"request_id"</span>: <span class="string">"req_xyz"</span>,
+  <span class="string">"task_type"</span>: <span class="string">"code_change"</span>,
+  <span class="string">"risk_score"</span>: 42,
+  <span class="string">"routing_tier"</span>: <span class="string">"mid"</span>,
+  <span class="string">"policy_mode"</span>: <span class="string">"enforce"</span>,
+  <span class="string">"outcome"</span>: <span class="string">"success"</span>,        <span class="comment">// success | blocked | error</span>
+  <span class="string">"integrity_hash"</span>: <span class="string">"a3f2..."</span>  <span class="comment">// SHA-256: hash(prev_hash + JSON(entry))</span>
+}</div>
+      <h4>Verify integrity</h4>
+      <p>If any line in the JSONL file is deleted or modified, the hash chain breaks. To verify: iterate the log, recompute <code>SHA-256(prev_hash + line)</code> for each entry, and compare against the stored <code>integrity_hash</code>. A mismatch indicates tampering.</p>
+      <div class="callout callout-warning">
+        <p><strong>Privacy invariant:</strong> The audit log never stores raw_prompt, compiled_prompt, or prompt_preview content. Only metadata (event type, session ID, risk score, outcome) is recorded.</p>
+      </div>
+
+      <h3>Config Lock <span class="tag-enterprise">Enterprise</span></h3>
+      <p>Lock your governance configuration with a passphrase. Once locked, no one can change policy, strictness, or audit settings without the correct secret.</p>
+      <h4>Lock</h4>
+      <div class="code-block">configure_optimizer({
+  lock: <span class="keyword">true</span>,
+  lock_secret: <span class="string">"your-admin-passphrase"</span>
+})</div>
+      <h4>Unlock</h4>
+      <div class="code-block">configure_optimizer({
+  unlock: <span class="keyword">true</span>,
+  lock_secret: <span class="string">"your-admin-passphrase"</span>
+})</div>
+      <p>The passphrase is stored as a SHA-256 hash only &mdash; never in plaintext. Every lock/unlock attempt (successful or blocked) is audit-logged if the audit trail is enabled.</p>
+
+      <h3>Custom Rules <span class="tag-enterprise">Enterprise</span></h3>
+      <p>Define organization-specific prompt governance rules that run alongside the 14 built-in rules.</p>
+      <h4>JSON Schema</h4>
+      <p>Place your rules in <code>~/.prompt-control-plane/custom-rules.json</code>:</p>
+      <div class="code-block">{
+  <span class="string">"schema_version"</span>: 1,
+  <span class="string">"created_at"</span>: 1709280000,
+  <span class="string">"rules"</span>: [
+    {
+      <span class="string">"id"</span>: <span class="string">"require_error_handling"</span>,
+      <span class="string">"description"</span>: <span class="string">"Code prompts must mention error handling"</span>,
+      <span class="string">"pattern"</span>: <span class="string">"error|exception|try|catch|handle"</span>,
+      <span class="string">"negative_pattern"</span>: <span class="string">"ignore errors"</span>,
+      <span class="string">"applies_to"</span>: <span class="string">"code"</span>,
+      <span class="string">"severity"</span>: <span class="string">"BLOCKING"</span>,
+      <span class="string">"risk_dimension"</span>: <span class="string">"underspec"</span>,
+      <span class="string">"risk_weight"</span>: 15
+    }
+  ]
+}</div>
+      <h4>Rule fields</h4>
+      <table class="data-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Constraints</th></tr></thead>
+        <tbody>
+          <tr><td>id</td><td>string</td><td>snake_case, max 64 chars, regex: <code>^[a-z][a-z0-9_]{0,63}$</code></td></tr>
+          <tr><td>description</td><td>string</td><td>Max 200 chars</td></tr>
+          <tr><td>pattern</td><td>string</td><td>JavaScript regex, max 500 chars</td></tr>
+          <tr><td>negative_pattern</td><td>string</td><td>Optional exclusion regex, max 500 chars</td></tr>
+          <tr><td>applies_to</td><td>string</td><td>"code" | "prose" | "all"</td></tr>
+          <tr><td>severity</td><td>string</td><td>"BLOCKING" | "NON-BLOCKING"</td></tr>
+          <tr><td>risk_dimension</td><td>string</td><td>"hallucination" | "constraint" | "underspec" | "scope"</td></tr>
+          <tr><td>risk_weight</td><td>number</td><td>1&ndash;25</td></tr>
+        </tbody>
+      </table>
+      <p>Hard cap: 25 rules per configuration. Invalid regex patterns are skipped with a warning (skip-on-error pattern).</p>
+      <h4>Validate custom rules</h4>
+      <div class="code-block">prompt-lint --validate-custom-rules</div>
+
+      <h3>Session Retention <span class="tag-enterprise">Enterprise</span></h3>
+      <p>Configure automatic session cleanup by age policy.</p>
+      <h4>Set retention</h4>
+      <div class="code-block">configure_optimizer({
+  session_retention_days: 90
+})</div>
+      <h4>Manual purge with dry_run</h4>
+      <div class="code-block"><span class="comment">// Preview what would be deleted</span>
+purge_sessions({
+  older_than_days: 30,
+  keep_last: 10,
+  dry_run: <span class="keyword">true</span>
+})
+
+<span class="comment">// Execute the purge</span>
+purge_sessions({
+  older_than_days: 30,
+  keep_last: 10,
+  dry_run: <span class="keyword">false</span>
+})</div>
+      <p>Purge only touches session files. Config, audit log, and license data are never deleted.</p>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- CLI LINTER                                                          -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="cli">CLI Linter (<code>prompt-lint</code>)</h2>
+      <p>A standalone CLI for linting prompt files. Reuses the same scoring, rules, and analysis engine. No MCP dependency &mdash; works in any CI pipeline or terminal.</p>
+
+      <h3>All Flags</h3>
+      <table class="data-table">
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--file &lt;glob&gt;</code></td><td>Glob pattern for prompt files to lint (e.g., <code>"prompts/**/*.txt"</code>)</td></tr>
+          <tr><td><code>--json</code></td><td>Output results as JSON (for machine consumption)</td></tr>
+          <tr><td><code>--strict</code></td><td>Use strict threshold (75)</td></tr>
+          <tr><td><code>--relaxed</code></td><td>Use relaxed threshold (40)</td></tr>
+          <tr><td><code>--threshold N</code></td><td>Set a custom threshold (0&ndash;100). Overrides --strict/--relaxed.</td></tr>
+          <tr><td><code>--validate-custom-rules</code></td><td>Validate the custom rules JSON file and exit</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Exit Codes</h3>
+      <table class="data-table">
+        <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>0</code></td><td>All files pass the quality threshold</td></tr>
+          <tr><td><code>1</code></td><td>One or more files fail the threshold</td></tr>
+          <tr><td><code>2</code></td><td>Error (invalid args, file not found, etc.)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>CI Usage Example</h3>
+      <div class="code-block"><span class="comment"># In your CI pipeline</span>
+npx claude-prompt-optimizer-mcp prompt-lint --file <span class="string">"prompts/**/*.md"</span> --strict --json</div>
+
+      <p>Reads from stdin if no <code>--file</code> is provided:</p>
+      <div class="code-block">echo <span class="string">"Write a blog post"</span> | npx claude-prompt-optimizer-mcp prompt-lint --threshold 70</div>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- GITHUB ACTION                                                       -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="github-action">GitHub Action</h2>
+      <p>Run prompt linting as a GitHub Actions check. Fails the workflow if any prompt file scores below the threshold.</p>
+
+      <h3>Workflow Example</h3>
+      <div class="code-block"><span class="comment"># .github/workflows/prompt-lint.yml</span>
+<span class="keyword">name</span>: Prompt Lint
+<span class="keyword">on</span>: [push, pull_request]
+
+<span class="keyword">jobs</span>:
+  <span class="keyword">lint</span>:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint prompts
+        uses: rishiatlan/Prompt-Optimizer-MCP@v4
+        with:
+          files: <span class="string">"prompts/**/*.md"</span>
+          strictness: strict        <span class="comment"># or: standard, relaxed</span>
+          <span class="comment"># threshold: 80           # overrides strictness if set</span>
+          <span class="comment"># version: "4.0.0"        # pin to specific npm version</span></div>
+
+      <h3>Action Inputs</h3>
+      <table class="data-table">
+        <thead><tr><th>Input</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>files</code></td><td>Yes</td><td>&mdash;</td><td>Glob pattern for prompt files</td></tr>
+          <tr><td><code>threshold</code></td><td>No</td><td>&mdash;</td><td>Minimum score (0&ndash;100). Overrides strictness.</td></tr>
+          <tr><td><code>strictness</code></td><td>No</td><td>standard</td><td>Preset: standard (60), strict (75), relaxed (40)</td></tr>
+          <tr><td><code>version</code></td><td>No</td><td>tag ref</td><td>npm version to install</td></tr>
+        </tbody>
+      </table>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- PROGRAMMATIC API                                                    -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="api">Programmatic API</h2>
+      <p>Import the optimization pipeline directly into your Node.js application. Pure, synchronous, deterministic. No I/O, no side effects, no MCP server required.</p>
+
+      <h3>Quick Start</h3>
+      <div class="code-block"><span class="keyword">import</span> { optimize } <span class="keyword">from</span> <span class="string">'claude-prompt-optimizer-mcp'</span>;
+
+<span class="keyword">const</span> result = <span class="fn">optimize</span>(<span class="string">'Write a blog post about AI governance'</span>);
+
+console.<span class="fn">log</span>(result.quality.total);    <span class="comment">// 0-100 quality score</span>
+console.<span class="fn">log</span>(result.compiled);          <span class="comment">// Structured prompt (XML/system-user/markdown)</span>
+console.<span class="fn">log</span>(result.cost.costs);         <span class="comment">// Per-model cost breakdown</span></div>
+
+      <h3>optimize() Signature</h3>
+      <div class="code-block"><span class="keyword">function</span> <span class="fn">optimize</span>(
+  prompt: <span class="keyword">string</span>,
+  context?: <span class="keyword">string</span>,
+  target: OutputTarget = <span class="string">'claude'</span>
+): OptimizeResult</div>
+
+      <h3>OptimizeResult Shape</h3>
+      <div class="code-block"><span class="keyword">interface</span> OptimizeResult {
+  intent: IntentSpec;             <span class="comment">// Parsed intent from raw prompt</span>
+  quality: QualityScore;          <span class="comment">// Quality score (0-100, 5 dimensions)</span>
+  compiled: <span class="keyword">string</span>;               <span class="comment">// Optimized prompt for target LLM</span>
+  changes: <span class="keyword">string</span>[];              <span class="comment">// Structural changes applied</span>
+  checklist: CompilationChecklist; <span class="comment">// 9-item structural coverage</span>
+  cost: CostEstimate;             <span class="comment">// Token + cost estimates</span>
+}</div>
+
+      <h3>All Exports</h3>
+      <p>The barrel export at <code>claude-prompt-optimizer-mcp</code> re-exports all pure functions:</p>
+      <table class="data-table">
+        <thead><tr><th>Category</th><th>Exports</th></tr></thead>
+        <tbody>
+          <tr><td>Convenience</td><td><code>optimize()</code></td></tr>
+          <tr><td>Analyzer</td><td><code>analyzePrompt</code>, <code>detectTaskType</code>, <code>classifyComplexity</code></td></tr>
+          <tr><td>Scorer</td><td><code>scorePrompt</code>, <code>generateChecklist</code></td></tr>
+          <tr><td>Compiler</td><td><code>compilePrompt</code>, <code>compressContext</code></td></tr>
+          <tr><td>Estimator</td><td><code>estimateCost</code>, <code>estimateTokens</code>, <code>estimateCostForText</code>, <code>routeModel</code>, <code>TIER_MODELS</code>, <code>PRICING_DATA</code></td></tr>
+          <tr><td>Rules</td><td><code>runRules</code>, <code>computeRiskScore</code>, <code>deriveRiskLevel</code>, <code>RISK_WEIGHTS</code>, <code>RULES_VERSION</code>, <code>calculateBuiltInRuleSetHash</code></td></tr>
+          <tr><td>Profiles</td><td><code>PROFILES</code>, <code>suggestProfile</code>, <code>resolveProfile</code></td></tr>
+          <tr><td>License</td><td><code>validateLicenseKey</code>, <code>PRODUCTION_PUBLIC_KEY_PEM</code></td></tr>
+          <tr><td>Compression</td><td><code>estimatePromptTokens</code>, <code>estimateToolTokens</code>, <code>scanZones</code>, <code>markPreservedLines</code></td></tr>
+          <tr><td>Pruner</td><td><code>scoreAllTools</code>, <code>rankTools</code>, <code>pruneTools</code></td></tr>
+          <tr><td>Deltas</td><td><code>calculateCompressionDelta</code>, <code>calculateToolPruningDelta</code>, <code>calculatePreFlightDeltas</code></td></tr>
+          <tr><td>Policy</td><td><code>evaluatePolicyViolations</code>, <code>checkRiskThreshold</code>, <code>calculatePolicyHash</code></td></tr>
+          <tr><td>Audit</td><td><code>AuditLogger</code>, <code>auditLogger</code>, <code>GENESIS_HASH</code></td></tr>
+          <tr><td>Sessions</td><td><code>SessionHistoryManager</code>, <code>sessionHistory</code></td></tr>
+          <tr><td>Custom Rules</td><td><code>CustomRulesManager</code>, <code>customRules</code></td></tr>
+          <tr><td>Types</td><td>All TypeScript interfaces and types (see <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP/blob/main/src/types.ts">types.ts</a>)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Dual Entry Points</h3>
+      <table class="data-table">
+        <thead><tr><th>Import</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>import { optimize } from 'claude-prompt-optimizer-mcp'</code></td><td>Pure API &mdash; no side effects, no server</td></tr>
+          <tr><td><code>import 'claude-prompt-optimizer-mcp/server'</code></td><td>Starts MCP stdio server (side-effect import)</td></tr>
+        </tbody>
+      </table>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- ENVIRONMENT VARIABLES                                               -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="env-vars">Environment Variables</h2>
+      <table class="data-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>PROMPT_CONTROL_PLANE_PRO</code></td><td>unset</td><td>Set to <code>true</code> to enable pro tier via environment variable. Tier priority: license key (cryptographically verified) &gt; env var &gt; default free.</td></tr>
+          <tr><td><code>PROMPT_CONTROL_PLANE_LOG_LEVEL</code></td><td><code>info</code></td><td>Log verbosity: debug, info, warn, error</td></tr>
+          <tr><td><code>PROMPT_CONTROL_PLANE_LOG_PROMPTS</code></td><td>unset (false)</td><td>Set to <code>true</code> to enable raw prompt logging. <strong>Never enable in shared environments.</strong></td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-warning">
+        <p><strong>Security:</strong> Prompt logging (<code>PROMPT_CONTROL_PLANE_LOG_PROMPTS</code>) writes raw prompt content to stderr. Never enable this in production, CI, or any shared environment where logs are aggregated.</p>
+      </div>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- STORAGE                                                             -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="storage">Storage</h2>
+      <p>All data is stored locally in <code>~/.prompt-control-plane/</code>. No cloud services, no telemetry, no data leaves your machine.</p>
+
+      <h3>Directory Layout</h3>
+      <div class="dir-tree"><span class="dir">~/.prompt-control-plane/</span>
+  <span class="file">config.json</span>           <span class="desc"># OptimizerConfig (mode, threshold, strictness, etc.)</span>
+  <span class="file">usage.json</span>            <span class="desc"># Usage counters (total, period, tier)</span>
+  <span class="file">stats.json</span>            <span class="desc"># Aggregated statistics</span>
+  <span class="file">license.json</span>          <span class="desc"># License data (chmod 600 on POSIX)</span>
+  <span class="file">audit.jsonl</span>           <span class="desc"># Append-only audit trail (Enterprise)</span>
+  <span class="file">custom-rules.json</span>     <span class="desc"># Custom governance rules (Enterprise)</span>
+  <span class="dir">sessions/</span>
+    <span class="file">{session-id}.json</span>   <span class="desc"># Individual session files</span></div>
+
+      <h3>Storage Health</h3>
+      <p>Every metered tool response includes a <code>storage_health</code> field: <code>"ok"</code> or <code>"degraded"</code>. In degraded mode, the pipeline continues with fail-open semantics (no data loss, but usage may not persist to disk). This design ensures zero downtime even if the filesystem is temporarily unavailable.</p>
+
+      <h3>Session Limits</h3>
+      <table class="data-table">
+        <thead><tr><th>Setting</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>max_sessions</code></td><td>200</td><td>Maximum number of session files</td></tr>
+          <tr><td><code>max_session_size_kb</code></td><td>50</td><td>Maximum size per session file</td></tr>
+          <tr><td><code>max_session_dir_mb</code></td><td>20</td><td>Absolute cap on session directory size</td></tr>
+        </tbody>
+      </table>
+      <p>When limits are exceeded, the oldest sessions are automatically cleaned up.</p>
+
+      <h3>Phase A / Phase B</h3>
+      <p>The current release (Phase A) uses local file-based storage. All tool handlers use an async <code>StorageInterface</code> that abstracts the backend. Phase B will swap to Cloudflare Worker + Supabase without changing any tool handler code, test contracts, or interfaces.</p>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="./">Home</a>
+        <a href="features.html">Features</a>
+        <a href="models.html">Models</a>
+        <a href="docs.html">Docs</a>
+        <a href="plans.html">Pricing</a>
+        <a href="contact.html">Enterprise</a>
+      </div>
+      <p>
+        Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a> &middot;
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a> &middot;
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a> &middot;
+        MIT License
+      </p>
+    </div>
+  </footer>
+
+  <!-- Mobile TOC toggle script -->
+  <script>
+    (function () {
+      var toggle = document.getElementById('toc-toggle');
+      var sidebar = document.getElementById('toc-sidebar');
+      if (toggle && sidebar) {
+        toggle.addEventListener('click', function () {
+          sidebar.classList.toggle('open');
+          toggle.classList.toggle('open');
+        });
+      }
+
+      // Active TOC link on scroll
+      var headings = document.querySelectorAll('.docs-main h2[id], .docs-main .tool-category[id]');
+      var tocLinks = document.querySelectorAll('.docs-sidebar a');
+
+      function updateActiveToc() {
+        var scrollPos = window.scrollY + 120;
+        var current = '';
+        headings.forEach(function (h) {
+          if (h.offsetTop <= scrollPos) {
+            current = h.getAttribute('id');
+          }
+        });
+        tocLinks.forEach(function (a) {
+          a.classList.remove('active');
+          if (a.getAttribute('href') === '#' + current) {
+            a.classList.add('active');
+          }
+        });
+      }
+
+      window.addEventListener('scroll', updateActiveToc, { passive: true });
+      updateActiveToc();
+    })();
+  </script>
+</body>
+</html>

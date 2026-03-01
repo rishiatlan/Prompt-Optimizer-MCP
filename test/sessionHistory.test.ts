@@ -229,7 +229,7 @@ test('sessionHistory', async (t) => {
     // Phase 3: auto-calculated — SHA-256 hex (64 chars), derived version
     assert.ok(exported?.rule_set_hash.length === 64, 'rule_set_hash should be 64-char hex');
     assert.ok(/^[0-9a-f]{64}$/.test(exported!.rule_set_hash), 'rule_set_hash should be lowercase hex');
-    assert.ok(exported?.rule_set_version.startsWith('3.2.1-'), 'rule_set_version should start with 3.2.1-');
+    assert.ok(exported?.rule_set_version.startsWith('4.0.0-'), 'rule_set_version should start with 4.0.0-');
     assert.ok(exported?.rule_set_version.endsWith('r'), 'rule_set_version should end with r');
 
     await fs.rm(tempDir, { recursive: true });

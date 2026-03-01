@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supported Models — Prompt Optimizer MCP | 11 Models, 4 Providers</title>
-  <meta name="description" content="Prompt Optimizer MCP supports 11 models across Anthropic, OpenAI, Google, and Perplexity. Deterministic cost estimation, model routing, and multi-format compilation — all offline.">
+  <title>Supported Models — Prompt Control Plane | 11 Models, 4 Providers</title>
+  <meta name="description" content="Prompt Control Plane supports 11 models across Anthropic, OpenAI, Google, and Perplexity. Deterministic cost estimation, model routing, and multi-format compilation — all offline.">
   <meta name="keywords" content="LLM model routing, prompt cost estimation, Claude model pricing, GPT-4o pricing, Gemini pricing, Perplexity Sonar, multi-provider LLM, model selection, prompt optimizer models">
   <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/models.html">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Supported Models — Prompt Optimizer MCP">
+  <meta property="og:title" content="Supported Models — Prompt Control Plane">
   <meta property="og:description" content="11 models across 4 providers. Deterministic cost estimation and model routing for Anthropic, OpenAI, Google, and Perplexity.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/models.html">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Supported Models — Prompt Optimizer MCP">
+  <meta name="twitter:title" content="Supported Models — Prompt Control Plane">
   <meta name="twitter:description" content="11 models across 4 providers. Deterministic cost estimation and model routing — all offline.">
 
   <!-- Schema.org structured data -->
@@ -24,12 +24,12 @@
   {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "Supported Models — Prompt Optimizer MCP",
-    "description": "Prompt Optimizer MCP supports 11 models across Anthropic, OpenAI, Google, and Perplexity with deterministic cost estimation and model routing.",
+    "name": "Supported Models — Prompt Control Plane",
+    "description": "Prompt Control Plane supports 11 models across Anthropic, OpenAI, Google, and Perplexity with deterministic cost estimation and model routing.",
     "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/models.html",
     "isPartOf": {
       "@type": "WebSite",
-      "name": "Prompt Optimizer MCP",
+      "name": "Prompt Control Plane",
       "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/"
     }
   }
@@ -382,7 +382,7 @@
   <!-- Nav -->
   <nav>
     <div class="container">
-      <a href="./" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <a href="./" class="logo">Prompt Control <span>Plane</span></a>
       <button class="nav-toggle" aria-label="Menu">
         <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
       </button>
@@ -390,8 +390,8 @@
         <a href="./">Home</a>
         <a href="features.html">Features</a>
         <a href="models.html" class="active">Models</a>
-        <a href="./#pricing">Pricing</a>
         <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <a href="plans.html">Pricing</a>
         <button class="theme-toggle" aria-label="Toggle theme">
           <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -542,7 +542,7 @@
     </div>
   </section>
 
-  <!-- How Prompt Optimizer Helps -->
+  <!-- How Prompt Control Plane Helps -->
   <section class="section section-alt">
     <div class="container">
       <h2 class="section-title">More value from every token</h2>
@@ -820,7 +820,12 @@ Refactor auth module
         </div>
       </div>
 
-      <p class="pricing-note">Pricing data as of February 2026. Model routing and cost estimation are always free (not metered).</p>
+      <div class="card" style="padding:24px;margin-top:32px;border-left:3px solid var(--accent);">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:8px;">Pricing Accuracy</h3>
+        <p style="font-size:13px;margin-bottom:8px;">All pricing data is current as of <strong>February 2026</strong> (<code style="font-size:11px;">pricing_version: '2026-02'</code>). Verified by 94+ automated tests that check every model&rsquo;s input/output rates are positive and consistent.</p>
+        <p style="font-size:13px;margin-bottom:8px;"><strong>Cost formula:</strong> <code style="font-size:11px;">(tokens / 1,000,000) &times; rate</code>, rounded to 6 decimal places. Savings calculated against GPT-4o baseline ($2.50/$10.00 per 1M tokens).</p>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:0;">Model routing and cost estimation are always free (not metered). Run <code style="color:var(--accent);font-size:11px;">npm test</code> to verify all pricing tests pass.</p>
+      </div>
     </div>
   </section>
 

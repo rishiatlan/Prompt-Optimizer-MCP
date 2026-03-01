@@ -3,29 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt Linter for LLM Applications | Score &amp; Standardize AI Prompts</title>
-  <meta name="description" content="Lint and score AI prompts before you send them to any LLM. Detect ambiguity, standardize structure, estimate cost across providers. Open-source, runs locally, works with OpenAI, Claude, and any LLM.">
-  <meta name="keywords" content="prompt linter, prompt lint, LLM prompt standards, prompt quality score, prompt optimizer, reduce LLM token cost, MCP server, prompt engineering tool, AI prompt scorer, prompt compiler, Claude prompt tool, OpenAI prompt optimizer, what is prompt optimization">
+  <title>Prompt Control Plane | Deterministic Prompt Linting, Policy Enforcement &amp; Audit</title>
+  <meta name="description" content="The control plane for AI prompts. Score, enforce policy, lock config, and audit every prompt decision. Zero LLM calls. Runs locally. Works with Claude, OpenAI, and any LLM.">
+  <meta name="keywords" content="prompt control plane, prompt governance, prompt linter, prompt lint, LLM prompt standards, prompt quality score, prompt policy enforcement, audit trail, config lock, MCP server, prompt engineering tool, AI prompt scorer, prompt compiler, Claude prompt tool, OpenAI prompt optimizer, enterprise prompt governance">
   <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Prompt Linter for LLM Applications | Score &amp; Standardize AI Prompts">
-  <meta property="og:description" content="Lint, score, and standardize AI prompts before you send them to any LLM. Open-source, runs locally.">
+  <meta property="og:title" content="Prompt Control Plane | Deterministic Linting, Policy &amp; Audit">
+  <meta property="og:description" content="The control plane for AI prompts. Score, enforce policy, lock config, and audit every prompt decision. Zero LLM calls. Runs locally.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Prompt Linter for LLM Applications | Score &amp; Standardize AI Prompts">
-  <meta name="twitter:description" content="Lint, score, and standardize AI prompts before you send them to any LLM. Open-source, runs locally.">
+  <meta name="twitter:title" content="Prompt Control Plane | Deterministic Linting, Policy &amp; Audit">
+  <meta name="twitter:description" content="The control plane for AI prompts. Score, enforce policy, lock config, and audit every prompt decision. Zero LLM calls. Runs locally.">
 
   <!-- Schema.org structured data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "Prompt Optimizer MCP",
-    "description": "Open-source prompt linter that scores, structures, and standardizes AI prompts. Deterministic analysis with zero LLM calls inside.",
+    "name": "Prompt Control Plane",
+    "description": "The control plane for AI prompts. Score, enforce policy, lock config, and audit every prompt decision. Zero LLM calls inside.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Cross-platform",
     "offers": [
@@ -210,6 +210,11 @@
     @media (max-width: 640px) {
       .flow-step { gap: 12px; }
     }
+
+    /* -- Proof Grid responsive --------------------- */
+    @media (max-width: 768px) {
+      .proof-grid { grid-template-columns: 1fr !important; }
+    }
   </style>
 </head>
 <body>
@@ -217,15 +222,15 @@
   <!-- Nav -->
   <nav>
     <div class="container">
-      <a href="./" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <a href="./" class="logo">Prompt Control <span>Plane</span></a>
       <button class="nav-toggle" aria-label="Menu">
         <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
       </button>
       <div class="nav-links">
         <a href="features.html">Features</a>
         <a href="models.html">Models</a>
-        <a href="#pricing">Pricing</a>
         <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <a href="plans.html">Pricing</a>
         <button class="theme-toggle" aria-label="Toggle theme">
           <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -237,12 +242,12 @@
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <div class="badge">Open Source &middot; <strong>The prompt linter for LLM applications</strong> &middot; Zero LLM Calls Inside</div>
-      <h1>The Prompt Linter<br><span class="highlight">for LLM Applications</span></h1>
+      <div class="badge">Open Source &middot; <strong>Deterministic prompt governance</strong> &middot; Zero LLM Calls Inside</div>
+      <h1>The control plane<br><span class="highlight">for AI prompts</span></h1>
       <p class="subtitle">
-        Score, analyze, and standardize prompts before you send them to any LLM &mdash; like ESLint, but for AI instructions.
+        Score, enforce policy, lock config, and audit every prompt decision &mdash; before it reaches any LLM.
       </p>
-      <p class="sub-subtitle">Works locally. No API keys. No pipeline required.</p>
+      <p class="sub-subtitle">Deterministic. Offline. Tamper-evident audit trail. 19 MCP tools.</p>
       <div class="cta-row">
         <a href="#pricing" class="btn btn-primary">Try It Free</a>
         <a href="features.html" class="btn btn-secondary">See Features &rarr;</a>
@@ -344,11 +349,93 @@
     </div>
   </section>
 
+  <!-- Enterprise Controls -->
+  <section class="section section-alt" id="enterprise-controls">
+    <div class="container">
+      <h2 class="section-title">Enterprise Controls</h2>
+      <p class="section-subtitle">The governance layer you need before approving AI in production.</p>
+      <div>
+        <div class="flow-step">
+          <div class="flow-num" style="background: var(--accent);">&#x1f512;</div>
+          <div class="flow-content">
+            <h3>Config Lock Mode</h3>
+            <p>Lock your governance config with a passphrase. No one can change policy, strictness, or audit settings without the correct secret. Every attempt &mdash; successful or blocked &mdash; is audit-logged.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background: var(--accent);">&#x1f6e1;</div>
+          <div class="flow-content">
+            <h3>Policy Enforcement</h3>
+            <p>Switch from advisory to enforce mode. BLOCKING rules (built-in + custom) gate every prompt. Risk threshold gating blocks high-risk approvals. Deterministic &mdash; same input, same verdict, every time.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background: var(--accent);">&#x1f4dc;</div>
+          <div class="flow-content">
+            <h3>Tamper-Evident Audit Trail</h3>
+            <p>Every action generates a JSONL audit entry with SHA-256 hash chaining. If any line is deleted or modified, the chain breaks. Local-only, opt-in, never stores prompt content. Answers: &ldquo;who changed what, when, and was it allowed?&rdquo;</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background: var(--accent);">&#x1f5d1;</div>
+          <div class="flow-content">
+            <h3>Data Lifecycle Management</h3>
+            <p>Delete individual sessions or bulk-purge by age policy. Dry-run mode previews what would be deleted. <code>keep_last</code> protects your newest N sessions. Purge only touches session files &mdash; config, audit, and license are never deleted.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Verified -->
+  <div class="section" style="padding-top:48px;padding-bottom:48px;">
+    <div class="container">
+      <div class="text-center mb-32">
+        <div class="badge badge-accent">Verified</div>
+        <h2 class="section-title">Proof it works</h2>
+        <p class="section-subtitle">Every claim is backed by deterministic tests you can run yourself. Zero LLM calls. Zero guesswork.</p>
+      </div>
+      <div class="proof-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
+        <div class="card" style="padding:24px;text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:4px;">676</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Tests Passing</div>
+          <div style="font-size:12px;color:var(--text-muted);">Scoring, routing, compression, policy enforcement, tier gates, session lifecycle</div>
+        </div>
+        <div class="card" style="padding:24px;text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:4px;">100%</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Deterministic</div>
+          <div style="font-size:12px;color:var(--text-muted);">Same prompt &rarr; same score, same routing, same cost estimate. Verified across 100+ iterations.</div>
+        </div>
+        <div class="card" style="padding:24px;text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:4px;">11</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Models Priced</div>
+          <div style="font-size:12px;color:var(--text-muted);">Anthropic, OpenAI, Google, Perplexity &mdash; pricing data updated Feb 2026, verified by 94+ tests.</div>
+        </div>
+        <div class="card" style="padding:24px;text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:4px;">14</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Scoring Rules</div>
+          <div style="font-size:12px;color:var(--text-muted);">Each rule tested against frozen fixtures. 10 golden prompts prevent regressions (G21 guardrail).</div>
+        </div>
+        <div class="card" style="padding:24px;text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:4px;">0</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">LLM Calls Inside</div>
+          <div style="font-size:12px;color:var(--text-muted);">All analysis is regex + heuristics. No latency, no hallucination, no operational cost.</div>
+        </div>
+        <div class="card" style="padding:24px;text-align:center;">
+          <div style="font-size:36px;font-weight:800;color:var(--accent);margin-bottom:4px;">SHA-256</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Audit Integrity</div>
+          <div style="font-size:12px;color:var(--text-muted);">Hash-chained audit log. Tamper-evident. Every entry cryptographically linked to its predecessor.</div>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-muted);">Run <code style="color:var(--accent);font-size:12px;">npm test</code> yourself &mdash; all 676 tests complete in under 5 seconds.</p>
+    </div>
+  </div>
+
   <!-- Pricing -->
-  <section class="section section-alt" id="pricing">
+  <section class="section" id="pricing">
     <div class="container-wide text-center">
       <h2 class="section-title">Pricing</h2>
-      <p class="section-subtitle">Free tier includes 10 optimizations, unlimited scoring, and all 15 tools. No credit card required.</p>
+      <p class="section-subtitle">Free tier includes 10 optimizations, unlimited scoring, and all 19 tools. No credit card required.</p>
 
       <div class="pricing-grid">
         <div class="pricing-card">
@@ -359,7 +446,7 @@
             <li>10 optimizations total</li>
             <li>Unlimited scoring &amp; checking</li>
             <li>5 per minute rate limit</li>
-            <li>All 15 tools</li>
+            <li>All 19 tools</li>
             <li>All 3 output formats</li>
           </ul>
           <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP" class="btn btn-secondary">Get Started</a>
@@ -397,9 +484,10 @@
           <ul>
             <li>Unlimited optimizations</li>
             <li>120 per minute rate limit</li>
-            <li>Always-on mode</li>
+            <li>Policy enforcement + config lock</li>
+            <li>Tamper-evident audit logging</li>
+            <li>Custom rules + session retention</li>
             <li>Dedicated support &amp; SLA</li>
-            <li>Custom integrations</li>
           </ul>
           <a href="contact.html" class="btn btn-secondary">Contact Sales</a>
         </div>
@@ -439,7 +527,7 @@
       <div class="footer-links">
         <a href="features.html">Features</a>
         <a href="models.html">Models</a>
-        <a href="#pricing">Pricing</a>
+        <a href="plans.html">Pricing</a>
         <a href="contact.html">Enterprise</a>
       </div>
       <p>

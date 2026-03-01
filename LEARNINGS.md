@@ -1,4 +1,4 @@
-# Learnings — Prompt Optimizer MCP
+# Learnings — Prompt Control Plane
 
 Everything we learned building a production MCP server in 49 hours with Claude Code. 60 learnings across 10 categories — all reusable across projects.
 
@@ -60,7 +60,7 @@ Metered tools validate tier and enforce limits before any work happens. Rate lim
 License keys are cryptographically signed with Ed25519. Verification uses only the public key embedded in code. No server, no internet, no telemetry. Works on planes, behind corporate VPNs, and for users who are philosophically opposed to phone-home.
 
 ### 16. License Keys Without PII
-Keys contain: tier, issued_at, expires_at, license_id. No email, no name, no user ID. Format: `po_pro_<base64url(payload + signature_hex)>`. Privacy-first — no user database, no account recovery needed.
+Keys contain: tier, issued_at, expires_at, license_id. No email, no name, no user ID. Format: `pcp_<base64url(payload + signature_hex)>`. Privacy-first — no user database, no account recovery needed.
 
 ### 17. Tier Priority Chain: License > Env Var > Default
 Valid license key → that tier. No license → check `PROMPT_OPTIMIZER_PRO` env var. No env var → free. Allows local testing without needing a real license key.
