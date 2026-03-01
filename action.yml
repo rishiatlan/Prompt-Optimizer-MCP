@@ -1,5 +1,9 @@
 name: 'Prompt Lint'
-description: 'Lint AI prompts for quality. Exits non-zero if any prompt score is below threshold.'
+description: 'Lint AI prompts for quality — deterministic scoring, zero LLM calls. Exits non-zero if any prompt scores below threshold. Supports standard/strict/relaxed presets.'
+author: 'Rishi Banerjee'
+branding:
+  icon: 'check-circle'
+  color: 'purple'
 inputs:
   files:
     description: 'Glob pattern for prompt files to lint'
@@ -41,12 +45,12 @@ runs:
         fi
         # Fail fast on empty version
         if [ -z "$VERSION" ]; then
-          echo "::error::Could not resolve npm version. Set the 'version' input explicitly (e.g., version: '2.3.0')."
+          echo "::error::Could not resolve npm version. Set the 'version' input explicitly (e.g., version: '3.2.0')."
           exit 2
         fi
         # Accept only: major (2), or exact semver (2.3.0). Reject partial (2.3) and SHAs.
         if ! echo "$VERSION" | grep -qE '^([0-9]+|[0-9]+\.[0-9]+\.[0-9]+)$'; then
-          echo "::error::Invalid version '${VERSION}'. Use a tag like @v2 or @v2.3.0, or set 'version' input (e.g., version: '2.3.0')."
+          echo "::error::Invalid version '${VERSION}'. Use a tag like @v3 or @v3.2.0, or set 'version' input (e.g., version: '3.2.0')."
           exit 2
         fi
         # npx can't run secondary bins — install to deterministic path and use node_modules/.bin
