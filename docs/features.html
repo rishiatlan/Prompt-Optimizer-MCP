@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features — Prompt Optimizer MCP | 15 Tools for Prompt Quality</title>
+  <meta name="description" content="Explore all 15 tools in Prompt Optimizer MCP — quality scoring, ambiguity detection, structured compilation, context compression, multi-provider cost estimation, and more. Zero LLM calls, fully deterministic.">
+  <meta name="keywords" content="prompt optimizer features, prompt linter tools, MCP tools, prompt quality scoring, ambiguity detection, context compression, LLM cost estimation, prompt compilation, prompt engineering tools">
+  <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/features.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Features — Prompt Optimizer MCP">
+  <meta property="og:description" content="15 deterministic tools for prompt quality — scoring, ambiguity detection, compilation, compression, cost estimation. Zero LLM calls, runs locally.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/features.html">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Features — Prompt Optimizer MCP">
+  <meta name="twitter:description" content="15 deterministic tools for prompt quality — scoring, ambiguity detection, compilation, compression, cost estimation. Zero LLM calls, runs locally.">
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Features — Prompt Optimizer MCP",
+    "description": "All 15 tools in the Prompt Optimizer MCP — deterministic prompt scoring, ambiguity detection, compilation, compression, cost estimation, and more.",
+    "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/features.html",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Prompt Optimizer MCP",
+      "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="shared.css">
+  <script src="shared.js"></script>
+
+  <style>
+    /* ─── Page-specific: Hero ─────────────────────────────────────────────── */
+    .features-hero {
+      padding: 80px 0 64px;
+      text-align: center;
+    }
+    .features-hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .features-hero .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 700px) {
+      .features-hero { padding: 56px 0 40px; }
+      .features-hero h1 { font-size: 28px; }
+    }
+
+    /* ─── Page-specific: Comparison table highlight row ────────────────────── */
+    .data-table tr.highlight td {
+      color: var(--text);
+      font-weight: 500;
+      background: var(--accent-glow);
+    }
+    .data-table tr.highlight td:first-child {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ─── Page-specific: API code blocks ──────────────────────────────────── */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 13px;
+      color: var(--green);
+      overflow-x: auto;
+      line-height: 1.7;
+      white-space: pre;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .code-block .comment { color: var(--text-muted); }
+    .code-block .keyword { color: var(--accent); }
+    .code-block .string { color: var(--orange); }
+
+    /* ─── Page-specific: CTA section ──────────────────────────────────────── */
+    .cta-section {
+      padding: 64px 0;
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Nav
+       ════════════════════════════════════════════════════════════════════════ -->
+  <nav>
+    <div class="container">
+      <a href="./" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-links">
+        <a href="./">Home</a>
+        <a href="features.html" class="active">Features</a>
+        <a href="models.html">Models</a>
+        <a href="./#pricing">Pricing</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Hero
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="features-hero">
+    <div class="container">
+      <span class="badge badge-accent">Features</span>
+      <h1>Built for people who take prompts seriously</h1>
+      <p class="subtitle">Everything runs locally. Two runtime dependencies. No API keys needed for the optimizer itself.</p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Core Capabilities
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title text-center">Core Capabilities</h2>
+      <p class="section-subtitle text-center">Seven pillars of deterministic prompt optimization</p>
+
+      <div class="grid-auto">
+        <div class="card">
+          <div class="icon">&#x1F50D;</div>
+          <h3>Quality Scoring</h3>
+          <p>0&ndash;100 score across five dimensions: clarity, specificity, completeness, constraints, and efficiency.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#x1F6E1;&#xFE0F;</div>
+          <h3>Ambiguity Detection</h3>
+          <p>14 deterministic rules catch scope explosion, missing constraints, hallucination risk, and more.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#x1F3AF;</div>
+          <h3>Structured Compilation</h3>
+          <p>Outputs prompts with role, goal, and constraints &mdash; targeting Claude XML, OpenAI system/user, or Markdown.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#x26A1;</div>
+          <h3>Context Compression</h3>
+          <p>Smart H1&ndash;H5 heuristics strip irrelevant context and report token savings. Zone-aware, preserves structure.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#x1F4B0;</div>
+          <h3>Multi-Provider Cost</h3>
+          <p>Token and cost estimates across 11 models from 4 providers: Anthropic, OpenAI, Google, and Perplexity.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#x1F512;</div>
+          <h3>Offline License</h3>
+          <p>Ed25519-signed keys verified locally. No accounts, no network calls, no tracking. Your prompts stay private.</p>
+        </div>
+        <div class="card">
+          <div class="icon">&#x1F4E6;</div>
+          <h3>Programmatic API</h3>
+          <p><code>import { optimize }</code> &mdash; pure functions, zero side effects. Use as a library, not just a server.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       All 15 Tools
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="container-wide">
+      <h2 class="section-title text-center">All 15 Tools</h2>
+      <p class="section-subtitle text-center">Every tool available in the MCP server &mdash; 12 free, 3 metered</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tool</th>
+            <th>Tier</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>optimize_prompt</td>
+            <td><span class="tag tag-metered">Metered</span></td>
+            <td>Analyze, score, compile, estimate cost &rarr; PreviewPack</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>refine_prompt</td>
+            <td><span class="tag tag-metered">Metered</span></td>
+            <td>Answer questions, add edits &rarr; updated PreviewPack</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>approve_prompt</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Sign-off gate &rarr; final compiled prompt</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>estimate_cost</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Multi-provider token + cost estimator (incl. Perplexity)</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>compress_context</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Smart compression with H1&ndash;H5 heuristics</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>check_prompt</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Quick pass/fail + score + top issues</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>configure_optimizer</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Set mode, threshold, strictness, target</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>get_usage</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Usage count, limits, remaining quota</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>prompt_stats</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Aggregated stats: avg score, top tasks, savings</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>set_license</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Activate Pro/Power/Enterprise license key</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>license_status</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Check license, tier, expiry</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td>classify_task</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Classify by task type, complexity, risk, profile</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td>route_model</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Route to optimal model with decision_path audit</td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td>pre_flight</td>
+            <td><span class="tag tag-metered">Metered</span></td>
+            <td>Full pipeline: classify &rarr; risk &rarr; route &rarr; score</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td>prune_tools</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Score/rank tools by relevance, optionally prune</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Use Cases
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title text-center">Use Cases</h2>
+      <p class="section-subtitle text-center">Who benefits from deterministic prompt optimization</p>
+
+      <div class="grid-auto">
+        <div class="card">
+          <h3>Developers building AI features</h3>
+          <p>Score and compile prompts before they reach production. Catch ambiguity that leads to unpredictable LLM output.</p>
+        </div>
+        <div class="card">
+          <h3>Engineering teams managing LLM spend</h3>
+          <p>Multi-provider cost estimates across 11 models. Know exactly what each prompt will cost before you send it.</p>
+        </div>
+        <div class="card">
+          <h3>CI/CD pipelines</h3>
+          <p>Run <code>prompt-lint</code> as a quality gate. Fail builds when prompt quality drops below your threshold.</p>
+        </div>
+        <div class="card">
+          <h3>MCP-powered workflows</h3>
+          <p>Integrates natively with Claude Desktop, Claude Code, and any MCP-compatible client. No configuration needed.</p>
+        </div>
+        <div class="card">
+          <h3>Reducing LLM costs</h3>
+          <p>Context compression strips irrelevant tokens. Tool pruning removes unnecessary tools from the context window.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Comparison Table
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="container-wide">
+      <h2 class="section-title text-center">How It Compares</h2>
+      <p class="section-subtitle text-center">Alternatives and their trade-offs</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Pros</th>
+            <th>Cons</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Manual prompt rewriting</td>
+            <td>Full control, no tooling needed</td>
+            <td>Inconsistent quality, not scalable, no scoring</td>
+          </tr>
+          <tr>
+            <td>Fine-tuning models</td>
+            <td>Optimized for your domain</td>
+            <td>Expensive, slow iteration, requires ML expertise</td>
+          </tr>
+          <tr>
+            <td>Trial-and-error</td>
+            <td>Quick to start</td>
+            <td>No structured feedback, wastes tokens, not reproducible</td>
+          </tr>
+          <tr class="highlight">
+            <td>Prompt Optimizer MCP</td>
+            <td>Deterministic scoring, 15 tools, multi-provider cost, offline, CI/CD ready</td>
+            <td>Deterministic rules only &mdash; no semantic understanding of domain context</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Programmatic API
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title text-center">Programmatic API</h2>
+      <p class="section-subtitle text-center">Use as a library &mdash; no MCP server required</p>
+
+      <div class="install mb-32">
+        <div class="install-label">Install</div>
+        <code>npm install claude-prompt-optimizer-mcp</code>
+      </div>
+
+      <div class="code-block mb-32"><span class="keyword">import</span> { optimize } <span class="keyword">from</span> <span class="string">'claude-prompt-optimizer-mcp'</span>;
+
+<span class="keyword">const</span> result = <span class="keyword">await</span> optimize(<span class="string">'Summarize this document'</span>);
+console.log(result.quality_score, result.compiled);</div>
+
+      <div class="code-block"><span class="comment">// Target any LLM</span>
+<span class="keyword">const</span> forOpenAI = <span class="keyword">await</span> optimize(<span class="string">'Analyze sales data'</span>, { target: <span class="string">'openai'</span> });
+<span class="keyword">const</span> forClaude = <span class="keyword">await</span> optimize(<span class="string">'Analyze sales data'</span>, { target: <span class="string">'claude'</span> });
+<span class="keyword">const</span> generic  = <span class="keyword">await</span> optimize(<span class="string">'Analyze sales data'</span>, { target: <span class="string">'generic'</span> });</div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CTA
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Start optimizing prompts today</h2>
+      <a href="./#pricing" class="btn btn-primary">Get Started Free &rarr;</a>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Footer
+       ════════════════════════════════════════════════════════════════════════ -->
+  <footer>
+    <div class="container">
+      <p>
+        Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a> &middot;
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a> &middot;
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a> &middot;
+        MIT License
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>

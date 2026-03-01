@@ -6,96 +6,9 @@
   <title>Enterprise — Prompt Optimizer</title>
   <meta name="description" content="Get unlimited prompt optimizations, 120 req/min, dedicated support, and custom integrations with Prompt Optimizer Enterprise.">
   <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/contact.html">
+  <link rel="stylesheet" href="shared.css">
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --border: #1e1e2e;
-      --text: #e4e4ed;
-      --text-muted: #8888a0;
-      --accent: #7c5cfc;
-      --accent-hover: #9178ff;
-      --green: #34d399;
-      --orange: #fb923c;
-      --input-bg: #1a1a28;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-    }
-
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { color: var(--accent-hover); }
-
-    /* -- Nav ----------------------------------------- */
-    nav {
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    nav .nav-inner {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--text);
-      letter-spacing: -0.02em;
-    }
-    .logo span { color: var(--accent); }
-    .nav-links { display: flex; gap: 24px; font-size: 14px; }
-    .nav-links a { color: var(--text-muted); }
-    .nav-links a:hover { color: var(--text); }
-
-    /* -- Layout -------------------------------------- */
-    .page {
-      max-width: 680px;
-      margin: 0 auto;
-      padding: 48px 24px 80px;
-    }
-
-    /* -- Hero ---------------------------------------- */
-    .hero {
-      text-align: center;
-      margin-bottom: 48px;
-    }
-    .badge {
-      display: inline-block;
-      background: rgba(124, 92, 252, 0.12);
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 6px 14px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
-    .hero h1 {
-      font-size: 36px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      margin-bottom: 14px;
-    }
-    .hero p {
-      color: var(--text-muted);
-      font-size: 17px;
-      max-width: 520px;
-      margin: 0 auto;
-    }
-
-    /* -- Value Props --------------------------------- */
+    /* ─── Page-Specific: Value Props ──────────────────────────────────────── */
     .value-props {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -120,7 +33,7 @@
       color: var(--text-muted);
     }
 
-    /* -- Form ---------------------------------------- */
+    /* ─── Page-Specific: Form ─────────────────────────────────────────────── */
     .form-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -182,7 +95,7 @@
     input:focus, textarea:focus, select:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
     textarea {
@@ -220,13 +133,13 @@
       background: rgba(239, 68, 68, 0.1);
       border: 1px solid rgba(239, 68, 68, 0.25);
       border-radius: 8px;
-      color: #fca5a5;
+      color: var(--red);
       font-size: 14px;
       margin-top: 16px;
       text-align: center;
     }
 
-    /* -- Footer -------------------------------------- */
+    /* ─── Page-Specific: Footer Note ──────────────────────────────────────── */
     .footer-note {
       text-align: center;
       margin-top: 32px;
@@ -234,11 +147,10 @@
       font-size: 13px;
     }
 
-    /* -- Responsive ---------------------------------- */
+    /* ─── Responsive ──────────────────────────────────────────────────────── */
     @media (max-width: 600px) {
       .form-row { grid-template-columns: 1fr; }
       .value-props { grid-template-columns: 1fr; }
-      .hero h1 { font-size: 28px; }
       .form-card { padding: 24px; }
     }
   </style>
@@ -246,132 +158,155 @@
 <body>
 
   <nav>
-    <div class="nav-inner">
-      <a href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/" class="logo">Prompt <span>Optimizer</span></a>
+    <div class="container">
+      <a href="./" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
       <div class="nav-links">
-        <a href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/">Home</a>
-        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
-        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+        <a href="./">Home</a>
+        <a href="features.html">Features</a>
+        <a href="models.html">Models</a>
+        <a href="./#pricing">Pricing</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
       </div>
     </div>
   </nav>
 
-  <div class="page">
+  <div class="section">
+    <div class="container">
 
-    <!-- Hero -->
-    <div class="hero">
-      <div class="badge">Enterprise</div>
-      <h1>Built for teams that ship with AI</h1>
-      <p>Unlimited optimizations, highest throughput, dedicated support, and custom integrations for your engineering org.</p>
-    </div>
-
-    <!-- Value Props -->
-    <div class="value-props">
-      <div class="prop">
-        <div class="prop-value">Unlimited</div>
-        <div class="prop-label">Optimizations / month</div>
+      <!-- Hero -->
+      <div class="text-center mb-32">
+        <div class="badge badge-accent">Enterprise</div>
+        <h1 class="section-title">Built for teams that ship with AI</h1>
+        <p class="section-subtitle mb-0">Unlimited optimizations, highest throughput, dedicated support, and custom integrations for your engineering org.</p>
       </div>
-      <div class="prop">
-        <div class="prop-value">120/min</div>
-        <div class="prop-label">Rate limit</div>
+
+      <!-- Value Props -->
+      <div class="value-props">
+        <div class="prop">
+          <div class="prop-value">Unlimited</div>
+          <div class="prop-label">Optimizations / month</div>
+        </div>
+        <div class="prop">
+          <div class="prop-value">120/min</div>
+          <div class="prop-label">Rate limit</div>
+        </div>
+        <div class="prop">
+          <div class="prop-value">Dedicated</div>
+          <div class="prop-label">Support &amp; SLA</div>
+        </div>
       </div>
-      <div class="prop">
-        <div class="prop-value">Dedicated</div>
-        <div class="prop-label">Support &amp; SLA</div>
+
+      <!-- Form -->
+      <div class="form-card">
+        <h2>Talk to us</h2>
+        <form id="contactForm" action="https://formspree.io/f/xdalvzen" method="POST">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Name *</label>
+              <input type="text" id="name" name="name" required placeholder="Jane Smith">
+            </div>
+            <div class="form-group">
+              <label for="email">Work email *</label>
+              <input type="email" id="email" name="email" required placeholder="jane@company.com">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="company">Company *</label>
+              <input type="text" id="company" name="company" required placeholder="Acme Inc.">
+            </div>
+            <div class="form-group">
+              <label for="team_size">Team size</label>
+              <select id="team_size" name="team_size">
+                <option value="">Select...</option>
+                <option value="1-10">1 &#8211; 10</option>
+                <option value="11-50">11 &#8211; 50</option>
+                <option value="51-200">51 &#8211; 200</option>
+                <option value="200+">200+</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="use_case">How will your team use Prompt Optimizer? *</label>
+            <textarea id="use_case" name="use_case" required placeholder="E.g., standardize prompt quality across 20 engineers, reduce token spend by routing to cheaper models, enforce prompt contracts in CI..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="integration">Integration</label>
+              <select id="integration" name="integration">
+                <option value="">Select...</option>
+                <option value="MCP Server">MCP Server (Claude, Cursor, etc.)</option>
+                <option value="Programmatic API">Programmatic API (Node.js library)</option>
+                <option value="CLI / CI">CLI / CI pipeline (prompt-lint)</option>
+                <option value="All">All of the above</option>
+                <option value="Other">Other / Not sure yet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="timeline">Timeline</label>
+              <select id="timeline" name="timeline">
+                <option value="">Select...</option>
+                <option value="Immediately">Immediately</option>
+                <option value="This quarter">This quarter</option>
+                <option value="Evaluating">Just evaluating</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Honeypot (spam prevention) -->
+          <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
+
+          <button type="submit" class="submit-btn" id="submitBtn">Get in touch</button>
+
+          <div class="error-banner" id="errorBanner">
+            Something went wrong. Please try again or email us directly.
+          </div>
+        </form>
       </div>
+
+      <p class="footer-note">
+        We typically respond within one business day. No spam, ever.
+      </p>
+
     </div>
-
-    <!-- Form -->
-    <div class="form-card">
-      <h2>Talk to us</h2>
-      <form id="contactForm" action="https://formspree.io/f/xdalvzen" method="POST">
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="name">Name *</label>
-            <input type="text" id="name" name="name" required placeholder="Jane Smith">
-          </div>
-          <div class="form-group">
-            <label for="email">Work email *</label>
-            <input type="email" id="email" name="email" required placeholder="jane@company.com">
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="company">Company *</label>
-            <input type="text" id="company" name="company" required placeholder="Acme Inc.">
-          </div>
-          <div class="form-group">
-            <label for="team_size">Team size</label>
-            <select id="team_size" name="team_size">
-              <option value="">Select...</option>
-              <option value="1-10">1 &#8211; 10</option>
-              <option value="11-50">11 &#8211; 50</option>
-              <option value="51-200">51 &#8211; 200</option>
-              <option value="200+">200+</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="use_case">How will your team use Prompt Optimizer? *</label>
-          <textarea id="use_case" name="use_case" required placeholder="E.g., standardize prompt quality across 20 engineers, reduce token spend by routing to cheaper models, enforce prompt contracts in CI..."></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="integration">Integration</label>
-            <select id="integration" name="integration">
-              <option value="">Select...</option>
-              <option value="MCP Server">MCP Server (Claude, Cursor, etc.)</option>
-              <option value="Programmatic API">Programmatic API (Node.js library)</option>
-              <option value="CLI / CI">CLI / CI pipeline (prompt-lint)</option>
-              <option value="All">All of the above</option>
-              <option value="Other">Other / Not sure yet</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="timeline">Timeline</label>
-            <select id="timeline" name="timeline">
-              <option value="">Select...</option>
-              <option value="Immediately">Immediately</option>
-              <option value="This quarter">This quarter</option>
-              <option value="Evaluating">Just evaluating</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Honeypot (spam prevention) -->
-        <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off">
-
-        <button type="submit" class="submit-btn" id="submitBtn">Get in touch</button>
-
-        <div class="error-banner" id="errorBanner">
-          Something went wrong. Please try again or email us directly.
-        </div>
-      </form>
-    </div>
-
-    <p class="footer-note">
-      We typically respond within one business day. No spam, ever.
-    </p>
-
   </div>
 
-  <script>
-    const form = document.getElementById('contactForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const errorBanner = document.getElementById('errorBanner');
+  <footer>
+    <div class="container">
+      <p>
+        Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a> &middot;
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a> &middot;
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a> &middot;
+        MIT License
+      </p>
+    </div>
+  </footer>
 
-    form.addEventListener('submit', async (e) => {
+  <script src="shared.js"></script>
+  <script>
+    var form = document.getElementById('contactForm');
+    var submitBtn = document.getElementById('submitBtn');
+    var errorBanner = document.getElementById('errorBanner');
+
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
       errorBanner.style.display = 'none';
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending...';
 
       try {
-        const response = await fetch(form.action, {
+        var response = await fetch(form.action, {
           method: 'POST',
           body: new FormData(form),
           headers: { 'Accept': 'application/json' },

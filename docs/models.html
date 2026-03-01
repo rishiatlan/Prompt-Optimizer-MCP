@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supported Models — Prompt Optimizer MCP | 11 Models, 4 Providers</title>
+  <meta name="description" content="Prompt Optimizer MCP supports 11 models across Anthropic, OpenAI, Google, and Perplexity. Deterministic cost estimation, model routing, and multi-format compilation — all offline.">
+  <meta name="keywords" content="LLM model routing, prompt cost estimation, Claude model pricing, GPT-4o pricing, Gemini pricing, Perplexity Sonar, multi-provider LLM, model selection, prompt optimizer models">
+  <link rel="canonical" href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/models.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Supported Models — Prompt Optimizer MCP">
+  <meta property="og:description" content="11 models across 4 providers. Deterministic cost estimation and model routing for Anthropic, OpenAI, Google, and Perplexity.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rishiatlan.github.io/Prompt-Optimizer-MCP/models.html">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Supported Models — Prompt Optimizer MCP">
+  <meta name="twitter:description" content="11 models across 4 providers. Deterministic cost estimation and model routing — all offline.">
+
+  <!-- Schema.org structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Supported Models — Prompt Optimizer MCP",
+    "description": "Prompt Optimizer MCP supports 11 models across Anthropic, OpenAI, Google, and Perplexity with deterministic cost estimation and model routing.",
+    "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/models.html",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Prompt Optimizer MCP",
+      "url": "https://rishiatlan.github.io/Prompt-Optimizer-MCP/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    /* ─── Page-specific: Hero ──────────────────────────────────────────── */
+    .models-hero {
+      padding: 64px 0 48px;
+      text-align: center;
+    }
+    .models-hero h1 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+      line-height: 1.15;
+    }
+    .models-hero h1 span { color: var(--accent); }
+    .models-hero p {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    /* ─── Stats strip ──────────────────────────────────────────────────── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 640px;
+      margin: 0 auto 56px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ─── Provider cards layout ────────────────────────────────────────── */
+    .providers-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 56px;
+    }
+    @media (max-width: 700px) {
+      .providers-grid { grid-template-columns: 1fr; }
+      .stats-strip { grid-template-columns: 1fr; }
+      .models-hero h1 { font-size: 28px; }
+    }
+
+    /* ─── Model tier tags (inline) ─────────────────────────────────────── */
+    .model-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ─── Routing section ──────────────────────────────────────────────── */
+    .routing-steps {
+      counter-reset: step;
+      list-style: none;
+      padding: 0;
+    }
+    .routing-steps li {
+      position: relative;
+      padding: 0 0 20px 44px;
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .routing-steps li:last-child { padding-bottom: 0; }
+    .routing-steps li::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 28px;
+      height: 28px;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .routing-steps li strong { color: var(--text); }
+
+    /* ─── Output format cards ──────────────────────────────────────────── */
+    .format-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .format-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .format-card pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      overflow-x: auto;
+      line-height: 1.5;
+      white-space: pre;
+    }
+    .format-card pre .tag { color: var(--accent); }
+    .format-card pre .header { color: var(--green); }
+    .format-card pre .label { color: var(--orange); }
+
+    /* ─── Profiles list ────────────────────────────────────────────────── */
+    .profiles-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .profile-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Pricing note ─────────────────────────────────────────────────── */
+    .pricing-note {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── CTA section ──────────────────────────────────────────────────── */
+    .cta-section {
+      text-align: center;
+      padding: 48px 0;
+    }
+    .cta-section h2 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .cta-section p {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <a href="./" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-links">
+        <a href="./">Home</a>
+        <a href="features.html">Features</a>
+        <a href="models.html" class="active">Models</a>
+        <a href="./#pricing">Pricing</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="models-hero">
+    <div class="container">
+      <div class="badge badge-accent">Multi-Provider Support</div>
+      <h1><span>11</span> models across <span>4</span> providers</h1>
+      <p>Cost estimation, model routing, and compilation across every major LLM provider. All deterministic, all offline.</p>
+    </div>
+  </section>
+
+  <!-- Stats strip -->
+  <div class="container">
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-value">4</div>
+        <div class="stat-label">Providers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">11</div>
+        <div class="stat-label">Models</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Output Formats</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Provider Cards -->
+  <section class="section">
+    <div class="container-wide">
+      <h2 class="section-title text-center">Providers &amp; Models</h2>
+      <p class="section-subtitle text-center">Pricing shown as input / output per 1M tokens</p>
+
+      <div class="providers-grid">
+
+        <!-- Anthropic -->
+        <div class="provider-card">
+          <h3>Anthropic</h3>
+          <p class="provider-tagline">Claude family — best for structured reasoning and XML compilation</p>
+          <ul class="model-list">
+            <li>
+              <span class="model-name">Claude Haiku</span>
+              <div class="model-meta">
+                <span class="model-price">$0.80 / $4.00</span>
+                <span class="tag tag-free model-tier">Small</span>
+              </div>
+            </li>
+            <li>
+              <span class="model-name">Claude Sonnet</span>
+              <div class="model-meta">
+                <span class="model-price">$3.00 / $15.00</span>
+                <span class="tag tag-accent model-tier">Mid</span>
+              </div>
+            </li>
+            <li>
+              <span class="model-name">Claude Opus</span>
+              <div class="model-meta">
+                <span class="model-price">$15.00 / $75.00</span>
+                <span class="tag tag-metered model-tier">Top</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- OpenAI -->
+        <div class="provider-card">
+          <h3>OpenAI</h3>
+          <p class="provider-tagline">GPT family — broadest ecosystem and integration support</p>
+          <ul class="model-list">
+            <li>
+              <span class="model-name">GPT-4o Mini</span>
+              <div class="model-meta">
+                <span class="model-price">$0.15 / $0.60</span>
+                <span class="tag tag-free model-tier">Small</span>
+              </div>
+            </li>
+            <li>
+              <span class="model-name">GPT-4o</span>
+              <div class="model-meta">
+                <span class="model-price">$2.50 / $10.00</span>
+                <span class="tag tag-accent model-tier">Mid</span>
+              </div>
+            </li>
+            <li>
+              <span class="model-name">o1</span>
+              <div class="model-meta">
+                <span class="model-price">$15.00 / $60.00</span>
+                <span class="tag tag-metered model-tier">Top</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Google -->
+        <div class="provider-card">
+          <h3>Google</h3>
+          <p class="provider-tagline">Gemini family — competitive pricing with strong multimodal capabilities</p>
+          <ul class="model-list">
+            <li>
+              <span class="model-name">Gemini 2.0 Flash</span>
+              <div class="model-meta">
+                <span class="model-price">$0.10 / $0.40</span>
+                <span class="tag tag-free model-tier">Small</span>
+              </div>
+            </li>
+            <li>
+              <span class="model-name">Gemini 2.0 Pro</span>
+              <div class="model-meta">
+                <span class="model-price">$1.25 / $5.00</span>
+                <span class="tag tag-accent model-tier">Mid/Top</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Perplexity -->
+        <div class="provider-card">
+          <h3>Perplexity</h3>
+          <p class="provider-tagline">Search-grounded models — auto-selected for research-intent prompts</p>
+          <ul class="model-list">
+            <li>
+              <span class="model-name">Sonar</span>
+              <div class="model-meta">
+                <span class="model-price">$1.00 / $1.00</span>
+                <span class="tag tag-free model-tier">Small</span>
+              </div>
+            </li>
+            <li>
+              <span class="model-name">Sonar Pro</span>
+              <div class="model-meta">
+                <span class="model-price">$3.00 / $15.00</span>
+                <span class="tag tag-accent model-tier">Mid/Top</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- How Routing Works -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">How Routing Works</h2>
+      <p class="section-subtitle">A 2-step deterministic pipeline picks the right model for every prompt. Zero LLM calls — pure rules.</p>
+
+      <ol class="routing-steps">
+        <li><strong>Complexity + risk analysis</strong> determines a default tier. Simple factual tasks route to <strong>small</strong>, analytical tasks to <strong>mid</strong>, and multi-step reasoning or high-risk prompts to <strong>top</strong>.</li>
+        <li><strong>Budget and latency overrides</strong> shift the tier up or down. High budget sensitivity pushes toward cheaper models; low latency sensitivity allows larger models.</li>
+        <li><strong>Target preference</strong> selects the provider. Setting target to <em>claude</em> picks Anthropic, <em>openai</em> picks OpenAI, and <em>generic</em> picks the best value across all providers.</li>
+        <li><strong>Research intent detection</strong> auto-routes to Perplexity. A strict word-boundary regex identifies research, search, and citation prompts and recommends Perplexity's search-grounded models.</li>
+      </ol>
+
+      <p class="text-muted mt-32" style="font-size: 14px;">Routing is shaped by <strong>5 optimization profiles</strong> — frozen presets that bundle budget, latency, and quality preferences:</p>
+
+      <div class="profiles-list">
+        <span class="profile-tag">cost_minimizer</span>
+        <span class="profile-tag">balanced</span>
+        <span class="profile-tag">quality_first</span>
+        <span class="profile-tag">creative</span>
+        <span class="profile-tag">enterprise_safe</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Output Formats -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title text-center">Output Formats</h2>
+      <p class="section-subtitle text-center">One prompt, three compilation targets. Pick the format that matches your LLM.</p>
+
+      <div class="grid-3">
+        <div class="format-card">
+          <h3>Claude XML</h3>
+          <pre><span class="tag">&lt;role&gt;</span>Senior engineer<span class="tag">&lt;/role&gt;</span>
+<span class="tag">&lt;goal&gt;</span>Refactor auth module<span class="tag">&lt;/goal&gt;</span>
+<span class="tag">&lt;constraints&gt;</span>
+  No breaking changes
+  Keep under 200 lines
+<span class="tag">&lt;/constraints&gt;</span></pre>
+        </div>
+
+        <div class="format-card">
+          <h3>OpenAI</h3>
+          <pre><span class="label">[SYSTEM]</span>
+You are a senior engineer.
+Your goal is to refactor the
+auth module.
+
+<span class="label">[USER]</span>
+Refactor the auth module.
+No breaking changes.
+Keep under 200 lines.</pre>
+        </div>
+
+        <div class="format-card">
+          <h3>Generic Markdown</h3>
+          <pre><span class="header">## Role</span>
+Senior engineer
+
+<span class="header">## Goal</span>
+Refactor auth module
+
+<span class="header">## Constraints</span>
+- No breaking changes
+- Keep under 200 lines</pre>
+        </div>
+      </div>
+
+      <p class="pricing-note">Pricing data as of February 2026. Model routing and cost estimation are always free (not metered).</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="cta-section">
+        <h2>Try the model router</h2>
+        <p>Route your next prompt to the right model at the right price. Free to use, no account required.</p>
+        <a href="./#pricing" class="btn btn-primary">Get started</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="./">Home</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
+        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+        <a href="contact.html">Enterprise</a>
+      </div>
+      <p>Built by <a href="https://github.com/rishiatlan">Rishi Banerjee</a>. MIT License.</p>
+    </div>
+  </footer>
+
+  <script src="shared.js"></script>
+</body>
+</html>

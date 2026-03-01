@@ -5,60 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thank you — Prompt Optimizer</title>
   <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="shared.css">
+  <script src="shared.js"></script>
   <style>
-    :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --border: #1e1e2e;
-      --text: #e4e4ed;
-      --text-muted: #8888a0;
-      --accent: #7c5cfc;
-      --accent-hover: #9178ff;
-      --green: #34d399;
-    }
+    /* ─── Page-specific: centered card layout ─────────────────────────────── */
+    body { min-height: 100vh; display: flex; flex-direction: column; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { color: var(--accent-hover); }
-
-    /* -- Nav ----------------------------------------- */
-    nav {
-      padding: 16px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    nav .nav-inner {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .logo {
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--text);
-      letter-spacing: -0.02em;
-    }
-    .logo span { color: var(--accent); }
-    .nav-links { display: flex; gap: 24px; font-size: 14px; }
-    .nav-links a { color: var(--text-muted); }
-    .nav-links a:hover { color: var(--text); }
-
-    /* -- Content ------------------------------------- */
-    .content {
+    .ty-content {
       flex: 1;
       display: flex;
       align-items: center;
@@ -66,53 +19,30 @@
       padding: 48px 24px;
     }
 
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 56px 48px;
+    .ty-card {
       max-width: 520px;
       width: 100%;
+      padding: 56px 48px;
       text-align: center;
     }
 
-    .check-icon {
-      width: 56px;
-      height: 56px;
-      background: rgba(52, 211, 153, 0.1);
-      border: 2px solid var(--green);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-    }
-    .check-icon svg {
-      width: 28px;
-      height: 28px;
-      stroke: var(--green);
-      fill: none;
-      stroke-width: 2.5;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .card h1 {
+    .ty-card h1 {
       font-size: 28px;
       font-weight: 700;
       letter-spacing: -0.03em;
       margin-bottom: 12px;
     }
 
-    .card p {
+    .ty-card > p {
       color: var(--text-muted);
       font-size: 16px;
       margin-bottom: 8px;
     }
-    .card p:last-of-type {
+    .ty-card > p:last-of-type {
       margin-bottom: 32px;
     }
 
+    /* ─── Next-steps box ──────────────────────────────────────────────────── */
     .next-steps {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -135,14 +65,12 @@
       font-size: 14px;
       color: var(--text);
     }
-    .step + .step {
-      margin-top: 10px;
-    }
+    .step + .step { margin-top: 10px; }
     .step-number {
       flex-shrink: 0;
       width: 22px;
       height: 22px;
-      background: rgba(124, 92, 252, 0.15);
+      background: var(--accent-glow);
       color: var(--accent);
       border-radius: 50%;
       display: flex;
@@ -153,42 +81,36 @@
       margin-top: 1px;
     }
 
-    .btn-home {
-      display: inline-block;
-      padding: 12px 32px;
-      background: var(--accent);
-      color: white;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    .btn-home:hover {
-      background: var(--accent-hover);
-      color: white;
-    }
-
     @media (max-width: 600px) {
-      .card { padding: 40px 24px; }
-      .card h1 { font-size: 24px; }
+      .ty-card { padding: 40px 24px; }
+      .ty-card h1 { font-size: 24px; }
     }
   </style>
 </head>
 <body>
 
   <nav>
-    <div class="nav-inner">
-      <a href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/" class="logo">Prompt <span>Optimizer</span></a>
+    <div class="container">
+      <a href="./" class="logo">Prompt Optimizer <span>MCP</span></a>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
       <div class="nav-links">
-        <a href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/">Home</a>
-        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
-        <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+        <a href="./">Home</a>
+        <a href="features.html">Features</a>
+        <a href="models.html">Models</a>
+        <a href="./#pricing">Pricing</a>
+        <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">Docs</a>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
       </div>
     </div>
   </nav>
 
-  <div class="content">
-    <div class="card">
+  <div class="ty-content">
+    <div class="card ty-card">
 
       <div class="check-icon">
         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -214,7 +136,7 @@
         </div>
       </div>
 
-      <a href="https://rishiatlan.github.io/Prompt-Optimizer-MCP/" class="btn-home">Back to Prompt Optimizer</a>
+      <a href="./" class="btn btn-primary">Back to Prompt Optimizer</a>
 
     </div>
   </div>

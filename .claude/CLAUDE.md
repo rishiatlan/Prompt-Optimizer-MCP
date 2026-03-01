@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A prompt linter for LLM applications — deterministic scoring, analysis, and standardization of AI prompts. Acts as a **deterministic prompt compiler + contract enforcer** — turns raw user intent into a structured, constrained, reviewable prompt bundle. Ships as an MCP server, programmatic API, CLI linter (`prompt-lint`), and GitHub Action.
 
-**v3.1: Production-ready freemium product** with 3-tier access (Free/Pro ₹499\/mo/Power ₹899\/mo), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 15 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), GitHub Action, **reasoning complexity classifier**, **5 optimization profiles**, **deterministic model routing with decision_path audit trail**, **dimensional risk scoring**, **Perplexity support** (recommendation-only), **smart compression pipeline (H1-H5 heuristics)**, **zone scanner**, **preserve patterns**, **tool pruning engine**, and **pre-flight deltas**.
+**v3.2: Production-ready freemium product** with 4-tier access (Free/Pro ₹499\/mo/Power ₹899\/mo/Enterprise custom), multi-LLM output (Claude/OpenAI/generic), async StorageInterface for Phase B migration, rate limiting, monthly usage metering with calendar-month reset, Ed25519 offline license activation, 15 tools, programmatic API (`import { optimize }`), dual entry points (API + MCP server), CLI linter (`prompt-lint`), GitHub Action, **reasoning complexity classifier**, **5 optimization profiles**, **deterministic model routing with decision_path audit trail**, **dimensional risk scoring**, **Perplexity support** (recommendation-only), **smart compression pipeline (H1-H5 heuristics)**, **zone scanner**, **preserve patterns**, **tool pruning engine**, **pre-flight deltas**, and **multi-page docs site with dark/light mode**.
 
 **Zero LLM calls inside the MCP.** All intelligence comes from the host Claude. The MCP provides structure, rules, and discipline.
 
@@ -141,6 +141,15 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `src/deltas.ts` | Pre-flight delta calculation for compression and pruning token savings estimates. |
 | `src/pruner.ts` | Deterministic tool relevance scorer and pruner. Task-type-aware scoring, mention protection, always-relevant tools. |
 | `src/lint-cli.ts` | Standalone CLI linter (`prompt-lint` binary). No MCP dependency — reuses `api.ts` functions directly. |
+| `docs/index.html` | Landing page — hero, providers strip, how-it-works, 4-tier pricing, install |
+| `docs/features.html` | Features sub-page — capabilities, all 15 tools, use cases, comparison, API |
+| `docs/models.html` | Supported models page — 4 providers, 11 models, routing, output formats |
+| `docs/contact.html` | Enterprise contact form — Formspree integration, thank-you redirect |
+| `docs/thank-you.html` | Post-form confirmation — next steps, noindex |
+| `docs/how-i-built-this.html` | Blog post — "From Idea to Product in 49 Hours" |
+| `docs/shared.css` | Shared design system — dark/light tokens, nav, footer, cards, grids, pricing |
+| `docs/shared.js` | Theme toggle (localStorage), mobile nav hamburger |
+| `scripts/keygen.mjs` | Ed25519 license key generator — supports pro, power, enterprise tiers |
 
 ## Test Files
 
@@ -178,9 +187,10 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 ### TierLimits & PLAN_LIMITS
 ```typescript
 { lifetime: number, monthly: number, rate_per_minute: number, always_on: boolean }
-// free:  { lifetime: 10,       monthly: 10,       rate_per_minute: 5,  always_on: false }
-// pro:   { lifetime: Infinity, monthly: 100,      rate_per_minute: 30, always_on: false }
-// power: { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 60, always_on: true }
+// free:       { lifetime: 10,       monthly: 10,       rate_per_minute: 5,   always_on: false }
+// pro:        { lifetime: Infinity, monthly: 100,      rate_per_minute: 30,  always_on: false }
+// power:      { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 60,  always_on: true }
+// enterprise: { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 120, always_on: true }
 ```
 
 ### ExecutionContext
@@ -207,7 +217,8 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 - **Tier priority chain:** license key (cryptographically verified) > `PROMPT_OPTIMIZER_PRO` env var > default free
 - **`getLicense()` re-checks expiry** on every read; marks `valid=false` + `validation_error='expired'` if newly expired
 - **`setLicense()` sets chmod 600** on POSIX (best-effort, skip on Windows)
-- **Gate responses** include `pro_purchase_url` + `power_purchase_url` + `next_step` when tier limit is hit (not on rate limits)
+- **Gate responses** include `pro_purchase_url` + `power_purchase_url` + `enterprise_purchase_url` + `next_step` when tier limit is hit (not on rate limits)
+- **Infinity serialization guard**: `sanitizeLimits()` converts `Infinity` to `null` in all JSON responses via `SerializedTierLimits` type
 
 ## Scoring
 
@@ -304,6 +315,32 @@ Estimated token savings shown before user commits to optimization. Conditional p
 
 ### G36 Invariant
 Property-based test: `compressed_tokens ≤ original_tokens` for 100 random inputs.
+
+## v3.2 Enterprise Unlock + Docs Site
+
+v3.2 adds the Enterprise tier and a multi-page documentation site. **No behavioral core changes.**
+
+### Enterprise Tier
+- `Tier` type now includes `'enterprise'`
+- `PLAN_LIMITS.enterprise`: `{ lifetime: Infinity, monthly: Infinity, rate_per_minute: 120, always_on: true }`
+- `keygen.mjs` and `license.ts` updated to support enterprise key generation/validation
+- Gate responses include `enterprise_purchase_url` alongside pro/power URLs
+- `SerializedTierLimits` type — converts `Infinity` → `null` for JSON-safe serialization
+- `sanitizeLimits()` helper in `tools.ts` and `storage/localFs.ts`
+
+### Multi-Page Docs Site
+Monolithic `index.html` (1094 lines, 11 sections) split into focused pages:
+- `index.html` — Hero, providers strip, how-it-works, 4-tier pricing, install
+- `features.html` — Core capabilities, all 15 tools, use cases, comparison, API
+- `models.html` — 4 providers × 11 models, routing, output formats
+- `contact.html` — Enterprise contact form (Formspree)
+- `thank-you.html` — Post-form confirmation
+
+### Shared Design System
+- `shared.css` — Dark/light theme tokens, nav, footer, cards, grids, pricing, tags
+- `shared.js` — Theme toggle with `localStorage` persistence, mobile hamburger
+- `[data-theme="light"]` override pattern — user preference respected via `prefers-color-scheme`
+- All pages use consistent nav with: Home | Features | Models | Pricing | Docs | Blog + theme toggle
 
 ## Breaking Changes (v1 → v2)
 
