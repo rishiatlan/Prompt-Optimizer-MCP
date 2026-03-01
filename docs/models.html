@@ -97,11 +97,47 @@
       .models-hero h1 { font-size: 28px; }
     }
 
-    /* ─── Model tier tags (inline) ─────────────────────────────────────── */
-    .model-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    /* ─── Model pricing table ─────────────────────────────────────────── */
+    .model-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+    .model-table thead th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .model-table tbody td {
+      padding: 8px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .model-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .model-table .model-name {
+      font-weight: 600;
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+    }
+    .model-table .model-price {
+      color: var(--green);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+    }
+    .price-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+      margin-top: 8px;
+      font-style: italic;
     }
 
     /* ─── Routing section ──────────────────────────────────────────────── */
@@ -264,7 +300,7 @@
   <section class="section">
     <div class="container-wide">
       <h2 class="section-title text-center">Providers &amp; Models</h2>
-      <p class="section-subtitle text-center">Pricing shown as input / output per 1M tokens</p>
+      <p class="section-subtitle text-center">The router picks the right model for your task — here's what each costs</p>
 
       <div class="providers-grid">
 
@@ -272,102 +308,136 @@
         <div class="provider-card">
           <h3>Anthropic</h3>
           <p class="provider-tagline">Claude family — best for structured reasoning and XML compilation</p>
-          <ul class="model-list">
-            <li>
-              <span class="model-name">Claude Haiku</span>
-              <div class="model-meta">
-                <span class="model-price">$0.80 / $4.00</span>
-                <span class="tag tag-free model-tier">Small</span>
-              </div>
-            </li>
-            <li>
-              <span class="model-name">Claude Sonnet</span>
-              <div class="model-meta">
-                <span class="model-price">$3.00 / $15.00</span>
-                <span class="tag tag-accent model-tier">Mid</span>
-              </div>
-            </li>
-            <li>
-              <span class="model-name">Claude Opus</span>
-              <div class="model-meta">
-                <span class="model-price">$15.00 / $75.00</span>
-                <span class="tag tag-metered model-tier">Top</span>
-              </div>
-            </li>
-          </ul>
+          <table class="model-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Input</th>
+                <th>Output</th>
+                <th>Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="model-name">Claude Haiku</td>
+                <td class="model-price">$0.80</td>
+                <td class="model-price">$4.00</td>
+                <td><span class="tag tag-free model-tier">Small</span></td>
+              </tr>
+              <tr>
+                <td class="model-name">Claude Sonnet</td>
+                <td class="model-price">$3.00</td>
+                <td class="model-price">$15.00</td>
+                <td><span class="tag tag-accent model-tier">Mid</span></td>
+              </tr>
+              <tr>
+                <td class="model-name">Claude Opus</td>
+                <td class="model-price">$15.00</td>
+                <td class="model-price">$75.00</td>
+                <td><span class="tag tag-metered model-tier">Top</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="price-note">per 1M tokens</p>
         </div>
 
         <!-- OpenAI -->
         <div class="provider-card">
           <h3>OpenAI</h3>
           <p class="provider-tagline">GPT family — broadest ecosystem and integration support</p>
-          <ul class="model-list">
-            <li>
-              <span class="model-name">GPT-4o Mini</span>
-              <div class="model-meta">
-                <span class="model-price">$0.15 / $0.60</span>
-                <span class="tag tag-free model-tier">Small</span>
-              </div>
-            </li>
-            <li>
-              <span class="model-name">GPT-4o</span>
-              <div class="model-meta">
-                <span class="model-price">$2.50 / $10.00</span>
-                <span class="tag tag-accent model-tier">Mid</span>
-              </div>
-            </li>
-            <li>
-              <span class="model-name">o1</span>
-              <div class="model-meta">
-                <span class="model-price">$15.00 / $60.00</span>
-                <span class="tag tag-metered model-tier">Top</span>
-              </div>
-            </li>
-          </ul>
+          <table class="model-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Input</th>
+                <th>Output</th>
+                <th>Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="model-name">GPT-4o Mini</td>
+                <td class="model-price">$0.15</td>
+                <td class="model-price">$0.60</td>
+                <td><span class="tag tag-free model-tier">Small</span></td>
+              </tr>
+              <tr>
+                <td class="model-name">GPT-4o</td>
+                <td class="model-price">$2.50</td>
+                <td class="model-price">$10.00</td>
+                <td><span class="tag tag-accent model-tier">Mid</span></td>
+              </tr>
+              <tr>
+                <td class="model-name">o1</td>
+                <td class="model-price">$15.00</td>
+                <td class="model-price">$60.00</td>
+                <td><span class="tag tag-metered model-tier">Top</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="price-note">per 1M tokens</p>
         </div>
 
         <!-- Google -->
         <div class="provider-card">
           <h3>Google</h3>
           <p class="provider-tagline">Gemini family — competitive pricing with strong multimodal capabilities</p>
-          <ul class="model-list">
-            <li>
-              <span class="model-name">Gemini 2.0 Flash</span>
-              <div class="model-meta">
-                <span class="model-price">$0.10 / $0.40</span>
-                <span class="tag tag-free model-tier">Small</span>
-              </div>
-            </li>
-            <li>
-              <span class="model-name">Gemini 2.0 Pro</span>
-              <div class="model-meta">
-                <span class="model-price">$1.25 / $5.00</span>
-                <span class="tag tag-accent model-tier">Mid/Top</span>
-              </div>
-            </li>
-          </ul>
+          <table class="model-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Input</th>
+                <th>Output</th>
+                <th>Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="model-name">Gemini 2.0 Flash</td>
+                <td class="model-price">$0.10</td>
+                <td class="model-price">$0.40</td>
+                <td><span class="tag tag-free model-tier">Small</span></td>
+              </tr>
+              <tr>
+                <td class="model-name">Gemini 2.0 Pro</td>
+                <td class="model-price">$1.25</td>
+                <td class="model-price">$5.00</td>
+                <td><span class="tag tag-accent model-tier">Mid/Top</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="price-note">per 1M tokens</p>
         </div>
 
         <!-- Perplexity -->
         <div class="provider-card">
           <h3>Perplexity</h3>
           <p class="provider-tagline">Search-grounded models — auto-selected for research-intent prompts</p>
-          <ul class="model-list">
-            <li>
-              <span class="model-name">Sonar</span>
-              <div class="model-meta">
-                <span class="model-price">$1.00 / $1.00</span>
-                <span class="tag tag-free model-tier">Small</span>
-              </div>
-            </li>
-            <li>
-              <span class="model-name">Sonar Pro</span>
-              <div class="model-meta">
-                <span class="model-price">$3.00 / $15.00</span>
-                <span class="tag tag-accent model-tier">Mid/Top</span>
-              </div>
-            </li>
-          </ul>
+          <table class="model-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Input</th>
+                <th>Output</th>
+                <th>Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="model-name">Sonar</td>
+                <td class="model-price">$1.00</td>
+                <td class="model-price">$1.00</td>
+                <td><span class="tag tag-free model-tier">Small</span></td>
+              </tr>
+              <tr>
+                <td class="model-name">Sonar Pro</td>
+                <td class="model-price">$3.00</td>
+                <td class="model-price">$15.00</td>
+                <td><span class="tag tag-accent model-tier">Mid/Top</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="price-note">per 1M tokens</p>
         </div>
 
       </div>
