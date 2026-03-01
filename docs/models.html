@@ -140,6 +140,137 @@
       font-style: italic;
     }
 
+    /* ─── Token visualization ─────────────────────────────────────────── */
+    .token-visual {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .token-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .token-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .token-word {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .tw-text {
+      background: var(--accent-glow);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .token-word.two-tok .tw-text {
+      background: rgba(251, 146, 60, 0.1);
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+    .tw-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .token-word.two-tok .tw-count { color: var(--orange); }
+    .token-sum {
+      font-size: 14px;
+      color: var(--text-muted);
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .token-sum strong { color: var(--accent); }
+
+    /* ─── Cost example ────────────────────────────────────────────────── */
+    .cost-example {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 700px) {
+      .cost-example { grid-template-columns: 1fr; }
+    }
+    .cost-scenario {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .cost-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .cost-header h3 { font-size: 15px; font-weight: 700; }
+    .cost-icon { font-size: 20px; }
+    .cost-prompt-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .cost-prompt-box code {
+      font-size: 13px;
+      color: var(--accent);
+      line-height: 1.5;
+    }
+    .cost-detail {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+    .cost-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .cost-stat {
+      background: var(--code-bg);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .cost-stat-value {
+      display: block;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      letter-spacing: -0.02em;
+    }
+    .cost-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .cost-comparison {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
     /* ─── Routing section ──────────────────────────────────────────────── */
     .routing-steps {
       counter-reset: step;
@@ -295,6 +426,182 @@
       </div>
     </div>
   </div>
+
+  <!-- What Are Tokens? -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">What are tokens?</h2>
+      <p class="section-subtitle">Every LLM API call costs money — and the currency is tokens.</p>
+
+      <p style="font-size: 15px; color: var(--text-muted); line-height: 1.7; margin-bottom: 24px;">
+        When you send a prompt to an AI model, it doesn't read words — it reads <strong style="color: var(--text)">tokens</strong>.
+        A token is roughly ¾ of a word. The sentence <em>"Write a blog post about AI trends"</em>
+        is 7 words but <strong style="color: var(--accent)">~9 tokens</strong>.
+      </p>
+
+      <div class="token-visual">
+        <div class="token-example">
+          <div class="token-label">Your prompt (input tokens)</div>
+          <div class="token-words">
+            <span class="token-word"><span class="tw-text">Write</span><span class="tw-count">1</span></span>
+            <span class="token-word"><span class="tw-text">a</span><span class="tw-count">1</span></span>
+            <span class="token-word"><span class="tw-text">blog</span><span class="tw-count">1</span></span>
+            <span class="token-word"><span class="tw-text">post</span><span class="tw-count">1</span></span>
+            <span class="token-word"><span class="tw-text">about</span><span class="tw-count">1</span></span>
+            <span class="token-word"><span class="tw-text">AI</span><span class="tw-count">1</span></span>
+            <span class="token-word two-tok"><span class="tw-text">trends</span><span class="tw-count">2</span></span>
+          </div>
+          <div class="token-sum">= <strong>8 tokens</strong> input</div>
+        </div>
+      </div>
+
+      <p style="font-size: 15px; color: var(--text-muted); line-height: 1.7; margin-top: 24px;">
+        You pay for <strong style="color: var(--text)">input tokens</strong> (what you send) and
+        <strong style="color: var(--text)">output tokens</strong> (what the model replies). Output tokens
+        typically cost <strong style="color: var(--orange)">3–5× more</strong> than input. That's why a long, rambling prompt
+        that generates a long response costs significantly more than a focused one.
+      </p>
+    </div>
+  </section>
+
+  <!-- Real Example -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">See how tokens add up</h2>
+      <p class="section-subtitle">A developer asks an AI to review 200 lines of code. Here's the token breakdown.</p>
+
+      <div class="cost-example">
+        <div class="cost-scenario">
+          <div class="cost-header">
+            <span class="cost-icon">📝</span>
+            <h3>The prompt</h3>
+          </div>
+          <div class="cost-prompt-box">
+            <code>"Review this authentication module for security issues. Here's the code…"</code>
+            <span class="cost-detail">+ 200 lines of code pasted below</span>
+          </div>
+          <div class="cost-stats">
+            <div class="cost-stat">
+              <span class="cost-stat-value">~1,500</span>
+              <span class="cost-stat-label">input tokens</span>
+            </div>
+            <div class="cost-stat">
+              <span class="cost-stat-value">~750</span>
+              <span class="cost-stat-label">output tokens</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cost-comparison">
+          <h3 style="font-size: 15px; margin-bottom: 16px; color: var(--text);">Same tokens, different efficiency</h3>
+          <table class="model-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Tier</th>
+                <th>Relative efficiency</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="model-name" style="color: var(--text);">Claude Opus</td>
+                <td><span class="tag tag-metered model-tier">Top</span></td>
+                <td style="color: var(--red); font-weight: 600; font-size: 13px;">1× (baseline)</td>
+              </tr>
+              <tr>
+                <td class="model-name" style="color: var(--text);">Claude Sonnet</td>
+                <td><span class="tag tag-accent model-tier">Mid</span></td>
+                <td style="color: var(--orange); font-weight: 600; font-size: 13px;">5× more efficient</td>
+              </tr>
+              <tr>
+                <td class="model-name" style="color: var(--text);">Claude Haiku</td>
+                <td><span class="tag tag-free model-tier">Small</span></td>
+                <td style="color: var(--green); font-weight: 600; font-size: 13px;">19× more efficient</td>
+              </tr>
+              <tr>
+                <td class="model-name" style="color: var(--text);">Gemini Flash</td>
+                <td><span class="tag tag-free model-tier">Small</span></td>
+                <td style="color: var(--green); font-weight: 600; font-size: 13px;">79× more efficient</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="price-note">Same prompt, same quality output — the difference is <strong style="color: var(--text);">which model runs it</strong></p>
+        </div>
+      </div>
+
+      <div class="card mt-32" style="border-color: var(--accent); border-width: 1px;">
+        <p style="font-size: 14px; color: var(--text-muted); line-height: 1.7; margin: 0;">
+          <strong style="color: var(--text);">The insight:</strong>
+          Most teams send <strong style="color: var(--accent);">every prompt to their strongest model</strong> — even simple tasks
+          that a smaller, faster model handles equally well. The router analyzes each prompt's complexity and risk,
+          then picks the <strong style="color: var(--green);">right-sized model</strong> automatically. You get the same quality output
+          with dramatically better token efficiency.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- How Prompt Optimizer Helps -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">More value from every token</h2>
+      <p class="section-subtitle">Two levers: use fewer tokens per call, and route each call to the right-sized model.</p>
+
+      <div class="grid-2 mt-32">
+        <div class="card">
+          <div class="icon">🗜️</div>
+          <h3>Smart compression</h3>
+          <p>
+            The H1-H5 heuristic pipeline strips license headers, collapses duplicate lines,
+            removes boilerplate comments, and truncates irrelevant context — while protecting
+            code blocks, tables, and important structure. Typical reduction:
+            <strong style="color: var(--green);">20–40% fewer tokens</strong> per call.
+          </p>
+        </div>
+        <div class="card">
+          <div class="icon">🧭</div>
+          <h3>Intelligent routing</h3>
+          <p>
+            Not every prompt needs the most powerful model. The router classifies your task's
+            complexity and risk, then picks the right-sized model for the job.
+            A simple code review doesn't need Opus-level reasoning — Haiku handles it
+            <strong style="color: var(--green);">just as well, 19× more efficiently</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="savings-example mt-32">
+        <h3 style="font-size: 15px; margin-bottom: 16px; text-align: center;">Before vs After — same code review task</h3>
+        <div class="grid-2">
+          <div class="card" style="border-color: var(--red); opacity: 0.85;">
+            <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--red); font-weight: 700; margin-bottom: 12px;">Without optimizer</p>
+            <div style="font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+              <div>Model: <strong style="color: var(--text);">Claude Opus</strong> (manual pick)</div>
+              <div>Input: <strong style="color: var(--text);">1,500 tokens</strong> (full context)</div>
+              <div>Output: <strong style="color: var(--text);">750 tokens</strong></div>
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
+                Tokens used: <strong style="color: var(--red);">2,250</strong> on a top-tier model
+              </div>
+            </div>
+          </div>
+          <div class="card" style="border-color: var(--green);">
+            <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--green); font-weight: 700; margin-bottom: 12px;">With optimizer</p>
+            <div style="font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+              <div>Model: <strong style="color: var(--text);">Claude Haiku</strong> (auto-routed)</div>
+              <div>Input: <strong style="color: var(--text);">1,050 tokens</strong> (30% compressed)</div>
+              <div>Output: <strong style="color: var(--text);">750 tokens</strong></div>
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
+                Tokens used: <strong style="color: var(--green);">1,800</strong> on the right-sized model
+                <span class="tag tag-free" style="margin-left: 8px;">20% fewer</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
   <!-- Provider Cards -->
   <section class="section">
