@@ -147,13 +147,22 @@ export interface TierLimits {
   always_on: boolean;        // can use always-on mode (free/pro=false, power=true)
 }
 
+/** Serialized tier limits (Infinity → null for JSON safety). */
+export interface SerializedTierLimits {
+  lifetime: number | null;   // null when Infinity (unlimited)
+  monthly: number | null;    // null when Infinity (unlimited)
+  rate_per_minute: number;
+  always_on: boolean;
+}
+
 export const PLAN_LIMITS: Record<string, TierLimits> = {
-  free:  { lifetime: 10,       monthly: 10,       rate_per_minute: 5,  always_on: false },
-  pro:   { lifetime: Infinity, monthly: 100,      rate_per_minute: 30, always_on: false },
-  power: { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 60, always_on: true },
+  free:       { lifetime: 10,       monthly: 10,        rate_per_minute: 5,   always_on: false },
+  pro:        { lifetime: Infinity, monthly: 100,       rate_per_minute: 30,  always_on: false },
+  power:      { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 60,  always_on: true },
+  enterprise: { lifetime: Infinity, monthly: Infinity,  rate_per_minute: 120, always_on: true },
 };
 
-export type Tier = 'free' | 'pro' | 'power';
+export type Tier = 'free' | 'pro' | 'power' | 'enterprise';
 
 // ─── Ambiguity Rules ──────────────────────────────────────────────────────────
 
@@ -408,7 +417,7 @@ export interface EnforcementResult {
   allowed: boolean;
   enforcement: 'lifetime' | 'monthly' | 'rate' | 'always_on' | null;
   usage: UsageData;
-  limits: TierLimits;
+  limits: SerializedTierLimits;       // Serialized (Infinity → null for JSON safety)
   remaining: {
     lifetime: number;
     monthly: number;

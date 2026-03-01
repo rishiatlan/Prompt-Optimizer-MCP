@@ -9,7 +9,14 @@ export class LocalRateLimiter implements RateLimiter {
   private timestampsByTier: Record<string, number[]> = {};
 
   check(tier: string): { allowed: boolean; retry_after_seconds?: number } {
-    const limit = PLAN_LIMITS[tier]?.rate_per_minute ?? 5;
+    const tierLimit = PLAN_LIMITS[tier];
+    const limit = tierLimit?.rate_per_minute ?? 5;
+
+    // Tiers with always_on=true bypass rate limiting
+    if (tierLimit?.always_on) {
+      return { allowed: true };
+    }
+
     const windowMs = 60_000; // 1-minute sliding window
     const now = Date.now();
 

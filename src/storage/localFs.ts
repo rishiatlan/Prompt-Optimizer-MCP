@@ -40,6 +40,16 @@ function sha256(content: string): string {
   return createHash('sha256').update(content).digest('hex');
 }
 
+function sanitizeLimits(limits: typeof PLAN_LIMITS.free): EnforcementResult['limits'] {
+  // Convert Infinity to null for JSON serialization safety (Guardrail: Infinity never serialized)
+  return {
+    lifetime: limits.lifetime === Infinity ? null : limits.lifetime,
+    monthly: limits.monthly === Infinity ? null : limits.monthly,
+    rate_per_minute: limits.rate_per_minute,
+    always_on: limits.always_on,
+  };
+}
+
 function sanitizeSessionId(id: string): string {
   return id.replace(/[^a-zA-Z0-9-]/g, '');
 }
@@ -246,7 +256,7 @@ export class LocalFsStorage implements StorageInterface {
           allowed: false,
           enforcement: 'rate',
           usage,
-          limits: tierLimits,
+          limits: sanitizeLimits(tierLimits),
           remaining: {
             lifetime: Math.max(0, tierLimits.lifetime - usage.total_optimizations),
             monthly: Math.max(0, tierLimits.monthly - periodOptimizations),
@@ -261,7 +271,7 @@ export class LocalFsStorage implements StorageInterface {
           allowed: false,
           enforcement: 'lifetime',
           usage,
-          limits: tierLimits,
+          limits: sanitizeLimits(tierLimits),
           remaining: { lifetime: 0, monthly: 0 },
         };
       }
@@ -272,7 +282,7 @@ export class LocalFsStorage implements StorageInterface {
           allowed: false,
           enforcement: 'monthly',
           usage,
-          limits: tierLimits,
+          limits: sanitizeLimits(tierLimits),
           remaining: {
             lifetime: Math.max(0, tierLimits.lifetime - usage.total_optimizations),
             monthly: 0,
@@ -298,7 +308,7 @@ export class LocalFsStorage implements StorageInterface {
         allowed: true,
         enforcement: null,
         usage: { ...DEFAULT_USAGE },
-        limits: PLAN_LIMITS.free,
+        limits: sanitizeLimits(PLAN_LIMITS.free),
         remaining: { lifetime: 10, monthly: 10 },
       };
     }

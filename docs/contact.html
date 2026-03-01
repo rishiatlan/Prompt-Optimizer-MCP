@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Sales — Prompt Optimizer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #333;
+      font-weight: 500;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .success-message {
+      display: none;
+      padding: 16px;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 6px;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .error-message {
+      display: none;
+      padding: 16px;
+      background: #f8d7da;
+      color: #721c24;
+      border-radius: 6px;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="https://claude-prompt-optimizer.dev" class="back-link">← Back</a>
+
+    <h1>Enterprise Tier</h1>
+    <p class="subtitle">Get in touch with our sales team to discuss unlimited usage, custom integrations, and dedicated support.</p>
+
+    <form id="contactForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Name *</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="company">Company</label>
+          <input type="text" id="company" name="company">
+        </div>
+        <div class="form-group">
+          <label for="role">Role</label>
+          <input type="text" id="role" name="role" placeholder="e.g., Engineering Manager">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="product">Product Interest *</label>
+        <select id="product" name="product" required>
+          <option value="">Select an option...</option>
+          <option value="MCP">Prompt Optimizer MCP</option>
+          <option value="API">Prompt Optimizer API</option>
+          <option value="Both">Both MCP + API</option>
+          <option value="Custom">Custom Integration</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="message">Tell us about your use case *</label>
+        <textarea id="message" name="message" required placeholder="What are you building? What scale are you targeting?"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Phone (optional)</label>
+        <input type="tel" id="phone" name="phone">
+      </div>
+
+      <button type="submit">Contact Sales</button>
+
+      <div class="success-message" id="successMessage">
+        ✓ Thanks for reaching out! We'll be in touch within 24 hours.
+      </div>
+      <div class="error-message" id="errorMessage">
+        Something went wrong. Please try again or email us directly.
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // This will be filled with Formspree endpoint
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/REPLACE_WITH_FORM_ID';
+
+    const form = document.getElementById('contactForm');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Clear previous messages
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch(FORMSPREE_ENDPOINT, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json',
+          }
+        });
+
+        if (response.ok) {
+          form.reset();
+          successMessage.style.display = 'block';
+          window.scrollTo(0, 0);
+        } else {
+          errorMessage.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Form error:', error);
+        errorMessage.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

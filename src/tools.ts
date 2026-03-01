@@ -22,7 +22,7 @@ import type { ToolDefinition } from './pruner.js';
 import type {
   PreviewPack, StorageInterface, RateLimiter, ExecutionContext,
   OutputTarget, OptimizerConfig, Tier, LicenseData,
-  ModelRoutingInput, OptimizationProfile,
+  ModelRoutingInput, OptimizationProfile, SerializedTierLimits,
 } from './types.js';
 import { PLAN_LIMITS } from './types.js';
 import { validateLicenseKey } from './license.js';
@@ -56,10 +56,23 @@ function errorResponse(data: { request_id: string; error: string; message: strin
   };
 }
 
+// ─── Sanitization Helpers ────────────────────────────────────────────────────
+// Guardrail: Infinity never serialized (convert to null for JSON safety)
+
+function sanitizeLimits(limits: typeof PLAN_LIMITS.free): SerializedTierLimits {
+  return {
+    lifetime: limits.lifetime === Infinity ? null : limits.lifetime,
+    monthly: limits.monthly === Infinity ? null : limits.monthly,
+    rate_per_minute: limits.rate_per_minute,
+    always_on: limits.always_on,
+  };
+}
+
 // ─── Purchase URLs (Razorpay checkout) ───────────────────────────────────────
 
 export const PRO_PURCHASE_URL = 'https://rzp.io/rzp/FXZk3gcZ';
 export const POWER_PURCHASE_URL = 'https://rzp.io/rzp/u0TSscp';
+export const ENTERPRISE_PURCHASE_URL = 'https://claude-prompt-optimizer.dev/contact';
 
 // ─── Strictness Threshold Map ────────────────────────────────────────────────
 
@@ -133,7 +146,8 @@ export function registerTools(
             ...(!isRateLimit && {
               pro_purchase_url: PRO_PURCHASE_URL,
               power_purchase_url: POWER_PURCHASE_URL,
-              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo) or Power (₹899/mo) for more optimizations — then run set_license with your key.',
+              enterprise_purchase_url: ENTERPRISE_PURCHASE_URL,
+              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo), Power (₹899/mo), or contact us for Enterprise — then run set_license with your key.',
             }),
           });
         }
@@ -262,7 +276,8 @@ export function registerTools(
             ...(!isRateLimit && {
               pro_purchase_url: PRO_PURCHASE_URL,
               power_purchase_url: POWER_PURCHASE_URL,
-              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo) or Power (₹899/mo) for more optimizations — then run set_license with your key.',
+              enterprise_purchase_url: ENTERPRISE_PURCHASE_URL,
+              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo), Power (₹899/mo), or contact us for Enterprise — then run set_license with your key.',
             }),
           });
         }
@@ -763,6 +778,7 @@ export function registerTools(
               : `License key is invalid: ${result.error}`,
             pro_purchase_url: PRO_PURCHASE_URL,
             power_purchase_url: POWER_PURCHASE_URL,
+            enterprise_purchase_url: ENTERPRISE_PURCHASE_URL,
           });
         }
 
@@ -786,7 +802,7 @@ export function registerTools(
           tier: result.payload.tier,
           expires_at: result.payload.expires_at,
           license_id: result.payload.license_id,
-          limits: PLAN_LIMITS[result.payload.tier] || PLAN_LIMITS.free,
+          limits: sanitizeLimits(PLAN_LIMITS[result.payload.tier] || PLAN_LIMITS.free),
         });
       } catch (err) {
         log.error(requestId, 'set_license failed:', err instanceof Error ? err.message : String(err));
@@ -820,9 +836,10 @@ export function registerTools(
             request_id: requestId,
             has_license: false,
             tier: 'free',
-            limits: PLAN_LIMITS.free,
+            limits: sanitizeLimits(PLAN_LIMITS.free),
             pro_purchase_url: PRO_PURCHASE_URL,
             power_purchase_url: POWER_PURCHASE_URL,
+            enterprise_purchase_url: ENTERPRISE_PURCHASE_URL,
           });
         }
 
@@ -839,7 +856,7 @@ export function registerTools(
           activated_at: license.activated_at,
           limits,
           ...(license.validation_error && { validation_error: license.validation_error }),
-          ...(!license.valid && { pro_purchase_url: PRO_PURCHASE_URL, power_purchase_url: POWER_PURCHASE_URL }),
+          ...(!license.valid && { pro_purchase_url: PRO_PURCHASE_URL, power_purchase_url: POWER_PURCHASE_URL, enterprise_purchase_url: ENTERPRISE_PURCHASE_URL }),
         });
       } catch (err) {
         log.error(requestId, 'license_status failed:', err instanceof Error ? err.message : String(err));
@@ -1054,7 +1071,8 @@ export function registerTools(
             ...(!isRateLimit && {
               pro_purchase_url: PRO_PURCHASE_URL,
               power_purchase_url: POWER_PURCHASE_URL,
-              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo) or Power (₹899/mo) for more optimizations — then run set_license with your key.',
+              enterprise_purchase_url: ENTERPRISE_PURCHASE_URL,
+              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo), Power (₹899/mo), or contact us for Enterprise — then run set_license with your key.',
             }),
           });
         }

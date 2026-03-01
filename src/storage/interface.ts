@@ -50,6 +50,7 @@ export type {
   StatsData,
   EnforcementResult,
   TierLimits,
+  SerializedTierLimits,
   ExecutionContext,
   RateLimiter,
   StatsEvent,

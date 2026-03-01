@@ -433,22 +433,27 @@ console.log(withCtx.cost);   // Higher token count (context included)
 
 ## Pricing
 
-| | Free | Pro | Power |
-|---|------|-----|-------|
-| **Price** | ₹0 | ₹499/mo | ₹899/mo |
-| **Optimizations** | 10 lifetime | 100/month | Unlimited |
-| **Rate limit** | 5/min | 30/min | 60/min |
-| **Always-on mode** | — | — | ✓ |
-| **All 15 tools** | ✓ | ✓ | ✓ |
+| | Free | Pro | Power | Enterprise |
+|---|------|-----|-------|-----------|
+| **Price** | ₹0 | ₹499/mo | ₹899/mo | Custom |
+| **Optimizations** | 10 lifetime | 100/month | Unlimited | Unlimited |
+| **Rate limit** | 5/min | 30/min | 60/min | 120/min |
+| **Always-on mode** | — | — | ✓ | ✓ |
+| **All 15 tools** | ✓ | ✓ | ✓ | ✓ |
+| **Support** | Community | Email | Priority | Dedicated |
+| **SLA** | — | — | — | Custom |
 
-Free tier gives you 10 optimizations to experience the full pipeline. No credit card required.
+**Free tier** gives you 10 optimizations to experience the full pipeline. No credit card required.
+
+**Enterprise** includes unlimited usage, custom integrations, and dedicated support. [Contact sales](https://claude-prompt-optimizer.dev/contact) for pricing and details.
 
 ### Activate a License
 
-1. Purchase at the [Prompt Optimizer store](https://rishiatlan.github.io/Prompt-Optimizer-MCP/)
-2. You receive a license key starting with `po_pro_...`
+1. **Free**: No action needed — you get 10 optimizations immediately.
+2. **Pro/Power**: Purchase at the [Prompt Optimizer store](https://rishiatlan.github.io/Prompt-Optimizer-MCP/) and you receive a license key starting with `po_pro_...`
 3. Tell Claude: "Use set_license with key: po_pro_YOUR_KEY_HERE"
 4. Done — your tier upgrades instantly. Verify with `license_status`.
+5. **Enterprise**: [Contact sales](https://claude-prompt-optimizer.dev/contact) for custom license key generation.
 
 ## How It Works
 
@@ -1084,6 +1089,7 @@ Reason:         Balanced task — Sonnet offers the best
 - [ ] Custom rule definitions via config file
 - [ ] Integration with Claude Code hooks for auto-trigger on complex tasks
 - [x] Always-on mode for Power tier (auto-optimize every prompt)
+- [x] v3.2.0 Enterprise Unlock: 4-tier system with Enterprise (unlimited, 120/min, dedicated support), contact form, updated gating
 
 ## Contributors
 
