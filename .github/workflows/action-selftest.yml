@@ -72,6 +72,6 @@ jobs:
       - run: npm ci && npm run build
       - run: npm pack
       - run: |
-          tar -xzf prompt-control-plane-*.tgz
+          tar -xzf claude-prompt-optimizer-mcp-*.tgz
           test -f package/bin/lint.js || (echo "::error::bin/lint.js missing from npm tarball" && exit 1)
           node package/bin/lint.js --version
