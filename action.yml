@@ -1,5 +1,5 @@
 name: 'Prompt Lint'
-description: 'Lint AI prompts for quality — deterministic scoring, zero LLM calls. Exits non-zero if any prompt scores below threshold. Supports standard/strict/relaxed presets.'
+description: 'Lint AI prompts for quality — deterministic scoring, zero LLM calls. Exits non-zero if score is below threshold.'
 author: 'Rishi Banerjee'
 branding:
   icon: 'check-circle'
