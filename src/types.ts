@@ -300,6 +300,48 @@ export interface Session {
   answers: Record<string, string>;
 }
 
+// ─── Session History (v3.2.1) ────────────────────────────────────────────────
+
+export interface SessionRecord {
+  schema_version: 1;
+  session_id: string;
+  created_at: number;                    // Unix timestamp
+  state: SessionState;                   // ANALYZING, COMPILED, APPROVED
+  task_type: TaskType;
+  quality_before: number;                // 0-100
+  quality_after?: number;                // Present if optimization completed
+  prompt_hash: string;                   // SHA256 of raw prompt
+  prompt_length: number;                 // Character count
+  target: OutputTarget;                  // claude, openai, generic
+}
+
+export interface SessionExport {
+  schema_version: 1;
+  session_id: string;
+  created_at: number;
+  state: SessionState;
+  raw_prompt: string;
+  compiled_prompt: string;
+  quality_before: number;
+  quality_after?: number;
+  rule_set_hash: string;                 // SHA256 of rule set
+  rule_set_version: string;              // e.g., '3.2.1'
+  metadata: {
+    target: OutputTarget;
+    task_type: TaskType;
+    complexity: ReasoningComplexity;
+    risk_score: number;
+    custom_rules_applied: string[];      // IDs of custom rules applied
+  };
+}
+
+export interface SessionListResponse {
+  schema_version: 1;
+  sessions: SessionRecord[];
+  total_sessions: number;
+  storage_path: string;                  // ~/.prompt-optimizer/
+}
+
 // ─── Compression Config (v3.1) ───────────────────────────────────────────────
 
 export interface CompressionConfig {

@@ -1253,4 +1253,86 @@ export function registerTools(
       }
     },
   );
+
+  // ─── Tool 16: list_sessions (v3.2.1) ───────────────────────────────────
+
+  server.tool(
+    'list_sessions',
+    'List all optimization sessions with metadata (no raw prompts). Free tool, not metered.',
+    {
+      createdAfter: z.number().optional().describe('Only sessions created after this Unix timestamp'),
+      createdBefore: z.number().optional().describe('Only sessions created before this Unix timestamp'),
+      limit: z.number().int().min(1).max(100).default(100).describe('Maximum number of sessions to return (default: 100, max: 100)'),
+    },
+    async ({ createdAfter, createdBefore, limit }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        const { sessionHistory } = await import('./sessionHistory.js');
+        const list = await sessionHistory.listSessions({
+          createdAfter,
+          createdBefore,
+          limit: Math.min(limit || 100, 100),
+        });
+
+        log.info(requestId, `list_sessions: returned ${list.sessions.length} of ${list.total_sessions} total`);
+        return jsonResponse({
+          request_id: requestId,
+          schema_version: 1,
+          sessions: list.sessions,
+          total_sessions: list.total_sessions,
+          storage_path: list.storage_path,
+        });
+      } catch (err) {
+        log.error(requestId, 'list_sessions failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `list_sessions failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
+
+  // ─── Tool 17: export_session (v3.2.1) ──────────────────────────────────
+
+  server.tool(
+    'export_session',
+    'Export full session details including raw prompt. Free tool, not metered.',
+    {
+      session_id: z.string().min(1).max(100).describe('Session ID to export'),
+    },
+    async ({ session_id }) => {
+      const ctx = await buildCtx();
+      const { requestId } = ctx;
+
+      try {
+        session_id = hardenInput(session_id);
+        const { sessionHistory } = await import('./sessionHistory.js');
+
+        const exported = await sessionHistory.exportSession(session_id, '', '3.2.1');
+        if (!exported) {
+          return errorResponse({
+            request_id: requestId,
+            error: 'not_found',
+            message: `Session ${session_id} not found`,
+          });
+        }
+
+        log.info(requestId, `export_session: exported ${session_id}`);
+        return jsonResponse({
+          request_id: requestId,
+          ...exported,
+        });
+      } catch (err) {
+        log.error(requestId, 'export_session failed:', err instanceof Error ? err.message : String(err));
+        return errorResponse({
+          request_id: requestId,
+          error: 'internal_error',
+          message: `export_session failed: ${err instanceof Error ? err.message : 'unknown error'}`,
+        });
+      }
+    },
+  );
 }
