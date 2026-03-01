@@ -65,7 +65,7 @@ Keys contain: tier, issued_at, expires_at, license_id. No email, no name, no use
 ### 17. Tier Priority Chain: License > Env Var > Default
 Valid license key → that tier. No license → check `PROMPT_OPTIMIZER_PRO` env var. No env var → free. Allows local testing without needing a real license key.
 
-### 18. Lemon Squeezy for Zero-Cost Payment Infrastructure
+### 18. Razorpay for Zero-Cost Payment Infrastructure
 Handles subscriptions, tax compliance, and checkout. Zero upfront fees — percentage only on successful sales. No financial risk to launch. Checkout generates license keys that users activate in Claude.
 
 ### 19. Calendar-Month Usage Reset

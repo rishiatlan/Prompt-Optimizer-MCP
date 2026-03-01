@@ -126,7 +126,7 @@
 ## [2.1.0] - 2026-02-27
 
 ### Added
-- **3-tier pricing system**: Free ($0, 10 lifetime), Pro ($4.99/mo, 100/month), Power ($9.99/mo, unlimited)
+- **3-tier pricing system**: Free (₹0, 10 lifetime), Pro (₹499/mo, 100/month), Power (₹899/mo, unlimited)
 - **Ed25519 offline license activation**: `set_license` and `license_status` tools — no backend, no phone-home
 - **Monthly usage enforcement**: Calendar-month reset, tracked per-user in local storage
 - **6 new tools**: `check_prompt`, `configure_optimizer`, `get_usage`, `prompt_stats`, `set_license`, `license_status` (total: 11 tools)

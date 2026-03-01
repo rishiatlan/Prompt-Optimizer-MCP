@@ -56,10 +56,10 @@ function errorResponse(data: { request_id: string; error: string; message: strin
   };
 }
 
-// ─── Purchase URLs (Lemon Squeezy checkout) ─────────────────────────────────
+// ─── Purchase URLs (Razorpay checkout) ───────────────────────────────────────
 
-export const PRO_PURCHASE_URL = 'https://rishibanerjee.lemonsqueezy.com/checkout/buy/16bb57a4-a9a5-4bee-a476-b7d998481506';
-export const POWER_PURCHASE_URL = 'https://rishibanerjee.lemonsqueezy.com/checkout/buy/14eff7b8-6773-4a8f-9540-83553dad11ad';
+export const PRO_PURCHASE_URL = 'https://rzp.io/rzp/FXZk3gcZ';
+export const POWER_PURCHASE_URL = 'https://rzp.io/rzp/u0TSscp';
 
 // ─── Strictness Threshold Map ────────────────────────────────────────────────
 
@@ -133,7 +133,7 @@ export function registerTools(
             ...(!isRateLimit && {
               pro_purchase_url: PRO_PURCHASE_URL,
               power_purchase_url: POWER_PURCHASE_URL,
-              next_step: 'You\'ve hit your plan limit. Upgrade to Pro ($4.99/mo) or Power ($9.99/mo) for more optimizations — then run set_license with your key.',
+              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo) or Power (₹899/mo) for more optimizations — then run set_license with your key.',
             }),
           });
         }
@@ -262,7 +262,7 @@ export function registerTools(
             ...(!isRateLimit && {
               pro_purchase_url: PRO_PURCHASE_URL,
               power_purchase_url: POWER_PURCHASE_URL,
-              next_step: 'You\'ve hit your plan limit. Upgrade to Pro ($4.99/mo) or Power ($9.99/mo) for more optimizations — then run set_license with your key.',
+              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo) or Power (₹899/mo) for more optimizations — then run set_license with your key.',
             }),
           });
         }
@@ -1054,7 +1054,7 @@ export function registerTools(
             ...(!isRateLimit && {
               pro_purchase_url: PRO_PURCHASE_URL,
               power_purchase_url: POWER_PURCHASE_URL,
-              next_step: 'You\'ve hit your plan limit. Upgrade to Pro ($4.99/mo) or Power ($9.99/mo) for more optimizations — then run set_license with your key.',
+              next_step: 'You\'ve hit your plan limit. Upgrade to Pro (₹499/mo) or Power (₹899/mo) for more optimizations — then run set_license with your key.',
             }),
           });
         }

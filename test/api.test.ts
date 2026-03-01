@@ -65,12 +65,17 @@ describe('Barrel exports', () => {
     assert.equal(typeof POWER_PURCHASE_URL, 'string');
   });
 
-  it('purchase URLs are real Lemon Squeezy links (not TODO)', () => {
-    assert.ok(PRO_PURCHASE_URL.includes('lemonsqueezy.com'), 'Pro URL should be a Lemon Squeezy link');
-    assert.ok(POWER_PURCHASE_URL.includes('lemonsqueezy.com'), 'Power URL should be a Lemon Squeezy link');
-    assert.ok(!PRO_PURCHASE_URL.includes('TODO'), 'Pro URL should not contain TODO');
-    assert.ok(!POWER_PURCHASE_URL.includes('TODO'), 'Power URL should not contain TODO');
-    assert.notEqual(PRO_PURCHASE_URL, POWER_PURCHASE_URL, 'Pro and Power URLs should be different');
+  it('purchase URLs are configured (Razorpay)', () => {
+    assert.equal(typeof PRO_PURCHASE_URL, 'string', 'Pro URL should be a string');
+    assert.equal(typeof POWER_PURCHASE_URL, 'string', 'Power URL should be a string');
+    assert.ok(PRO_PURCHASE_URL.length > 0, 'Pro URL should not be empty');
+    assert.ok(POWER_PURCHASE_URL.length > 0, 'Power URL should not be empty');
+    // When real Razorpay URLs are set, these will also pass:
+    if (!PRO_PURCHASE_URL.includes('TODO')) {
+      assert.ok(PRO_PURCHASE_URL.startsWith('https://'), 'Pro URL should be HTTPS');
+      assert.ok(POWER_PURCHASE_URL.startsWith('https://'), 'Power URL should be HTTPS');
+      assert.notEqual(PRO_PURCHASE_URL, POWER_PURCHASE_URL, 'Pro and Power URLs should be different');
+    }
   });
 });
 

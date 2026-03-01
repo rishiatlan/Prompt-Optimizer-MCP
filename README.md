@@ -435,7 +435,7 @@ console.log(withCtx.cost);   // Higher token count (context included)
 
 | | Free | Pro | Power |
 |---|------|-----|-------|
-| **Price** | $0 | $4.99/mo | $9.99/mo |
+| **Price** | ₹0 | ₹499/mo | ₹899/mo |
 | **Optimizations** | 10 lifetime | 100/month | Unlimited |
 | **Rate limit** | 5/min | 30/min | 60/min |
 | **Always-on mode** | — | — | ✓ |
@@ -1061,7 +1061,7 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] Structured audience/tone/platform detection — 19 audience patterns, 9 platforms, tone signals
 - [x] Multi-LLM output targets — Claude (XML), OpenAI (system/user), Generic (Markdown)
 - [x] Persistent file-based storage (`~/.prompt-optimizer/`) with async StorageInterface
-- [x] 3-tier freemium system — Free (10 lifetime), Pro ($4.99/mo, 100/mo), Power ($9.99/mo, unlimited)
+- [x] 3-tier freemium system — Free (10 lifetime), Pro (₹499/mo, 100/mo), Power (₹899/mo, unlimited)
 - [x] Ed25519 offline license key activation — no phone-home, no backend
 - [x] Monthly usage enforcement with calendar-month reset
 - [x] Rate limiting — tier-keyed sliding window (5/30/60 per minute)
@@ -1070,7 +1070,7 @@ Reason:         Balanced task — Sonnet offers the best
 - [x] Programmatic API — `import { optimize } from 'claude-prompt-optimizer-mcp'` for library use
 - [x] Dual entry points — `"."` (API) + `"./server"` (MCP server)
 - [x] Curl installer — `curl -fsSL .../install.sh | bash`
-- [x] Lemon Squeezy checkout integration — tier-specific purchase URLs
+- [x] Razorpay checkout integration — tier-specific purchase URLs
 - [x] v3.0 Decision Engine: complexity classifier, 5 optimization profiles, model routing with decision_path, risk scoring (0–100), Perplexity routing
 - [x] 3 new tools: `classify_task`, `route_model`, `pre_flight` (14 total in v3.0)
 - [x] v3.1 Smart Compression: H1–H5 heuristics pipeline with zone protection, standard/aggressive modes

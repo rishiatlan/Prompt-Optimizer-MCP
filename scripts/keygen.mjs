@@ -132,8 +132,8 @@ function cmdGenerate(count, tierArg) {
   console.log(`Generated ${n} ${tier.toUpperCase()} license keys.`);
   console.log(`Saved to: ${outFile}`);
   console.log('');
-  console.log('Upload these to the Lemon Squeezy product for this tier:');
-  console.log('  Store > Products > [your product] > License Keys > Bulk Import');
+  console.log('Upload these to the Razorpay product for this tier:');
+  console.log('  Dashboard > Payment Pages > [your product] > Add license keys');
   console.log('  Paste one key per line.');
   console.log('');
   console.log('First 3 keys (preview):');
@@ -223,7 +223,7 @@ Workflow:
   1. Run 'init' once to create your keypair
   2. Copy the public key into src/license.ts PRODUCTION_PUBLIC_KEY_PEM
   3. Run 'generate 50' for Pro keys, 'generate 20 power' for Power keys
-  4. Upload keys to the corresponding Lemon Squeezy product
+  4. Upload keys to the corresponding Razorpay product
   5. When pool runs low, generate more
 
 Files:

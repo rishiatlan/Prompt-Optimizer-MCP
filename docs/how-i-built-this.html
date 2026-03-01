@@ -636,7 +636,7 @@
         <span>14 min read</span>
       </div>
       <div class="hero-tldr">
-        <strong>TL;DR:</strong> I noticed AI tools were wasting time and money because people write vague prompts. I built a prompt linter &mdash; think ESLint, but for AI instructions &mdash; that scores, analyzes, and standardizes prompts before they hit any LLM. No AI needed inside. Shipped it in under 2 weeks, listed it on 6+ directories, and monetized it at $4.99/mo and $9.99/mo using a freemium model. Total infrastructure cost: $0.
+        <strong>TL;DR:</strong> I noticed AI tools were wasting time and money because people write vague prompts. I built a prompt linter &mdash; think ESLint, but for AI instructions &mdash; that scores, analyzes, and standardizes prompts before they hit any LLM. No AI needed inside. Shipped it in under 2 weeks, listed it on 6+ directories, and monetized it at ₹499/mo and ₹899/mo using a freemium model. Total infrastructure cost: $0.
       </div>
     </div>
   </header>
@@ -732,7 +732,7 @@
         <li><strong>Zero AI calls inside.</strong> The optimizer itself makes no API calls. All intelligence comes from rules, patterns, and scoring algorithms. This means it&rsquo;s instant, free to operate, and never produces hallucinated advice.</li>
         <li><strong>Works for any LLM.</strong> The same prompt compiles to different formats: Claude gets XML tags (<code>&lt;role&gt;</code>, <code>&lt;goal&gt;</code>, <code>&lt;constraints&gt;</code>), OpenAI gets system/user splits, and generic targets get Markdown headers. One prompt, three outputs.</li>
         <li><strong>Nothing ships without user approval.</strong> The MCP never silently finalizes a prompt. If your input is ambiguous, it asks blocking questions first. You review the compiled result, see the quality score and cost estimate, and explicitly approve before anything executes. <code>approve_prompt</code> hard-fails if unanswered questions remain &mdash; the gate is enforced in code, not convention.</li>
-        <li><strong>Freemium from day one.</strong> Free users get 10 lifetime optimizations &mdash; enough to see the value. Pro at $4.99/mo gets 100/month. Power at $9.99/mo gets unlimited.</li>
+        <li><strong>Freemium from day one.</strong> Free users get 10 lifetime optimizations &mdash; enough to see the value. Pro at ₹499/mo gets 100/month. Power at ₹899/mo gets unlimited.</li>
       </ol>
 
       <h3>The Pipeline</h3>
@@ -861,21 +861,21 @@
           <tr><th>Tier</th><th>Price</th><th>What You Get</th></tr>
         </thead>
         <tbody>
-          <tr><td><strong>Free</strong></td><td>$0</td><td>10 lifetime optimizations</td></tr>
-          <tr><td><strong>Pro</strong></td><td>$4.99/mo</td><td>100/month, 30 requests/min</td></tr>
-          <tr><td><strong>Power</strong></td><td>$9.99/mo</td><td>Unlimited, 60 requests/min, always-on mode</td></tr>
+          <tr><td><strong>Free</strong></td><td>₹0</td><td>10 lifetime optimizations</td></tr>
+          <tr><td><strong>Pro</strong></td><td>₹499/mo</td><td>100/month, 30 requests/min</td></tr>
+          <tr><td><strong>Power</strong></td><td>₹899/mo</td><td>Unlimited, 60 requests/min, always-on mode</td></tr>
         </tbody>
       </table>
 
       <h3>Payment Infrastructure</h3>
 
-      <p>I used <strong>Lemon Squeezy</strong> as the payment processor &mdash; it handles subscriptions, tax compliance, and checkout pages. Total cost: $0 until someone pays (they take a percentage of sales, no upfront fee).</p>
+      <p>I used <strong>Razorpay</strong> as the payment processor &mdash; it handles subscriptions, tax compliance, and checkout pages. Total cost: ₹0 until someone pays (they take a percentage of sales, no upfront fee).</p>
 
       <h3>The Purchase Flow</h3>
 
       <ol>
         <li>User hits the free tier limit &#x2192; the optimizer shows upgrade options with direct checkout links</li>
-        <li>User completes checkout on Lemon Squeezy</li>
+        <li>User completes checkout on Razorpay</li>
         <li>I generate a signed license key (a cryptographic string)</li>
         <li>User enters the license key in Claude &#x2192; <code>set_license</code> tool validates it offline</li>
         <li>Tier upgrades instantly &mdash; no server round-trip, no &ldquo;checking your subscription&rdquo; delay</li>
@@ -885,7 +885,7 @@
 
       <div class="tldr">
         <div class="tldr-label">TL;DR</div>
-        $0 infrastructure. Lemon Squeezy handles payments. License keys validate offline with cryptography. Privacy-first: no email or name in the key.
+        ₹0 infrastructure. Razorpay handles payments. License keys validate offline with cryptography. Privacy-first: no email or name in the key.
       </div>
 
       <hr>

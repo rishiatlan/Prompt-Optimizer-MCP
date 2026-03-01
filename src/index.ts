@@ -49,8 +49,8 @@ Environment:
   PROMPT_OPTIMIZER_LOG_PROMPTS=true    Enable raw prompt logging (never in shared envs)
 
 Paid tiers:
-  Pro ($4.99/mo)   — 100 optimizations/month, 30/min rate limit
-  Power ($9.99/mo) — Unlimited optimizations, 60/min rate limit, always-on mode
+  Pro (₹499/mo)   — 100 optimizations/month, 30/min rate limit
+  Power (₹899/mo) — Unlimited optimizations, 60/min rate limit, always-on mode
   Activate with the set_license tool. Tier priority: license key > env var > free
 
 Quick setup (any MCP-compatible client):
