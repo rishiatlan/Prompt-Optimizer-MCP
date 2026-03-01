@@ -159,7 +159,7 @@ describe('License key validation', () => {
 
   it('invalid tier returns invalid_tier', () => {
     // Sign a key with a bogus tier — need to bypass type safety
-    const payload = { ...TEST_PAYLOAD, tier: 'enterprise' as 'pro' };
+    const payload = { ...TEST_PAYLOAD, tier: 'platinum' as 'pro' };
     const canonical = canonicalizePayload(payload);
     const signature = crypto.sign(null, Buffer.from(canonical), testPrivateKey);
     const envelope = { payload, signature_hex: signature.toString('hex') };

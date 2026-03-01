@@ -106,7 +106,7 @@ export function validateLicenseKey(
     return { valid: false, error: 'malformed_key' };
   }
 
-  if (payload.tier !== 'free' && payload.tier !== 'pro' && payload.tier !== 'power') {
+  if (payload.tier !== 'free' && payload.tier !== 'pro' && payload.tier !== 'power' && payload.tier !== 'enterprise') {
     return { valid: false, error: 'invalid_tier' };
   }
 

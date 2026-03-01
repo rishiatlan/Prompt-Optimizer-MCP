@@ -5,7 +5,8 @@
 //
 // Usage:
 //   node scripts/keygen.mjs init              Generate Ed25519 keypair (one-time)
-//   node scripts/keygen.mjs generate 50       Generate 50 signed license keys
+//   node scripts/keygen.mjs generate 50       Generate 50 signed Pro license keys
+//   node scripts/keygen.mjs generate 5 enterprise  Generate 5 Enterprise keys
 //   node scripts/keygen.mjs verify <key>      Verify a license key against the local public key
 //
 // The private key is saved to scripts/.private-key.pem (gitignored).
@@ -98,13 +99,13 @@ function cmdInit() {
 function cmdGenerate(count, tierArg) {
   const n = parseInt(count, 10);
   if (isNaN(n) || n < 1 || n > 1000) {
-    console.error('Usage: node scripts/keygen.mjs generate <1-1000> [pro|power]');
+    console.error('Usage: node scripts/keygen.mjs generate <1-1000> [pro|power|enterprise]');
     process.exit(1);
   }
 
   const tier = tierArg || 'pro';
-  if (tier !== 'pro' && tier !== 'power') {
-    console.error('Tier must be "pro" or "power". Got:', tier);
+  if (tier !== 'pro' && tier !== 'power' && tier !== 'enterprise') {
+    console.error('Tier must be "pro", "power", or "enterprise". Got:', tier);
     process.exit(1);
   }
 
@@ -212,24 +213,26 @@ switch (command) {
 
 Usage:
   node scripts/keygen.mjs init                    Generate Ed25519 keypair (one-time)
-  node scripts/keygen.mjs generate <N> [tier]     Generate N signed keys (tier: pro or power, default: pro)
+  node scripts/keygen.mjs generate <N> [tier]     Generate N signed keys (tier: pro, power, or enterprise; default: pro)
   node scripts/keygen.mjs verify <key>            Verify a license key
 
 Examples:
   node scripts/keygen.mjs generate 50             50 Pro keys
   node scripts/keygen.mjs generate 20 power       20 Power keys
+  node scripts/keygen.mjs generate 5 enterprise   5 Enterprise keys
 
 Workflow:
   1. Run 'init' once to create your keypair
   2. Copy the public key into src/license.ts PRODUCTION_PUBLIC_KEY_PEM
-  3. Run 'generate 50' for Pro keys, 'generate 20 power' for Power keys
-  4. Upload keys to the corresponding Razorpay product
+  3. Run 'generate 50' for Pro, 'generate 20 power' for Power, 'generate 5 enterprise' for Enterprise
+  4. Upload keys to the corresponding Razorpay product (or deliver Enterprise keys directly)
   5. When pool runs low, generate more
 
 Files:
-  scripts/.private-key.pem        Your private key (gitignored, chmod 600)
-  scripts/.public-key.pem         Your public key (for reference)
-  scripts/keys-pro-*.txt          Pro key batches (gitignored)
-  scripts/keys-power-*.txt        Power key batches (gitignored)`);
+  scripts/.private-key.pem            Your private key (gitignored, chmod 600)
+  scripts/.public-key.pem             Your public key (for reference)
+  scripts/keys-pro-*.txt              Pro key batches (gitignored)
+  scripts/keys-power-*.txt            Power key batches (gitignored)
+  scripts/keys-enterprise-*.txt       Enterprise key batches (gitignored)`);
     break;
 }
