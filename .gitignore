@@ -25,3 +25,10 @@ Thumbs.db
 
 # How I Built This (kept local, HTML version on GitHub Pages is the public artifact)
 HOW-I-BUILT-THIS.md
+
+# Internal dev files — keep locally, never push to production
+.claude/
+LEARNINGS.md
+scripts/keygen.mjs
+scripts/razorpay-setup.sh
+.mcp.json
