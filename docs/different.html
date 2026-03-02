@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How We're Different — Prompt Control Plane</title>
+  <meta name="description" content="Prompt Control Plane is a deterministic, offline-first prompt governance engine. See how it differs from observability platforms, LLM-powered optimizers, runtime guardrails, eval frameworks, and prompt management tools.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://prompt-control-plane.pages.dev/different.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="How We're Different — Prompt Control Plane">
+  <meta property="og:description" content="Pre-flight governance, zero LLM calls, fully deterministic. See how Prompt Control Plane fits alongside — and differs from — adjacent tools in the AI stack.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://prompt-control-plane.pages.dev/different.html">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How We're Different — Prompt Control Plane">
+  <meta name="twitter:description" content="Pre-flight governance, zero LLM calls, fully deterministic. See where we fit in your AI stack.">
+
+  <link rel="stylesheet" href="shared.css">
+  <script src="shared.js"></script>
+
+  <style>
+    /* ─── Hero ─────────────────────────────────────────────────────────────── */
+    .diff-hero {
+      padding: 80px 0 56px;
+      text-align: center;
+    }
+    .diff-hero h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .diff-hero .subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    @media (max-width: 700px) {
+      .diff-hero { padding: 56px 0 36px; }
+      .diff-hero h1 { font-size: 28px; }
+    }
+
+    /* ─── Layer map ─────────────────────────────────────────────────────────── */
+    .layer-map {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 720px;
+      margin: 0 auto 56px;
+    }
+    .layer {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 14px;
+    }
+    .layer.active {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .layer-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      width: 32px;
+      text-align: center;
+    }
+    .layer-label {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+      min-width: 180px;
+    }
+    .layer.active .layer-label {
+      color: var(--accent);
+    }
+    .layer-desc {
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .layer-tag {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 10px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .layer-tag.here {
+      background: var(--accent);
+      color: white;
+    }
+    .layer-tag.other {
+      background: var(--border);
+      color: var(--text-muted);
+    }
+    @media (max-width: 600px) {
+      .layer { flex-wrap: wrap; }
+      .layer-label { min-width: unset; }
+      .layer-tag { margin-left: 0; }
+    }
+
+    /* ─── Category cards ────────────────────────────────────────────────────── */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 32px;
+    }
+    @media (max-width: 760px) {
+      .cat-grid { grid-template-columns: 1fr; }
+    }
+    .cat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+    .cat-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .cat-card .cat-type {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+    .cat-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+    .cat-card .diff-box {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .cat-card .diff-box strong {
+      color: var(--accent);
+    }
+    .cat-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    /* ─── Guarantee grid ────────────────────────────────────────────────────── */
+    .guarantee-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+    @media (max-width: 900px) {
+      .guarantee-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .guarantee-grid { grid-template-columns: 1fr; }
+    }
+    .guarantee {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .guarantee .g-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+    .guarantee h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .guarantee p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .guarantee .g-note {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ─── Complement table ──────────────────────────────────────────────────── */
+    .complement-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 28px;
+      font-size: 14px;
+    }
+    .complement-table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+    }
+    .complement-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .complement-table td:first-child {
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .complement-table td:last-child {
+      color: var(--text-muted);
+    }
+    .complement-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ─── Honest limits ─────────────────────────────────────────────────────── */
+    .limits-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--text-muted);
+      border-radius: 12px;
+      padding: 28px;
+      margin-top: 20px;
+    }
+    .limits-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .limits-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .limits-card ul li {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .limits-card ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text-muted);
+    }
+
+    /* ─── Footer grid ───────────────────────────────────────────────────────── */
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    .footer-col h4 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .footer-col a {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .footer-col a:hover { color: var(--text); }
+    .footer-copy {
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      text-align: center;
+    }
+    @media (max-width: 500px) {
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="container">
+      <a href="./" class="logo">Prompt Control <span>Plane</span></a>
+      <button class="nav-toggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
+      </button>
+      <div class="nav-links">
+        <a href="features.html">Features</a>
+        <a href="models.html">Models</a>
+        <a href="docs.html">Docs</a>
+        <a href="plans.html">Pricing</a>
+        <button class="theme-toggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="diff-hero">
+    <div class="container">
+      <span class="badge badge-accent">Positioning</span>
+      <h1>How We're Different</h1>
+      <p class="subtitle">Most tools in this space observe what happened, test what could go wrong, or guard against attacks at runtime. We govern prompts before they run &mdash; deterministically, offline, with no LLM calls inside.</p>
+    </div>
+  </section>
+
+  <!-- Layer Map -->
+  <section class="section" style="padding-top: 0;">
+    <div class="container">
+
+      <h2 class="section-title text-center">Where We Fit in the AI Stack</h2>
+      <p class="section-subtitle text-center">Every layer has a job. This is ours.</p>
+
+      <div class="layer-map">
+        <div class="layer">
+          <div class="layer-icon">🧱</div>
+          <div>
+            <div class="layer-label">Foundation Models</div>
+            <div class="layer-desc">Claude, GPT-4o, Gemini, Llama &mdash; the LLMs that generate responses</div>
+          </div>
+          <div class="layer-tag other">Not us</div>
+        </div>
+        <div class="layer">
+          <div class="layer-icon">🔭</div>
+          <div>
+            <div class="layer-label">Observability &amp; Tracing</div>
+            <div class="layer-desc">Log LLM calls, trace latency, track cost, visualize model behavior over time</div>
+          </div>
+          <div class="layer-tag other">Not us</div>
+        </div>
+        <div class="layer">
+          <div class="layer-icon">🛡️</div>
+          <div>
+            <div class="layer-label">Runtime Guardrails</div>
+            <div class="layer-desc">Intercept inputs and outputs at inference time to enforce safety and structure</div>
+          </div>
+          <div class="layer-tag other">Not us</div>
+        </div>
+        <div class="layer active">
+          <div class="layer-icon">⚙️</div>
+          <div>
+            <div class="layer-label">Pre-flight Governance</div>
+            <div class="layer-desc">Score, compile, enforce policy, and audit every prompt <em>before</em> it reaches any model</div>
+          </div>
+          <div class="layer-tag here">This is us</div>
+        </div>
+        <div class="layer">
+          <div class="layer-icon">🧪</div>
+          <div>
+            <div class="layer-label">Eval &amp; Testing</div>
+            <div class="layer-desc">Test suites, adversarial probes, and regression checks run against model outputs</div>
+          </div>
+          <div class="layer-tag other">Not us</div>
+        </div>
+        <div class="layer">
+          <div class="layer-icon">🗂️</div>
+          <div>
+            <div class="layer-label">Prompt Management</div>
+            <div class="layer-desc">Version, store, and deploy prompt templates as assets across teams</div>
+          </div>
+          <div class="layer-tag other">Not us</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Category Comparisons -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title text-center">How We Differ by Category</h2>
+      <p class="section-subtitle text-center">Each type of adjacent tool solves a real problem. Here's where our approach diverges.</p>
+
+      <div class="cat-grid">
+
+        <!-- Observability -->
+        <div class="cat-card">
+          <div class="cat-type">Observability &amp; Tracing</div>
+          <h3>They record what your LLM did</h3>
+          <p>These platforms capture traces of every LLM call after it executes. They measure latency, track token spend, visualize model behavior over time, and surface what went wrong in production.</p>
+          <div class="diff-box">
+            <strong>We work before the call, not after.</strong> By the time an observability tool sees a prompt, it's already been sent. We score, compile, and enforce policy at authoring time — catching structural gaps, ambiguity, and policy violations before any model sees the prompt.
+          </div>
+        </div>
+
+        <!-- LLM Optimizers -->
+        <div class="cat-card">
+          <div class="cat-type">LLM-Powered Prompt Optimizers</div>
+          <h3>They use an AI to improve your AI prompts</h3>
+          <p>A growing category of tools that call a language model to rewrite or enhance your prompt. Each run may produce different output depending on model temperature, context, and sampling.</p>
+          <div class="diff-box">
+            <strong>We make zero LLM calls.</strong> All scoring, compilation, routing, and policy enforcement is a deterministic rule engine. The same prompt produces the same score and the same compiled output, every time. No black box, no hidden API consumption, no variance between runs.
+          </div>
+        </div>
+
+        <!-- Runtime Guardrails -->
+        <div class="cat-card">
+          <div class="cat-type">Runtime Guardrail Frameworks</div>
+          <h3>They validate at inference time</h3>
+          <p>These frameworks intercept LLM inputs and outputs at runtime, applying validators and safety checks as part of the inference pipeline. Many make secondary model calls for validation logic.</p>
+          <div class="diff-box">
+            <strong>We enforce policy pre-flight, not at runtime.</strong> Our policy engine is deterministic and fully offline &mdash; no additional inference calls, no added latency to your production path. Governance happens at prompt authoring, before the inference budget is touched.
+          </div>
+        </div>
+
+        <!-- Eval Frameworks -->
+        <div class="cat-card">
+          <div class="cat-type">Eval &amp; Testing Frameworks</div>
+          <h3>They test prompts against expected outputs</h3>
+          <p>Eval frameworks let teams write declarative test suites, run adversarial probes, and catch prompt regressions in CI pipelines. They're excellent for systematic behavioral quality assurance.</p>
+          <div class="diff-box">
+            <strong>We score structure in real time, without test cases.</strong> Where eval frameworks test outputs after execution, we flag ambiguity, missing constraints, scope explosion, and risk dimensions as you write &mdash; using 14 deterministic rules that require no maintenance and no example prompts.
+          </div>
+        </div>
+
+        <!-- Prompt Management -->
+        <div class="cat-card cat-wide">
+          <div class="cat-type">Prompt Management &amp; Versioning Tools</div>
+          <h3>They store and deploy prompts as assets. We compile them as programs.</h3>
+          <p>Prompt CMS platforms let teams version, store, A/B test, and collaboratively edit prompt templates. They treat prompts as static content artifacts &mdash; valuable for centralizing and distributing what's already been written.</p>
+          <div class="diff-box">
+            <strong>We treat prompts as programs that need to be compiled, not assets to be stored.</strong> Raw intent goes in; a structured, constrained, role-defined prompt with uncertainty policy, workflow steps, and safety constraints comes out. An approval gate &mdash; enforced in code, not convention &mdash; requires explicit human sign-off before any prompt is finalized. Sessions are exportable with reproducibility metadata: rule-set hash, engine version, and risk score.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Guarantees -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title text-center">Architecture Guarantees</h2>
+      <p class="section-subtitle text-center">Properties that hold unconditionally &mdash; not by configuration, by design.</p>
+
+      <div class="guarantee-grid">
+        <div class="guarantee">
+          <div class="g-icon">🚫</div>
+          <h4>Zero LLM calls</h4>
+          <p>All scoring, routing, compilation, and policy enforcement runs without any inference calls. No API keys consumed by the engine itself.</p>
+        </div>
+        <div class="guarantee">
+          <div class="g-icon">📡</div>
+          <h4>Fully offline</h4>
+          <p>Runs entirely on your machine. No analytics endpoints, no telemetry beacons, no license server. Works air-gapped after <code>npm install</code>.</p>
+        </div>
+        <div class="guarantee">
+          <div class="g-icon">🔁</div>
+          <h4>Deterministic outputs</h4>
+          <p>Same prompt &rarr; same score, same compiled output, same routing decision, same cost estimate. No sampling, no randomness, no external state.</p>
+          <span class="g-note">Request and session IDs are per-invocation identifiers and vary by design.</span>
+        </div>
+        <div class="guarantee">
+          <div class="g-icon">🔐</div>
+          <h4>Tamper-evident audit</h4>
+          <p>Optional local audit trail uses SHA-256 hash chaining. Any modification, deletion, or reordering of entries breaks subsequent hashes.</p>
+          <span class="g-note">Prompt content is never stored in the audit trail.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What We Complement -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title text-center">We Complement, Not Replace</h2>
+      <p class="section-subtitle text-center">Prompt Control Plane is the governance layer that runs before your existing stack, not instead of it.</p>
+
+      <table class="complement-table">
+        <thead>
+          <tr>
+            <th>If you already use&hellip;</th>
+            <th>How we fit alongside it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>An observability platform</td>
+            <td>We govern prompts before they run; your observability platform records what happened. The two layers cover different points in the lifecycle.</td>
+          </tr>
+          <tr>
+            <td>An eval or testing framework</td>
+            <td>We catch structural issues at authoring time; eval frameworks catch behavioral regressions at test time. Catching earlier is cheaper.</td>
+          </tr>
+          <tr>
+            <td>A runtime guardrail layer</td>
+            <td>We enforce prompt quality policy and ambiguity standards before inference; runtime guardrails enforce output constraints during inference. Complementary coverage.</td>
+          </tr>
+          <tr>
+            <td>A prompt management tool</td>
+            <td>We compile and score prompts before they get stored or deployed. The output of our approval gate can become the asset your management tool versions.</td>
+          </tr>
+          <tr>
+            <td>Claude, OpenAI, or Google models directly</td>
+            <td>We compile prompts targeting your chosen provider's format, route to the right model tier for the task complexity, and estimate cost before you commit.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Honest Limits -->
+  <section class="section">
+    <div class="container" style="max-width: 680px;">
+      <h2 class="section-title text-center">What We Don't Do</h2>
+      <p class="section-subtitle text-center">Accurate positioning matters. Here's what Prompt Control Plane explicitly does not do.</p>
+
+      <div class="limits-card">
+        <h3>Honest limitations</h3>
+        <ul>
+          <li>We do not detect prompt injection or jailbreak attacks. For adversarial input security, pair us with a dedicated security layer.</li>
+          <li>We do not understand your domain context. Our rules are structural and heuristic &mdash; we flag "no success criteria" but can't evaluate whether your success criteria are correct for your use case.</li>
+          <li>We do not replace semantic evals. Behavioral quality testing against expected outputs still requires an eval framework.</li>
+          <li>We do not store or version prompts as a team asset. Our session exports are audit artifacts, not a prompt management system.</li>
+          <li>We do not make real-time observations of your production traffic. There is no proxy, no tracing layer, and no logging of your LLM responses.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section section-alt">
+    <div class="container text-center">
+      <h2 class="section-title">Ready to add the governance layer?</h2>
+      <p class="section-subtitle">Free tier included. No credit card. Runs locally in under two minutes.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
+        <a href="./#install" class="btn btn-primary">Get Started Free</a>
+        <a href="contact.html" class="btn btn-secondary">Talk to Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <a href="./">Home</a>
+          <a href="features.html">Features</a>
+          <a href="docs.html">Docs</a>
+          <a href="plans.html">Plans</a>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <a href="changelog.html">Changelog</a>
+          <a href="https://github.com/rishiatlan/Prompt-Optimizer-MCP">GitHub</a>
+          <a href="https://www.npmjs.com/package/claude-prompt-optimizer-mcp">npm</a>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="security.html">Security</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+      <p class="footer-copy">&copy; 2025-2026 Rishi Banerjee. Elastic License 2.0 (ELv2).</p>
+    </div>
+  </footer>
+
+</body>
+</html>
