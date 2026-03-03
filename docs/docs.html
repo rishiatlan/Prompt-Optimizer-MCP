@@ -505,6 +505,7 @@
       <ul>
         <li><a href="#getting-started">Getting Started</a></li>
         <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#pipeline">Pipeline Deep Dive</a></li>
         <li>
           <a href="#tool-reference">Tool Reference</a>
           <ul class="toc-sub">
@@ -699,6 +700,18 @@ optimize_prompt({
       </div>
 
       <p>The pipeline analyzes intent, scores quality, detects risks, compiles to your target format, estimates cost across providers, and routes to the optimal model. The result is packaged into a <strong>PreviewPack</strong> for human review &mdash; nothing reaches the LLM until the user approves.</p>
+
+      <!-- Pipeline Deep Dive -->
+      <h3 id="pipeline">8 Phases, Every Request</h3>
+      <p>Click any phase to see what happens inside it &mdash; which functions run, what data they produce, and how it feeds the next step.</p>
+
+      <div class="pipeline-flow" id="pipeline-flow">
+        <!-- Nodes injected by JS -->
+      </div>
+
+      <div class="pipe-detail" id="pipe-detail">
+        <div id="pipe-detail-content"></div>
+      </div>
 
       <!-- PreviewPack breakdown -->
       <h3 id="previewpack">What&rsquo;s in a PreviewPack?</h3>
@@ -1291,6 +1304,134 @@ optimize_prompt({
       <h2 id="enterprise">Enterprise Features</h2>
       <p>Enterprise tier unlocks governance features designed for regulated environments. All features are local-only, deterministic, and require no external services.</p>
 
+      <!-- Enterprise Governance Flow SVG -->
+      <h3>Governance Flow</h3>
+      <p>Every prompt runs through a layered decision stack. Custom rules fire first, then the risk scorer, then the policy gate &mdash; in that order, deterministically.</p>
+      <div style="overflow-x:auto;margin:32px 0 48px;">
+        <svg viewBox="0 0 960 410" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:940px;display:block;margin:0 auto;font-family:'Inter',system-ui,sans-serif;">
+          <defs>
+            <marker id="eg-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/>
+            </marker>
+            <marker id="eg-arrow-r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="var(--red)"/>
+            </marker>
+            <marker id="eg-arrow-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="var(--green)"/>
+            </marker>
+            <marker id="eg-arrow-y" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="var(--orange)"/>
+            </marker>
+          </defs>
+
+          <!-- Column labels -->
+          <text x="64"  y="16" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-weight="700" letter-spacing="1">INPUT</text>
+          <text x="220" y="16" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-weight="700" letter-spacing="1">CUSTOM RULES</text>
+          <text x="390" y="16" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-weight="700" letter-spacing="1">RISK SCORER</text>
+          <text x="560" y="16" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-weight="700" letter-spacing="1">POLICY GATE</text>
+          <text x="740" y="16" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-weight="700" letter-spacing="1">DECISION</text>
+          <text x="890" y="16" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-weight="700" letter-spacing="1">AUDIT LOG</text>
+
+          <!-- 1. Input box -->
+          <rect x="10" y="115" width="108" height="48" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="64" y="136" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Incoming</text>
+          <text x="64" y="152" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Prompt</text>
+
+          <!-- Arrow 1 → 2 -->
+          <line x1="118" y1="139" x2="148" y2="139" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#eg-arrow)"/>
+
+          <!-- 2. Custom Rules Engine -->
+          <rect x="148" y="100" width="144" height="78" rx="8" fill="var(--surface)" stroke="var(--blue)" stroke-width="1.5"/>
+          <text x="220" y="122" text-anchor="middle" fill="var(--blue)" font-size="11" font-weight="700">Custom Rules Engine</text>
+          <text x="220" y="138" text-anchor="middle" fill="var(--text-muted)" font-size="10">&le; 25 org-defined rules</text>
+          <text x="220" y="154" text-anchor="middle" fill="var(--text-muted)" font-size="10">regex pattern match</text>
+          <text x="220" y="170" text-anchor="middle" fill="var(--text-muted)" font-size="10">risk_weight += delta</text>
+
+          <!-- Config Lock badge -->
+          <rect x="156" y="186" width="128" height="24" rx="6" fill="var(--surface)" stroke="var(--blue)" stroke-width="1"/>
+          <text x="220" y="202" text-anchor="middle" fill="var(--blue)" font-size="10">&#x1F512; Config Lock active</text>
+
+          <!-- Arrow 2 → 3 -->
+          <line x1="292" y1="139" x2="322" y2="139" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#eg-arrow)"/>
+
+          <!-- 3. Risk Scorer -->
+          <rect x="322" y="100" width="136" height="78" rx="8" fill="var(--surface)" stroke="var(--green)" stroke-width="1.5"/>
+          <text x="390" y="122" text-anchor="middle" fill="var(--green)" font-size="11" font-weight="700">Risk Scorer</text>
+          <text x="390" y="138" text-anchor="middle" fill="var(--text-muted)" font-size="10">14 built-in rules</text>
+          <text x="390" y="154" text-anchor="middle" fill="var(--text-muted)" font-size="10">+ custom rule deltas</text>
+          <text x="390" y="170" text-anchor="middle" fill="var(--text-muted)" font-size="10">&rarr; risk_score 0&ndash;100</text>
+
+          <!-- Arrow 3 → 4 -->
+          <line x1="458" y1="139" x2="488" y2="139" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#eg-arrow)"/>
+
+          <!-- 4. Policy Gate (diamond) -->
+          <polygon points="560,100 620,139 560,178 500,139" fill="var(--surface)" stroke="var(--orange)" stroke-width="1.5"/>
+          <text x="560" y="133" text-anchor="middle" fill="var(--orange)" font-size="10" font-weight="700">Policy Gate</text>
+          <text x="560" y="148" text-anchor="middle" fill="var(--orange)" font-size="10">score &gt; threshold?</text>
+
+          <!-- Mode labels -->
+          <text x="528" y="230" text-anchor="middle" fill="var(--text-muted)" font-size="9">advisory mode: warn</text>
+          <text x="628" y="230" text-anchor="middle" fill="var(--text-muted)" font-size="9">enforce mode: block</text>
+
+          <!-- Path A: BLOCKED -->
+          <line x1="560" y1="178" x2="560" y2="260" stroke="var(--red)" stroke-width="1.5" marker-end="url(#eg-arrow-r)"/>
+          <rect x="500" y="260" width="120" height="44" rx="8" fill="var(--surface)" stroke="var(--red)" stroke-width="1.5"/>
+          <text x="560" y="280" text-anchor="middle" fill="var(--red)" font-size="12" font-weight="700">BLOCKED</text>
+          <text x="560" y="296" text-anchor="middle" fill="var(--red)" font-size="10">risk_threshold_exceeded</text>
+          <text x="560" y="320" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-style="italic">enforce mode only</text>
+
+          <!-- Path B: ALLOWED -->
+          <line x1="620" y1="139" x2="660" y2="139" stroke="var(--green)" stroke-width="1.5" marker-end="url(#eg-arrow-g)"/>
+          <rect x="660" y="115" width="160" height="48" rx="8" fill="var(--surface)" stroke="var(--green)" stroke-width="1.5"/>
+          <text x="740" y="136" text-anchor="middle" fill="var(--green)" font-size="12" font-weight="700">ALLOWED</text>
+          <text x="740" y="152" text-anchor="middle" fill="var(--text-muted)" font-size="10">&rarr; proceed to optimization</text>
+
+          <!-- Advisory warning path (dashed) -->
+          <line x1="560" y1="178" x2="560" y2="240" stroke="var(--orange)" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="560" y1="240" x2="740" y2="240" stroke="var(--orange)" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="740" y1="240" x2="740" y2="163" stroke="var(--orange)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#eg-arrow-y)"/>
+          <text x="640" y="254" text-anchor="middle" fill="var(--orange)" font-size="9" font-style="italic">advisory: warning flag + allow</text>
+
+          <!-- Arrows → Audit Log -->
+          <line x1="620" y1="282" x2="820" y2="282" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="820" y1="282" x2="820" y2="220" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#eg-arrow-r)"/>
+          <line x1="820" y1="115" x2="820" y2="163" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="820" y1="163" x2="840" y2="163" stroke="var(--green)" stroke-width="1.5" marker-end="url(#eg-arrow-g)"/>
+
+          <!-- Audit Log box -->
+          <rect x="840" y="100" width="108" height="180" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="894" y="122" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700">Audit Log</text>
+          <line x1="852" y1="130" x2="936" y2="130" stroke="var(--border)" stroke-width="1"/>
+          <text x="894" y="148" text-anchor="middle" fill="var(--green)" font-size="9">&#x2713; optimize risk=32</text>
+          <text x="894" y="162" text-anchor="middle" fill="var(--text-muted)" font-size="9">&rarr; sha256: a3f9c2e...</text>
+          <text x="894" y="180" text-anchor="middle" fill="var(--red)" font-size="9">&#x2717; blocked risk=75</text>
+          <text x="894" y="194" text-anchor="middle" fill="var(--text-muted)" font-size="9">&rarr; sha256: 9d72a1f...</text>
+          <text x="894" y="212" text-anchor="middle" fill="var(--green)" font-size="9">&#x2713; optimize risk=18</text>
+          <text x="894" y="226" text-anchor="middle" fill="var(--text-muted)" font-size="9">&rarr; sha256: f2e48b3...</text>
+          <text x="894" y="244" text-anchor="middle" fill="var(--text-muted)" font-size="9">append-only JSONL</text>
+          <text x="894" y="260" text-anchor="middle" fill="var(--text-muted)" font-size="9">SHA-256 hash chain</text>
+          <text x="894" y="274" text-anchor="middle" fill="var(--blue)" font-size="9">tamper-evident</text>
+
+          <!-- Policy Mode Comparison box -->
+          <rect x="10" y="280" width="290" height="120" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+          <text x="155" y="300" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-weight="700" letter-spacing="1">POLICY MODE COMPARISON</text>
+          <line x1="22" y1="308" x2="288" y2="308" stroke="var(--border)" stroke-width="1"/>
+          <text x="22" y="324" fill="var(--orange)" font-size="10" font-weight="600">Advisory (default)</text>
+          <text x="22" y="340" fill="var(--text-muted)" font-size="10">Score logged, warning flag set.</text>
+          <text x="22" y="354" fill="var(--text-muted)" font-size="10">Prompt proceeds &mdash; no block.</text>
+          <line x1="22" y1="364" x2="288" y2="364" stroke="var(--border)" stroke-width="1"/>
+          <text x="22" y="380" fill="var(--red)" font-size="10" font-weight="600">Enforce (opt-in)</text>
+          <text x="22" y="396" fill="var(--text-muted)" font-size="10">Prompt blocked if score &ge; threshold.</text>
+
+          <!-- Threshold callout -->
+          <rect x="322" y="220" width="136" height="80" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+          <text x="390" y="238" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-weight="700" letter-spacing="1">THRESHOLDS</text>
+          <text x="330" y="256" fill="var(--green)" font-size="10">relaxed</text><text x="440" y="256" text-anchor="end" fill="var(--green)" font-size="10">&ge; 40</text>
+          <text x="330" y="272" fill="var(--orange)" font-size="10">standard</text><text x="440" y="272" text-anchor="end" fill="var(--orange)" font-size="10">&ge; 60</text>
+          <text x="330" y="288" fill="var(--red)" font-size="10">strict</text><text x="440" y="288" text-anchor="end" fill="var(--red)" font-size="10">&ge; 75</text>
+        </svg>
+      </div>
+
       <h3>Policy Enforcement <span class="tag-enterprise">Enterprise</span></h3>
       <p>Switch from advisory mode (issues are reported but never block) to enforce mode, where BLOCKING rules gate every prompt operation.</p>
       <h4>Setup</h4>
@@ -1661,5 +1802,68 @@ console.<span class="fn">log</span>(result.cost.costs);         <span class="com
       updateActiveToc();
     })();
   </script>
+
+  <!-- Pipeline Deep Dive -->
+  <script>
+  (function(){
+    var PIPELINE = [
+      {num:'01',name:'Harden',color:'var(--accent)',desc:'Strip null bytes and cap whitespace. Protects the pipeline from malformed input before any analysis begins.',funcs:['hardenInput()','null byte strip','whitespace cap'],output:'Clean prompt string'},
+      {num:'02',name:'Freemium Gate',color:'var(--orange)',desc:'Check lifetime quota, monthly quota, and per-minute rate limit. Blocked prompts never reach analysis \u2014 they fail fast with a clear quota message.',funcs:['canUseOptimization(ctx)','checkLifetimeLimit()','checkMonthlyLimit()','checkRateLimit()'],output:'{ allowed, enforcement, remaining, limits }'},
+      {num:'03',name:'Policy Gate',color:'var(--blue)',desc:'Enterprise-only. Runs policy violation checks before analysis. If policy_mode=enforce and a BLOCKING rule triggers, the prompt is rejected with the violation list.',funcs:['evaluatePolicyViolations()','checkRiskThreshold()','buildPolicySummary()'],output:'PolicyViolation[] or PASS'},
+      {num:'04',name:'Analyze',color:'var(--accent)',desc:'The deepest phase. 10 sub-functions run in sequence to build the IntentSpec \u2014 a structured model of what the prompt is actually asking for.',funcs:['detectTaskType()','classifyComplexity()','detectInputs()','extractGoal()','detectAudience()','runRules()','extractBlockingQuestions()','computeRiskScore()'],output:'IntentSpec { task_type, goal, risk_score, blocking_questions... }'},
+      {num:'05',name:'Score',color:'var(--green)',desc:'5 independent scoring dimensions \u00d7 20 points = 100 max. Each dimension is scored separately then summed.',funcs:['scoreClarity()','scoreSpecificity()','scoreCompleteness()','scoreConstraints()','scoreEfficiency()','generateChecklist()'],output:'QualityScore (0-100) + CompilationChecklist (9 items)'},
+      {num:'06',name:'Compile',color:'var(--accent)',desc:'Produces the final structured prompt in the target format. Enriches with audience/tone hints, optionally compresses context, verifies 9 structural elements.',funcs:['enrichGoal()','compileClaude() / compileOpenAI() / compileGeneric()','compressContext()','generateChecklist()'],output:'{ compiled_prompt, changes_made, format_version: 1 }'},
+      {num:'07',name:'Estimate',color:'var(--orange)',desc:'Token estimation + cost across 5 providers + 2-step model routing. Returns which model to use and how much each option costs.',funcs:['estimateTokens()','costsForProvider()','routeModel()','computeSavings()','generateTradeoffs()'],output:'CostEstimate { all 5 providers, recommended, savings% }'},
+      {num:'08',name:'Build & Return',color:'var(--red)',desc:'Assemble the PreviewPack, write the session to disk, increment usage (only on success), log the audit event, and return JSON to the client.',funcs:['createSession()','incrementUsage()','auditLogger.append()','jsonResponse()'],output:'PreviewPack { request_id, session_id, quality_score, compiled_prompt, cost_estimate... }'}
+    ];
+
+    var flow = document.getElementById('pipeline-flow');
+    if(!flow) return;
+
+    PIPELINE.forEach(function(p, i){
+      var node = document.createElement('div');
+      node.className = 'pipe-node';
+      node.innerHTML = '<div class="pipe-box" style="--c:'+p.color+'"><div class="pipe-num">'+p.num+'</div><div class="pipe-name" style="color:'+p.color+'">'+p.name+'</div></div>';
+      node.addEventListener('click', function(){
+        document.querySelectorAll('.pipe-node').forEach(function(n){n.classList.remove('active');});
+        node.classList.add('active');
+        showDetail(p);
+      });
+      flow.appendChild(node);
+      if(i < PIPELINE.length - 1){
+        var arrow = document.createElement('div');
+        arrow.className = 'pipe-arrow';
+        arrow.textContent = '\u2192';
+        flow.appendChild(arrow);
+      }
+    });
+
+    function showDetail(p){
+      var detail = document.getElementById('pipe-detail');
+      var content = document.getElementById('pipe-detail-content');
+      content.innerHTML =
+        '<h4 style="color:'+p.color+';font-family:monospace;">Phase '+p.num+': '+p.name+'</h4>'+
+        '<p style="margin:10px 0 16px;">'+p.desc+'</p>'+
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">'+
+          '<div>'+
+            '<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Functions called</div>'+
+            '<div class="pipe-funcs">'+p.funcs.map(function(f){return '<span class="pipe-func">'+f+'</span>';}).join('')+'</div>'+
+          '</div>'+
+          '<div style="margin-left:auto;">'+
+            '<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Output</div>'+
+            '<code style="font-size:12px;color:var(--green);background:var(--code-bg);padding:6px 10px;border-radius:6px;display:inline-block;max-width:400px;word-break:break-word;">'+p.output+'</code>'+
+          '</div>'+
+        '</div>';
+      detail.style.display = 'block';
+    }
+
+    // Auto-show first phase
+    if(PIPELINE.length > 0){
+      var firstNode = flow.querySelector('.pipe-node');
+      if(firstNode){ firstNode.classList.add('active'); showDetail(PIPELINE[0]); }
+    }
+  })();
+  </script>
+
 </body>
 </html>

@@ -264,41 +264,23 @@
         <a href="features.html" class="btn btn-secondary">See Features &rarr;</a>
       </div>
 
-      <!-- Hero Demo -->
-      <div class="hero-demo">
-        <div class="demo-panel">
-          <div class="demo-header">
-            <span class="demo-dot red"></span>
-            <span class="demo-dot yellow"></span>
-            <span class="demo-dot green"></span>
-            <span class="demo-label">Your prompt</span>
-          </div>
-          <div class="demo-body">
-            <span class="demo-dim">&gt;</span> Write me something about our product launch<span class="demo-cursor">|</span>
-            <div class="demo-score bad">Score: <strong>31</strong>/100</div>
-            <div class="demo-issues">
-              <span class="demo-tag">&#x26a0; vague_objective</span>
-              <span class="demo-tag">&#x26a0; missing_audience</span>
-              <span class="demo-tag">&#x26a0; no_constraints</span>
-            </div>
-          </div>
+      <!-- Live Demo Block -->
+      <div class="demo-block" style="margin-top:40px;max-width:720px;margin-left:auto;margin-right:auto;">
+        <div class="demo-bar">
+          <span class="demo-dot demo-dot-r"></span>
+          <span class="demo-dot demo-dot-y"></span>
+          <span class="demo-dot demo-dot-g"></span>
+          <span class="demo-bar-title">optimize_prompt &mdash; live analysis</span>
         </div>
-        <div class="demo-arrow">&#x2192;</div>
-        <div class="demo-panel">
-          <div class="demo-header">
-            <span class="demo-dot red"></span>
-            <span class="demo-dot yellow"></span>
-            <span class="demo-dot green"></span>
-            <span class="demo-label">Compiled output</span>
+        <div class="demo-body">
+          <div class="demo-panel">
+            <div class="demo-label">Raw Prompt</div>
+            <div id="demo-input" class="demo-prompt cursor-blink" style="min-height:70px;"></div>
           </div>
-          <div class="demo-body compiled">
-            <div><span class="xml-tag">&lt;role&gt;</span>Product marketing writer<span class="xml-tag">&lt;/role&gt;</span></div>
-            <div><span class="xml-tag">&lt;goal&gt;</span>Write a 200-word launch announcement<span class="xml-tag">&lt;/goal&gt;</span></div>
-            <div><span class="xml-tag">&lt;constraints&gt;</span></div>
-            <div class="indent">- Tone: professional, concise</div>
-            <div class="indent">- Audience: existing customers</div>
-            <div><span class="xml-tag">&lt;/constraints&gt;</span></div>
-            <div class="demo-score good">Score: <strong>91</strong>/100</div>
+          <div class="demo-divider"></div>
+          <div class="demo-panel">
+            <div class="demo-label">PCP Analysis</div>
+            <div class="demo-result" id="demo-output" style="min-height:70px;"></div>
           </div>
         </div>
       </div>
@@ -315,8 +297,46 @@
     </div>
   </section>
 
+  <!-- Problem Section -->
+  <section class="section" id="problem">
+    <div class="container">
+      <div class="text-center mb-32">
+        <div class="badge badge-red">The Problem</div>
+        <h2 class="section-title">Prompts run blind today</h2>
+        <p class="section-subtitle">Every prompt goes straight to the model with no quality check, no cost estimate, and no governance. Here&rsquo;s what that costs you.</p>
+      </div>
+      <div class="grid-auto">
+        <div class="card" style="border-left:3px solid var(--red);">
+          <div class="problem-icon">&#x1F32B;&#xFE0F;</div>
+          <h3>Vague prompts waste tokens</h3>
+          <p>&ldquo;Make the code better&rdquo; gives the model no constraints, no target, and no success criteria &mdash; leading to unpredictable results that cost 3&times; what they should.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--orange);">
+          <div class="problem-icon">&#x1F4B8;</div>
+          <h3>Cost is invisible until after</h3>
+          <p>Most teams have no idea how many tokens their prompts consume across Haiku, Sonnet, Opus, GPT-4o, and Gemini &mdash; until the bill arrives.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--orange);">
+          <div class="problem-icon">&#x1F3B2;</div>
+          <h3>Wrong model every time</h3>
+          <p>Without routing logic, every prompt hits the same expensive model. A simple factual question doesn&rsquo;t need Opus. PCP routes it to Gemini Flash instead &mdash; 94% cheaper.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--accent);">
+          <div class="problem-icon">&#x1F6AB;</div>
+          <h3>No governance or sign-off gate</h3>
+          <p>Claude starts working immediately on whatever you type. There&rsquo;s no review step, no policy check, and no way to enforce prompt standards across a team.</p>
+        </div>
+        <div class="card" style="border-left:3px solid var(--blue);">
+          <div class="problem-icon">&#x1F4DC;</div>
+          <h3>No audit trail</h3>
+          <p>Enterprise compliance needs to know what prompts ran, when, at what risk score, and what policy decision was made. There&rsquo;s no log of any of that today.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- How It Works -->
-  <section class="section" id="how">
+  <section class="section section-alt" id="how">
     <div class="container">
       <h2 class="section-title">How It Works</h2>
       <p class="section-subtitle">Five steps from rough prompt to production-ready. All analysis is deterministic &mdash; no AI calls inside.</p>
@@ -360,6 +380,28 @@
     </div>
   </section>
 
+  <!-- Video Explainer -->
+  <section class="section" id="video">
+    <div class="container">
+      <div class="text-center mb-32">
+        <div class="badge badge-accent">Explainer</div>
+        <h2 class="section-title">How it works in 2 minutes</h2>
+        <p class="section-subtitle">See a vague prompt get analyzed, improved, routed to the right model, and approved &mdash; all without a single LLM call.</p>
+      </div>
+      <div class="video-wrap">
+        <canvas id="pcp-canvas" width="1080" height="580"></canvas>
+        <div class="video-controls">
+          <button class="vc-btn active" id="vc-play" title="Play / Pause">&#x25B6;</button>
+          <button class="vc-btn" id="vc-restart" title="Restart">&#x21BA;</button>
+          <div class="vc-progress-wrap" id="vc-progress-wrap">
+            <div class="vc-progress-fill" id="vc-progress"></div>
+          </div>
+          <span class="vc-time" id="vc-time">0:00 / 2:00</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Enterprise Controls -->
   <section class="section section-alt" id="enterprise-controls">
     <div class="container">
@@ -395,6 +437,100 @@
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Benchmarks -->
+  <section class="section" id="benchmarks">
+    <div class="container-wide">
+      <div class="text-center mb-32">
+        <div class="badge badge-green">Benchmarks</div>
+        <h2 class="section-title">Real results on real prompts</h2>
+        <p class="section-subtitle">Every prompt reaches 90/100 after optimization. Average improvement: <strong style="color:var(--green);">+32 points</strong>. Deterministic &mdash; same prompt, same result, every time.</p>
+      </div>
+      <div class="bench-table-wrap">
+        <table class="bench-table">
+          <thead>
+            <tr>
+              <th>Prompt</th>
+              <th>Type</th>
+              <th>Before</th>
+              <th>After</th>
+              <th>&Delta;</th>
+              <th>Model</th>
+              <th>Blocked?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="prompt-cell">&ldquo;make the code better&rdquo;</td>
+              <td><span class="bench-type bench-type-other">other</span></td>
+              <td class="score-before">48</td><td class="score-after">90</td><td class="bench-delta">+42</td>
+              <td><span class="model-pill sonnet">sonnet</span></td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">&ldquo;fix the login bug&rdquo;</td>
+              <td><span class="bench-type bench-type-debug">debug</span></td>
+              <td class="score-before">51</td><td class="score-after">90</td><td class="bench-delta">+39</td>
+              <td><span class="model-pill opus">opus</span></td>
+              <td><span class="blocked-pill">&#x26A0; 3 BQs</span></td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">Multi-task (4 in 1)</td>
+              <td><span class="bench-type bench-type-refactor">refactor</span></td>
+              <td class="score-before">51</td><td class="score-after">90</td><td class="bench-delta">+39</td>
+              <td><span class="model-pill opus">opus</span></td>
+              <td><span class="blocked-pill">&#x26A0; 3 BQs</span></td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">Auth middleware (well-specified)</td>
+              <td><span class="bench-type bench-type-refactor">refactor</span></td>
+              <td class="score-before">76</td><td class="score-after">90</td><td class="bench-delta">+14</td>
+              <td><span class="model-pill opus">opus</span></td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">Retry logic (precise)</td>
+              <td><span class="bench-type bench-type-code">code</span></td>
+              <td class="score-before">61</td><td class="score-after">90</td><td class="bench-delta">+29</td>
+              <td><span class="model-pill sonnet">sonnet</span></td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">Create REST API server</td>
+              <td><span class="bench-type bench-type-create">create</span></td>
+              <td class="score-before">51</td><td class="score-after">90</td><td class="bench-delta">+39</td>
+              <td><span class="model-pill opus">opus</span></td>
+              <td><span class="blocked-pill">&#x26A0; 2 BQs</span></td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">LinkedIn post (technical)</td>
+              <td><span class="bench-type bench-type-writing">writing</span></td>
+              <td class="score-before">59</td><td class="score-after">90</td><td class="bench-delta">+31</td>
+              <td><span class="model-pill sonnet">sonnet</span></td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">Redis vs Memcached research</td>
+              <td><span class="bench-type bench-type-research">research</span></td>
+              <td class="score-before">56</td><td class="score-after">90</td><td class="bench-delta">+34</td>
+              <td><span class="model-pill sonnet">sonnet</span></td>
+              <td>&mdash;</td>
+            </tr>
+            <tr>
+              <td class="prompt-cell">Data transformation (CSV)</td>
+              <td><span class="bench-type bench-type-data">data</span></td>
+              <td class="score-before">56</td><td class="score-after">90</td><td class="bench-delta">+34</td>
+              <td><span class="model-pill haiku">haiku</span></td>
+              <td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-muted);">
+        BQ = Blocking Question. Prompts in ANALYZING state require <code style="font-size:11px;">refine_prompt</code> before compilation completes. All results are deterministic.
+      </p>
     </div>
   </section>
 
@@ -562,5 +698,72 @@
   </footer>
 
   <script src="shared.js"></script>
+  <script src="video.js"></script>
+
+  <!-- Live Demo Animation -->
+  <script>
+  (function(){
+    const DEMOS = [
+      {
+        input: 'make the code better',
+        delay: 55,
+        result: [
+          { cls:'bad', text:'\u26D4 Blocking question:' },
+          { cls:'bad', text:'   "Which file or function should change?"' },
+          { cls:'bad', text:'   "What specific improvement is needed?"' },
+          { cls:'', text:'' },
+          { cls:'warn', text:'Score:  48/100 \u2192 ANALYZING' },
+          { cls:'warn', text:'Risk:   medium (vague_objective rule)' },
+          { cls:'info', text:'Task:   other' }
+        ]
+      },
+      {
+        input: 'Refactor src/auth/middleware.ts to reduce P99\nlatency below 100ms. Do not touch the DB layer.\nPreserve all existing tests.',
+        delay: 35,
+        result: [
+          { cls:'good', text:'\u2713 State:   COMPILED' },
+          { cls:'good', text:'\u2713 Score:   90/100  (+29)' },
+          { cls:'info', text:'  Task:    refactor' },
+          { cls:'info', text:'  Risk:    high (auth domain)' },
+          { cls:'info', text:'  Model:   opus (recommended)' },
+          { cls:'good', text:'  Files:   src/auth/middleware.ts' }
+        ]
+      }
+    ];
+    var demoIdx = 0, demoTimer = null;
+    function runDemo(demo) {
+      var inp = document.getElementById('demo-input');
+      var out = document.getElementById('demo-output');
+      if (!inp || !out) return;
+      inp.textContent = ''; out.innerHTML = '';
+      inp.classList.add('cursor-blink');
+      var i = 0;
+      clearInterval(demoTimer);
+      demoTimer = setInterval(function() {
+        if (i < demo.input.length) {
+          inp.textContent += demo.input[i++];
+        } else {
+          clearInterval(demoTimer);
+          inp.classList.remove('cursor-blink');
+          setTimeout(function() {
+            demo.result.forEach(function(line, li) {
+              setTimeout(function() {
+                var d = document.createElement('div');
+                d.className = line.cls;
+                d.textContent = line.text;
+                out.appendChild(d);
+              }, li * 90);
+            });
+            setTimeout(function() {
+              demoIdx = (demoIdx + 1) % DEMOS.length;
+              setTimeout(function() { runDemo(DEMOS[demoIdx]); }, 3500);
+            }, demo.result.length * 90 + 2200);
+          }, 350);
+        }
+      }, demo.delay);
+    }
+    setTimeout(function() { runDemo(DEMOS[0]); }, 600);
+  })();
+  </script>
 </body>
 </html>

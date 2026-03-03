@@ -23,6 +23,7 @@
   --code-bg: #1a1a28;
   --tag-free-bg: rgba(52, 211, 153, 0.1);
   --tag-metered-bg: rgba(251, 146, 60, 0.1);
+  --tag-enterprise-bg: rgba(124, 92, 252, 0.12);
   color-scheme: dark;
 }
 
@@ -44,6 +45,7 @@
   --code-bg: #f1f3f7;
   --tag-free-bg: rgba(16, 185, 129, 0.08);
   --tag-metered-bg: rgba(245, 158, 11, 0.08);
+  --tag-enterprise-bg: rgba(108, 76, 230, 0.1);
   color-scheme: light;
 }
 
@@ -282,6 +284,7 @@ nav .container {
 }
 .tag-free { background: var(--tag-free-bg); color: var(--green); }
 .tag-metered { background: var(--tag-metered-bg); color: var(--orange); }
+.tag-enterprise { background: var(--tag-enterprise-bg); color: var(--accent); }
 .tag-accent { background: var(--accent-glow); color: var(--accent); }
 
 /* ─── Pricing Cards ──────────────────────────────────────────────────────── */
@@ -462,3 +465,292 @@ footer a:hover { color: var(--text); }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   New Components — ported from Understanding PCP page
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Live Demo Block ───────────────────────────────────────────────────── */
+.demo-block {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.demo-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+.demo-dot-r { background: var(--red); }
+.demo-dot-y { background: var(--orange); }
+.demo-dot-g { background: var(--green); }
+.demo-bar-title {
+  margin-left: auto; margin-right: auto;
+  font-size: 12px; color: var(--text-muted);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.demo-body {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  min-height: 170px;
+}
+.demo-panel { padding: 16px; }
+.demo-divider { background: var(--border); }
+.demo-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--text-muted);
+  margin-bottom: 10px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.demo-prompt {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 13px; color: var(--text);
+  line-height: 1.6; white-space: pre-wrap;
+  min-height: 60px;
+}
+.demo-result {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px; line-height: 1.8;
+}
+.demo-result .good { color: var(--green); }
+.demo-result .bad { color: var(--red); }
+.demo-result .info { color: var(--blue); }
+.demo-result .warn { color: var(--orange); }
+@keyframes cursor-blink { 0%,100%{border-right-color:var(--text)} 50%{border-right-color:transparent} }
+.cursor-blink { border-right: 2px solid var(--text); animation: cursor-blink 0.8s step-end infinite; }
+@media (max-width: 600px) {
+  .demo-body { grid-template-columns: 1fr; }
+  .demo-divider { height: 1px; width: 100%; }
+}
+
+/* ─── Problem Cards ─────────────────────────────────────────────────────── */
+.problem-icon { font-size: 22px; margin-bottom: 10px; }
+
+/* ─── Benchmarks Table ──────────────────────────────────────────────────── */
+.bench-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.bench-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.bench-table th {
+  background: var(--surface);
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.bench-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.bench-table tr:last-child td { border-bottom: none; }
+.bench-table tr:hover td { background: var(--surface); }
+.bench-table .prompt-cell {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px; color: var(--text);
+  max-width: 200px;
+}
+.bench-table .score-before { color: var(--orange); font-family: 'SF Mono', monospace; }
+.bench-table .score-after { color: var(--green); font-family: 'SF Mono', monospace; }
+.bench-delta { color: var(--green); font-family: 'SF Mono', monospace; font-weight: 600; }
+.model-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-family: 'SF Mono', monospace;
+  background: var(--surface); color: var(--text-muted);
+}
+.model-pill.sonnet { background: rgba(96, 165, 250, 0.1); color: var(--blue); }
+.model-pill.opus { background: var(--accent-glow); color: var(--accent); }
+.model-pill.haiku { background: var(--tag-free-bg); color: var(--green); }
+.blocked-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--orange);
+}
+.bench-type {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 2px 8px; border-radius: 4px;
+  display: inline-block;
+}
+.bench-type-other { background: rgba(96,165,250,0.1); color: var(--blue); }
+.bench-type-debug { background: rgba(248,113,113,0.1); color: var(--red); }
+.bench-type-refactor { background: var(--tag-metered-bg); color: var(--orange); }
+.bench-type-code { background: var(--accent-glow); color: var(--accent); }
+.bench-type-create { background: rgba(96,165,250,0.1); color: var(--blue); }
+.bench-type-writing { background: var(--accent-glow); color: var(--accent); }
+.bench-type-research { background: var(--tag-free-bg); color: var(--green); }
+.bench-type-data { background: rgba(96,165,250,0.1); color: var(--blue); }
+
+/* ─── Video Explainer ───────────────────────────────────────────────────── */
+.video-wrap {
+  position: relative; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 60px var(--accent-glow), 0 20px 60px rgba(0,0,0,0.3);
+}
+.video-controls {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 16px; background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.vc-btn {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; cursor: pointer;
+  background: var(--code-bg); color: var(--text);
+  font-size: 14px; display: flex;
+  align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.vc-btn:hover { background: var(--border); }
+.vc-btn.active { background: var(--accent); color: #fff; }
+.vc-progress-wrap {
+  flex: 1; height: 4px; background: var(--code-bg);
+  border-radius: 2px; cursor: pointer; position: relative;
+}
+.vc-progress-fill {
+  height: 100%; background: var(--accent);
+  border-radius: 2px; width: 0%; transition: width 0.1s linear;
+}
+.vc-time {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px; color: var(--text-muted);
+  min-width: 60px; text-align: right;
+}
+#pcp-canvas { display: block; width: 100%; background: #07080f; }
+
+/* ─── Flowchart & Routing SVG Wraps ─────────────────────────────────────── */
+.flowchart-wrap, .routing-wrap {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  overflow: auto;
+}
+.flowchart-wrap svg, .routing-wrap svg {
+  display: block; margin: 0 auto;
+}
+
+/* ─── Scoring Grid ──────────────────────────────────────────────────────── */
+.scoring-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.score-dim {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+  overflow: hidden;
+}
+.score-dim::before {
+  content: '20'; position: absolute;
+  top: 16px; right: 16px;
+  font-size: 2.2rem; font-weight: 800; opacity: 0.06;
+  font-family: 'SF Mono', monospace;
+}
+.score-dim h4 { margin-bottom: 6px; font-size: 14px; }
+.score-dim > p { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+.score-dim-items { display: flex; flex-direction: column; gap: 5px; }
+.score-item { display: flex; justify-content: space-between; align-items: center; }
+.score-item-label { font-size: 12px; color: var(--text-muted); }
+.score-item-val { font-size: 12px; font-family: 'SF Mono', monospace; }
+.score-item-val.pos { color: var(--green); }
+.score-item-val.neg { color: var(--red); }
+
+/* ─── Risk Meter ────────────────────────────────────────────────────────── */
+.risk-meter-wrap { display: flex; flex-direction: column; gap: 10px; }
+.risk-row { display: flex; align-items: center; gap: 12px; }
+.risk-label {
+  font-size: 12px; color: var(--text-muted);
+  width: 110px; text-align: right;
+  font-family: 'SF Mono', monospace;
+}
+.risk-track {
+  flex: 1; height: 6px; background: var(--code-bg);
+  border-radius: 3px; overflow: hidden;
+}
+.risk-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.risk-val {
+  font-size: 12px; font-family: 'SF Mono', monospace;
+  min-width: 32px;
+}
+
+/* ─── Pipeline Explorer (docs.html) ─────────────────────────────────────── */
+.pipeline-flow {
+  display: flex; align-items: flex-start; gap: 0;
+  overflow-x: auto; padding: 0 0 12px;
+}
+.pipe-node {
+  flex-shrink: 0; display: flex; flex-direction: column;
+  align-items: center; gap: 6px; cursor: pointer; padding: 0 4px;
+}
+.pipe-box {
+  width: 90px; padding: 10px 6px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface);
+  text-align: center; transition: all 0.15s;
+}
+.pipe-node.active .pipe-box, .pipe-node:hover .pipe-box {
+  border-color: var(--accent); background: var(--accent-glow);
+}
+.pipe-box .pipe-num {
+  font-size: 10px; color: var(--text-muted);
+  font-family: 'SF Mono', monospace;
+}
+.pipe-box .pipe-name { font-size: 11px; font-weight: 600; color: var(--text); margin-top: 2px; }
+.pipe-arrow {
+  font-size: 14px; color: var(--text-muted);
+  flex-shrink: 0; padding: 0 2px; margin-top: 12px;
+}
+.pipe-detail {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; margin-top: 20px;
+  display: none;
+}
+.pipe-detail.visible { display: block; }
+.pipe-detail h4 {
+  color: var(--accent); margin-bottom: 10px;
+  font-family: 'SF Mono', monospace; font-size: 14px;
+}
+.pipe-detail p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+.pipe-funcs { display: flex; flex-wrap: wrap; gap: 6px; }
+.pipe-func {
+  font-size: 11px; font-family: 'SF Mono', monospace;
+  padding: 3px 8px; border-radius: 4px;
+  background: var(--code-bg); border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* ─── Color Badges (inline) ─────────────────────────────────────────────── */
+.badge-green { background: var(--tag-free-bg); color: var(--green); border: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; padding: 6px 14px; }
+.badge-red { background: rgba(248,113,113,0.1); color: var(--red); border: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; padding: 6px 14px; }
+.badge-orange { background: var(--tag-metered-bg); color: var(--orange); border: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; padding: 6px 14px; }
+.badge-blue { background: rgba(96,165,250,0.1); color: var(--blue); border: none; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; padding: 6px 14px; }
+
+/* ─── Light mode overrides for new components ───────────────────────────── */
+[data-theme="light"] .demo-block { border-color: var(--border); }
+[data-theme="light"] .demo-bar { background: var(--surface); }
+[data-theme="light"] .bench-table tr:hover td { background: #f3f4f8; }
+[data-theme="light"] #pcp-canvas { background: #f1f3f7; }
+[data-theme="light"] .flowchart-wrap,
+[data-theme="light"] .routing-wrap { background: var(--surface); }
+[data-theme="light"] .score-dim { background: #fff; }
+[data-theme="light"] .risk-track { background: var(--border); }
+[data-theme="light"] .pipe-box { background: #fff; }
+[data-theme="light"] .pipe-detail { background: #fff; }
+[data-theme="light"] .pipe-func { background: var(--surface); }

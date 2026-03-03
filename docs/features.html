@@ -211,12 +211,94 @@
   </section>
 
   <!-- ════════════════════════════════════════════════════════════════════════
-       All 15 Tools
+       Architecture Flowchart
        ════════════════════════════════════════════════════════════════════════ -->
-  <section class="section">
+  <section class="section" id="architecture">
+    <div class="container">
+      <div class="text-center mb-32">
+        <span class="badge badge-blue">Architecture</span>
+        <h2 class="section-title">Full request lifecycle</h2>
+        <p class="section-subtitle">Every prompt passes through 8 sequential gates. All decisions are deterministic &mdash; zero LLM calls, zero randomness.</p>
+      </div>
+      <div class="flowchart-wrap">
+        <svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" style="max-width:860px;width:100%;font-family:-apple-system,system-ui,sans-serif;">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="var(--accent)"/></marker>
+            <marker id="arr-r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="var(--red)"/></marker>
+            <marker id="arr-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="var(--green)"/></marker>
+          </defs>
+          <!-- User Prompt -->
+          <rect x="390" y="10" width="120" height="40" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="450" y="35" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="600">User Prompt</text>
+          <line x1="450" y1="50" x2="450" y2="80" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- Harden -->
+          <rect x="350" y="80" width="200" height="44" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1.5"/>
+          <text x="450" y="97" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-weight="600">STEP 1</text>
+          <text x="450" y="112" text-anchor="middle" fill="var(--text)" font-size="12" font-weight="600">Input Hardening</text>
+          <line x1="450" y1="124" x2="450" y2="154" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- Freemium Gate -->
+          <polygon points="450,154 550,184 450,214 350,184" fill="var(--surface)" stroke="var(--orange)" stroke-width="1.5"/>
+          <text x="450" y="181" text-anchor="middle" fill="var(--orange)" font-size="11" font-weight="600">Freemium</text>
+          <text x="450" y="196" text-anchor="middle" fill="var(--orange)" font-size="11" font-weight="600">Gate</text>
+          <!-- Blocked left -->
+          <line x1="350" y1="184" x2="200" y2="184" stroke="var(--red)" stroke-width="1.5" marker-end="url(#arr-r)"/>
+          <rect x="80" y="164" width="120" height="40" rx="8" fill="var(--surface)" stroke="var(--red)" stroke-width="1"/>
+          <text x="140" y="182" text-anchor="middle" fill="var(--red)" font-size="11" font-weight="600">BLOCKED</text>
+          <text x="140" y="196" text-anchor="middle" fill="var(--red)" font-size="10">quota exceeded</text>
+          <text x="270" y="178" fill="var(--red)" font-size="10">denied</text>
+          <!-- Allowed -->
+          <line x1="450" y1="214" x2="450" y2="244" stroke="var(--green)" stroke-width="1.5" marker-end="url(#arr-g)"/>
+          <text x="462" y="232" fill="var(--green)" font-size="10">allowed</text>
+          <!-- Policy Gate -->
+          <polygon points="450,244 550,274 450,304 350,274" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <text x="450" y="271" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="600">Policy Gate</text>
+          <text x="450" y="286" text-anchor="middle" fill="var(--accent)" font-size="10">Enterprise</text>
+          <line x1="350" y1="274" x2="200" y2="274" stroke="var(--red)" stroke-width="1.5" marker-end="url(#arr-r)"/>
+          <rect x="80" y="254" width="120" height="40" rx="8" fill="var(--surface)" stroke="var(--red)" stroke-width="1"/>
+          <text x="140" y="272" text-anchor="middle" fill="var(--red)" font-size="11" font-weight="600">BLOCKED</text>
+          <text x="140" y="286" text-anchor="middle" fill="var(--red)" font-size="10">policy violation</text>
+          <line x1="450" y1="304" x2="450" y2="334" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- Analysis -->
+          <rect x="310" y="334" width="280" height="44" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="450" y="351" text-anchor="middle" fill="var(--text-muted)" font-size="10">STEP 2</text>
+          <text x="450" y="366" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="600">Analysis Phase &rarr; IntentSpec</text>
+          <line x1="450" y1="378" x2="450" y2="408" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <!-- Three parallel -->
+          <line x1="450" y1="408" x2="200" y2="408" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="200" y1="408" x2="200" y2="428" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="120" y="428" width="160" height="40" rx="8" fill="var(--surface)" stroke="var(--green)" stroke-width="1.5"/>
+          <text x="200" y="448" text-anchor="middle" fill="var(--green)" font-size="11" font-weight="600">Scoring Phase</text>
+          <text x="200" y="462" text-anchor="middle" fill="var(--green)" font-size="10">QualityScore 0&ndash;100</text>
+          <line x1="450" y1="408" x2="450" y2="428" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="360" y="428" width="180" height="40" rx="8" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="450" y="448" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="600">Compilation Phase</text>
+          <text x="450" y="462" text-anchor="middle" fill="var(--accent)" font-size="10">Claude / OpenAI / Generic</text>
+          <line x1="450" y1="408" x2="700" y2="408" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,2"/>
+          <line x1="700" y1="408" x2="700" y2="428" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="620" y="428" width="160" height="40" rx="8" fill="var(--surface)" stroke="var(--orange)" stroke-width="1.5"/>
+          <text x="700" y="448" text-anchor="middle" fill="var(--orange)" font-size="11" font-weight="600">Estimation Phase</text>
+          <text x="700" y="462" text-anchor="middle" fill="var(--orange)" font-size="10">5 providers + routing</text>
+          <!-- Legend -->
+          <rect x="760" y="10" width="185" height="120" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+          <text x="852" y="28" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-weight="700">LEGEND</text>
+          <line x1="775" y1="44" x2="800" y2="44" stroke="var(--accent)" stroke-width="2" marker-end="url(#arr)"/>
+          <text x="808" y="48" fill="var(--text-muted)" font-size="10">Normal flow</text>
+          <line x1="775" y1="62" x2="800" y2="62" stroke="var(--red)" stroke-width="2" marker-end="url(#arr-r)"/>
+          <text x="808" y="66" fill="var(--text-muted)" font-size="10">Blocked</text>
+          <polygon points="852,82 870,92 852,102 834,92" fill="none" stroke="var(--orange)" stroke-width="1.5"/>
+          <text x="852" y="116" text-anchor="middle" fill="var(--text-muted)" font-size="10">Decision gate</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       All 19 Tools
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section section-alt">
     <div class="container-wide">
       <h2 class="section-title text-center">All 19 Tools</h2>
-      <p class="section-subtitle text-center">Every tool available in the MCP server &mdash; 16 free, 3 metered</p>
+      <p class="section-subtitle text-center">Every tool available at every tier &mdash; 16 free, 3 metered. Governance capabilities unlock with Enterprise.</p>
 
       <table class="data-table">
         <thead>
@@ -232,7 +314,7 @@
             <td>1</td>
             <td>optimize_prompt</td>
             <td><span class="tag tag-metered">Metered</span></td>
-            <td>Analyze, score, compile, estimate cost &rarr; PreviewPack</td>
+            <td>Analyze, score, compile, estimate cost &rarr; PreviewPack. <strong>Enterprise:</strong> blocks on policy violations in enforce mode</td>
           </tr>
           <tr>
             <td>2</td>
@@ -244,7 +326,7 @@
             <td>3</td>
             <td>approve_prompt</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Sign-off gate &rarr; final compiled prompt</td>
+            <td>Sign-off gate &rarr; final compiled prompt. <strong>Enterprise:</strong> blocks on violations or risk threshold in enforce mode</td>
           </tr>
           <tr>
             <td>4</td>
@@ -267,8 +349,8 @@
           <tr>
             <td>7</td>
             <td>configure_optimizer</td>
-            <td><span class="tag tag-free">Free</span></td>
-            <td>Set mode, threshold, strictness, target</td>
+            <td><span class="tag tag-free">Free</span> <span class="tag tag-enterprise">Enterprise</span></td>
+            <td>Set mode, threshold, strictness, target. <strong>Enterprise:</strong> policy enforcement, audit trail, config lock, session retention</td>
           </tr>
           <tr>
             <td>8</td>
@@ -328,7 +410,7 @@
             <td>17</td>
             <td>export_session</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Full session export with rule-set hash + policy hash</td>
+            <td>Full session export with rule-set hash + policy hash. <strong>Enterprise:</strong> includes custom rules metadata + policy enforcement data</td>
           </tr>
           <tr>
             <td>18</td>
@@ -348,9 +430,257 @@
   </section>
 
   <!-- ════════════════════════════════════════════════════════════════════════
-       Use Cases
+       Scoring System
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section" id="scoring">
+    <div class="container">
+      <div class="text-center mb-32">
+        <span class="badge badge-green">Scoring</span>
+        <h2 class="section-title">Quality in 5 dimensions</h2>
+        <p class="section-subtitle">Every prompt gets a 0&ndash;100 score. Each dimension contributes 20 points. After optimization, every prompt scores 90+.</p>
+      </div>
+      <div class="scoring-grid">
+        <div class="score-dim" style="border-top:3px solid var(--accent);">
+          <h4 style="color:var(--accent);">Clarity</h4>
+          <p>How clearly the intent is stated. Vague terms and short goals lose points.</p>
+          <div class="score-dim-items">
+            <div class="score-item"><span class="score-item-label">Clear goal (&gt;15 words)</span><span class="score-item-val pos">+15</span></div>
+            <div class="score-item"><span class="score-item-label">Per vague term (&ldquo;improve&rdquo;, &ldquo;fix it&rdquo;)</span><span class="score-item-val neg">-5</span></div>
+            <div class="score-item"><span class="score-item-label">Goal too short (&lt;5 words)</span><span class="score-item-val neg">-5</span></div>
+          </div>
+        </div>
+        <div class="score-dim" style="border-top:3px solid var(--blue);">
+          <h4 style="color:var(--blue);">Specificity</h4>
+          <p>File paths, code blocks, audience, tone, and platform all add specificity.</p>
+          <div class="score-dim-items">
+            <div class="score-item"><span class="score-item-label">File path referenced</span><span class="score-item-val pos">+5</span></div>
+            <div class="score-item"><span class="score-item-label">Code block included</span><span class="score-item-val pos">+3</span></div>
+            <div class="score-item"><span class="score-item-label">Audience specified</span><span class="score-item-val pos">+5</span></div>
+            <div class="score-item"><span class="score-item-label">Tone specified</span><span class="score-item-val pos">+4</span></div>
+          </div>
+        </div>
+        <div class="score-dim" style="border-top:3px solid var(--green);">
+          <h4 style="color:var(--green);">Completeness</h4>
+          <p>Does the prompt define what &ldquo;done&rdquo; looks like? Are success criteria present?</p>
+          <div class="score-dim-items">
+            <div class="score-item"><span class="score-item-label">2+ success criteria</span><span class="score-item-val pos">+10</span></div>
+            <div class="score-item"><span class="score-item-label">1 success criterion</span><span class="score-item-val pos">+5</span></div>
+            <div class="score-item"><span class="score-item-label">Task type detected</span><span class="score-item-val pos">+3</span></div>
+            <div class="score-item"><span class="score-item-label">Output format specified</span><span class="score-item-val pos">+2</span></div>
+          </div>
+        </div>
+        <div class="score-dim" style="border-top:3px solid var(--orange);">
+          <h4 style="color:var(--orange);">Constraints</h4>
+          <p>Scope limits, forbidden actions, and time budgets protect against scope explosion.</p>
+          <div class="score-dim-items">
+            <div class="score-item"><span class="score-item-label">Scope constraints</span><span class="score-item-val pos">+5</span></div>
+            <div class="score-item"><span class="score-item-label">Forbidden actions listed</span><span class="score-item-val pos">+5</span></div>
+            <div class="score-item"><span class="score-item-label">High-risk + no constraints</span><span class="score-item-val neg">-5</span></div>
+            <div class="score-item"><span class="score-item-label">Preservation plan present</span><span class="score-item-val pos">+2</span></div>
+          </div>
+        </div>
+        <div class="score-dim" style="border-top:3px solid var(--accent);">
+          <h4 style="color:var(--accent);">Efficiency</h4>
+          <p>Token budget and repetition. Concise prompts with no duplication score highest.</p>
+          <div class="score-dim-items">
+            <div class="score-item"><span class="score-item-label">Start score</span><span class="score-item-val pos">18</span></div>
+            <div class="score-item"><span class="score-item-label">-2 per 1K tokens &gt;5K</span><span class="score-item-val neg">-2/K</span></div>
+            <div class="score-item"><span class="score-item-label">Repetitive content detected</span><span class="score-item-val neg">-4</span></div>
+            <div class="score-item"><span class="score-item-label">Concise + no duplication</span><span class="score-item-val pos">+2</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk Score Meter -->
+      <div class="card" style="margin-top:32px;max-width:560px;margin-left:auto;margin-right:auto;">
+        <h3 style="margin-bottom:16px;font-size:15px;">Risk Score Dimensions (0&ndash;100)</h3>
+        <div class="risk-meter-wrap" id="risk-meters">
+          <div class="risk-row">
+            <div class="risk-label">Underspec</div>
+            <div class="risk-track"><div class="risk-fill" style="width:0%;background:var(--red)" data-target="65"></div></div>
+            <div class="risk-val" style="color:var(--red)">65</div>
+          </div>
+          <div class="risk-row">
+            <div class="risk-label">Scope</div>
+            <div class="risk-track"><div class="risk-fill" style="width:0%;background:var(--orange)" data-target="45"></div></div>
+            <div class="risk-val" style="color:var(--orange)">45</div>
+          </div>
+          <div class="risk-row">
+            <div class="risk-label">Hallucination</div>
+            <div class="risk-track"><div class="risk-fill" style="width:0%;background:var(--blue)" data-target="30"></div></div>
+            <div class="risk-val" style="color:var(--blue)">30</div>
+          </div>
+          <div class="risk-row">
+            <div class="risk-label">Constraint</div>
+            <div class="risk-track"><div class="risk-fill" style="width:0%;background:var(--accent)" data-target="50"></div></div>
+            <div class="risk-val" style="color:var(--accent)">50</div>
+          </div>
+        </div>
+        <p style="font-size:12px;margin-top:14px;color:var(--text-muted);margin-bottom:0;">
+          Example: &ldquo;Delete all inactive users from production database&rdquo; &mdash; high underspec + constraint risk. In enforce mode (threshold=60), this prompt gets blocked.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Enterprise Governance
        ════════════════════════════════════════════════════════════════════════ -->
   <section class="section section-alt">
+    <div class="container">
+      <span class="badge badge-accent" style="display:block;text-align:center;margin-bottom:16px;">Enterprise</span>
+      <h2 class="section-title text-center">Governance Controls</h2>
+      <p class="section-subtitle text-center">Enterprise-only capabilities that turn scoring into enforcement</p>
+
+      <div class="grid-2" style="margin-top:32px;">
+        <div class="card" style="border-top:3px solid var(--accent);">
+          <h3>&#x1F6E1;&#xFE0F; Policy Enforcement</h3>
+          <p>Switch between <strong>advisory</strong> and <strong>enforce</strong> mode. In enforce mode, prompts that fail quality rules or exceed risk thresholds are blocked before they reach any LLM. Both built-in and custom rules are enforced.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>policy_mode: 'advisory' | 'enforce'</code></p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent);">
+          <h3>&#x1F512; Config Lock</h3>
+          <p>Lock the governance configuration with a passphrase. Once locked, no settings can be changed until unlocked with the original passphrase. Prevents unauthorized changes to quality thresholds, policy mode, and audit settings.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>lock: true, lock_secret: '...'</code> &mdash; SHA-256 hashed, never stored in plaintext</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent);">
+          <h3>&#x1F4DC; Tamper-Evident Audit Trail</h3>
+          <p>Append-only JSONL audit log with SHA-256 hash chaining. Every optimization, approval, deletion, and configuration change is logged. If any entry is modified or deleted, all subsequent hashes break &mdash; tamper detected.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>audit_log: true</code> &mdash; local-only, no prompt content stored, privacy-safe</p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent);">
+          <h3>&#x1F4CF; Custom Rules</h3>
+          <p>Define up to 25 organization-specific rules with regex patterns, severity levels (blocking or non-blocking), and risk dimensions. Custom rules integrate with policy enforcement &mdash; blocking rules prevent prompt approval in enforce mode.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">File: <code>~/.prompt-control-plane/custom-rules.json</code></p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent);">
+          <h3>&#x23F1;&#xFE0F; Session Retention</h3>
+          <p>Automatic session cleanup with configurable retention policies. Set how long optimization sessions are kept before they're purged. Supports dry-run to preview what would be deleted before committing.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>session_retention_days: 90</code></p>
+        </div>
+        <div class="card" style="border-top:3px solid var(--accent);">
+          <h3>&#x2696;&#xFE0F; Risk Threshold Gating</h3>
+          <p>Block prompts that exceed a risk score threshold based on your strictness setting. Relaxed blocks above 40, Standard above 60, Strict above 75. Risk scores are dimensional &mdash; scored across hallucination, scope, constraint, and underspec dimensions.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Thresholds tied to <code>strictness</code> setting: relaxed=40, standard=60, strict=75</p>
+        </div>
+      </div>
+
+      <p style="text-align:center;margin-top:24px;font-size:13px;color:var(--text-muted);">
+        All governance controls are deterministic, offline, and zero-LLM. Configuration changes are audit-logged when the trail is enabled.
+        <br><a href="plans.html" style="color:var(--accent);">See full plan comparison &rarr;</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Model Routing
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section section-alt" id="routing">
+    <div class="container-wide">
+      <span class="badge badge-orange">Model Routing</span>
+      <h2 class="section-title text-center">Two-step deterministic routing</h2>
+      <p class="section-subtitle text-center">PCP classifies prompt complexity and risk, then picks the cheapest model that can still handle the task correctly.</p>
+
+      <div class="routing-wrap">
+        <svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:860px;display:block;margin:0 auto;font-family:'Inter',system-ui,sans-serif;">
+          <defs>
+            <marker id="ra" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+              <polygon points="0 0, 7 2.5, 0 5" fill="var(--accent)"/>
+            </marker>
+          </defs>
+
+          <!-- Step 1 label -->
+          <text x="180" y="20" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="700">STEP 1: Complexity + Risk &rarr; Tier</text>
+
+          <!-- Complexity inputs -->
+          <rect x="10" y="40" width="140" height="32" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="80" y="61" text-anchor="middle" fill="var(--text-muted)" font-size="11">simple_factual + low</text>
+
+          <rect x="10" y="84" width="140" height="32" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="80" y="105" text-anchor="middle" fill="var(--text-muted)" font-size="11">analytical + medium</text>
+
+          <rect x="10" y="128" width="140" height="32" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="80" y="149" text-anchor="middle" fill="var(--text-muted)" font-size="11">multi_step + high</text>
+
+          <rect x="10" y="172" width="140" height="32" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="80" y="193" text-anchor="middle" fill="var(--text-muted)" font-size="11">agent_orchestration</text>
+
+          <!-- Arrows to tiers -->
+          <line x1="150" y1="56" x2="220" y2="74" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ra)"/>
+          <line x1="150" y1="100" x2="220" y2="114" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ra)"/>
+          <line x1="150" y1="144" x2="220" y2="154" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ra)"/>
+          <line x1="150" y1="188" x2="220" y2="194" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#ra)"/>
+
+          <!-- Tiers -->
+          <rect x="220" y="60" width="100" height="34" rx="8" fill="var(--bg)" stroke="var(--green)" stroke-width="1.5"/>
+          <text x="270" y="78" text-anchor="middle" fill="var(--green)" font-size="12" font-weight="700">small</text>
+          <text x="270" y="90" text-anchor="middle" fill="var(--green)" font-size="10">Haiku &middot; Flash</text>
+
+          <rect x="220" y="104" width="100" height="34" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="270" y="122" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700">mid</text>
+          <text x="270" y="134" text-anchor="middle" fill="var(--accent)" font-size="10">Sonnet &middot; GPT-4o</text>
+
+          <rect x="220" y="148" width="100" height="34" rx="8" fill="var(--bg)" stroke="var(--blue)" stroke-width="1.5"/>
+          <text x="270" y="166" text-anchor="middle" fill="var(--blue)" font-size="12" font-weight="700">top</text>
+          <text x="270" y="178" text-anchor="middle" fill="var(--blue)" font-size="10">Opus &middot; GPT-4-32k</text>
+
+          <!-- Step 2 divider -->
+          <line x1="390" y1="20" x2="390" y2="240" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="510" y="20" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="700">STEP 2: Apply Overrides</text>
+
+          <!-- Override inputs -->
+          <rect x="400" y="40" width="170" height="28" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="485" y="59" text-anchor="middle" fill="var(--text-muted)" font-size="11">budget_sensitivity = high</text>
+
+          <rect x="400" y="80" width="170" height="28" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="485" y="99" text-anchor="middle" fill="var(--text-muted)" font-size="11">latency_sensitivity = high</text>
+
+          <rect x="400" y="120" width="170" height="28" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="485" y="139" text-anchor="middle" fill="var(--text-muted)" font-size="11">profile = quality_first</text>
+
+          <rect x="400" y="160" width="170" height="28" rx="6" fill="var(--bg)" stroke="var(--red)" stroke-width="1"/>
+          <text x="485" y="179" text-anchor="middle" fill="var(--red)" font-size="11">risk_score &ge; 40</text>
+
+          <!-- Override effects -->
+          <text x="590" y="59" fill="var(--green)" font-size="11">&darr; downgrade 1 tier</text>
+          <text x="590" y="99" fill="var(--green)" font-size="11">&darr; downgrade 1 tier</text>
+          <text x="590" y="139" fill="var(--blue)" font-size="11">&uarr; upgrade 1 tier</text>
+          <text x="590" y="179" fill="var(--red)" font-size="11">&uarr; force escalate</text>
+
+          <!-- Final output -->
+          <text x="750" y="20" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="700">RECOMMENDATION</text>
+          <rect x="680" y="60" width="200" height="120" rx="10" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="780" y="85" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="600">primary model</text>
+          <text x="780" y="105" text-anchor="middle" fill="var(--text)" font-size="13" font-weight="700">claude-3-5-sonnet</text>
+          <line x1="700" y1="118" x2="860" y2="118" stroke="var(--border)" stroke-width="1"/>
+          <text x="780" y="136" text-anchor="middle" fill="var(--text-muted)" font-size="11">fallback: gpt-4o</text>
+          <text x="780" y="154" text-anchor="middle" fill="var(--text-muted)" font-size="11">confidence: 82%</text>
+
+          <!-- Cost table -->
+          <rect x="680" y="210" width="200" height="130" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+          <text x="780" y="230" text-anchor="middle" fill="var(--text-muted)" font-size="11" font-weight="700">COST COMPARISON (500 tokens)</text>
+          <text x="695" y="252" fill="var(--green)" font-size="11">Gemini Flash</text><text x="855" y="252" text-anchor="end" fill="var(--green)" font-size="11">$0.00022</text>
+          <text x="695" y="270" fill="var(--text-muted)" font-size="11">GPT-3.5 Turbo</text><text x="855" y="270" text-anchor="end" fill="var(--text-muted)" font-size="11">$0.00115</text>
+          <text x="695" y="288" fill="var(--accent)" font-size="11" font-weight="600">GPT-4o &#x2713; rec</text><text x="855" y="288" text-anchor="end" fill="var(--accent)" font-size="11">$0.00725</text>
+          <text x="695" y="306" fill="var(--text-muted)" font-size="11">Perplexity</text><text x="855" y="306" text-anchor="end" fill="var(--text-muted)" font-size="11">$0.00650</text>
+          <text x="695" y="324" fill="var(--blue)" font-size="11">Claude 3.5</text><text x="855" y="324" text-anchor="end" fill="var(--blue)" font-size="11">$0.01350</text>
+
+          <!-- Decision path audit trail -->
+          <rect x="10" y="250" width="370" height="100" rx="8" fill="var(--bg)" stroke="var(--green)" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="20" y="268" fill="var(--green)" font-size="10" font-weight="700">DECISION PATH AUDIT TRAIL</text>
+          <text x="20" y="286" fill="var(--text-muted)" font-size="10" font-family="'SF Mono','Fira Code',monospace">Input: analytical + medium risk</text>
+          <text x="20" y="300" fill="var(--text-muted)" font-size="10" font-family="'SF Mono','Fira Code',monospace">Step 1: complexity=analytical &rarr; tier=mid</text>
+          <text x="20" y="314" fill="var(--text-muted)" font-size="10" font-family="'SF Mono','Fira Code',monospace">Step 2: profile=balanced &rarr; no override</text>
+          <text x="20" y="328" fill="var(--green)" font-size="10" font-family="'SF Mono','Fira Code',monospace">Final: GPT-4o (confidence: 82%)</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       Use Cases
+       ════════════════════════════════════════════════════════════════════════ -->
+  <section class="section">
     <div class="container">
       <h2 class="section-title text-center">Use Cases</h2>
       <p class="section-subtitle text-center">Who benefits from deterministic prompt governance</p>
@@ -387,7 +717,7 @@
   <!-- ════════════════════════════════════════════════════════════════════════
        Comparison Table
        ════════════════════════════════════════════════════════════════════════ -->
-  <section class="section">
+  <section class="section section-alt">
     <div class="container-wide">
       <h2 class="section-title text-center">How It Compares</h2>
       <p class="section-subtitle text-center">Alternatives and their trade-offs</p>
@@ -429,7 +759,7 @@
   <!-- ════════════════════════════════════════════════════════════════════════
        Programmatic API
        ════════════════════════════════════════════════════════════════════════ -->
-  <section class="section section-alt">
+  <section class="section">
     <div class="container">
       <h2 class="section-title text-center">Programmatic API</h2>
       <p class="section-subtitle text-center">Use as a library &mdash; no MCP server required</p>
@@ -493,6 +823,24 @@ console.log(result.quality_score, result.compiled);</div>
       <p class="footer-copy">&copy; 2025-2026 Rishi Banerjee. Elastic License 2.0 (ELv2).</p>
     </div>
   </footer>
+
+  <!-- Risk meter scroll animation -->
+  <script>
+  (function(){
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){
+          e.target.querySelectorAll('.risk-fill').forEach(function(bar){
+            bar.style.width = bar.getAttribute('data-target') + '%';
+          });
+          obs.unobserve(e.target);
+        }
+      });
+    },{threshold:0.3});
+    var meter = document.querySelector('.risk-meter-wrap');
+    if(meter) obs.observe(meter);
+  })();
+  </script>
 
 </body>
 </html>
