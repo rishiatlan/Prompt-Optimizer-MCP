@@ -571,32 +571,32 @@
         <div class="card" style="border-top:3px solid var(--accent);">
           <h3>&#x1F6E1;&#xFE0F; Policy Enforcement</h3>
           <p>Switch between <strong>advisory</strong> and <strong>enforce</strong> mode. In enforce mode, prompts that fail quality rules or exceed risk thresholds are blocked before they reach any LLM. Both built-in and custom rules are enforced.</p>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>policy_mode: 'advisory' | 'enforce'</code></p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Configure via Enterprise Console &rarr; Advisory warns, Enforce blocks</p>
         </div>
         <div class="card" style="border-top:3px solid var(--accent);">
           <h3>&#x1F512; Config Lock</h3>
           <p>Lock the governance configuration with a passphrase. Once locked, no settings can be changed until unlocked with the original passphrase. Prevents unauthorized changes to quality thresholds, policy mode, and audit settings.</p>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>lock: true, lock_secret: '...'</code> &mdash; SHA-256 hashed, never stored in plaintext</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Passphrase is SHA-256 hashed, never stored in plaintext</p>
         </div>
         <div class="card" style="border-top:3px solid var(--accent);">
           <h3>&#x1F4DC; Hash-Chained Audit Trail</h3>
           <p>Append-only JSONL audit log with SHA-256 hash chaining. Every optimization, approval, deletion, and configuration change is logged. If any entry is modified or deleted, all subsequent hashes break &mdash; integrity violation detected.</p>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>audit_log: true</code> &mdash; local-only, no prompt content stored, privacy-safe</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Local-only, no prompt content stored, privacy-safe</p>
         </div>
         <div class="card" style="border-top:3px solid var(--accent);">
           <h3>&#x1F4CF; Custom Governance Rules</h3>
           <p>Build up to 25 organization-specific rules in the Enterprise Console with a visual editor. Define match patterns, risk dimensions, severity levels (blocking or non-blocking), and weights. Deploy with one click &mdash; rules take effect on the next optimization.</p>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Deploy via the <code>save_custom_rules</code> tool or the Enterprise Console</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Deploy via the Enterprise Console or CLI</p>
         </div>
         <div class="card" style="border-top:3px solid var(--accent);">
           <h3>&#x23F1;&#xFE0F; Session Retention</h3>
           <p>Automatic session cleanup with configurable retention policies. Set how long optimization sessions are kept before they're purged. Supports dry-run to preview what would be deleted before committing.</p>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Setting: <code>session_retention_days: 90</code></p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Configure retention window via Enterprise Console</p>
         </div>
         <div class="card" style="border-top:3px solid var(--accent);">
           <h3>&#x2696;&#xFE0F; Risk Threshold Gating</h3>
           <p>Block prompts that exceed a risk score threshold based on your strictness setting. Relaxed blocks above 40, Standard above 60, Strict above 75. Risk scores are dimensional &mdash; scored across hallucination, scope, constraint, and underspec dimensions.</p>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Thresholds tied to <code>strictness</code> setting: relaxed=40, standard=60, strict=75</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">Three strictness levels: Relaxed, Standard, Strict &mdash; each with progressively tighter thresholds</p>
         </div>
       </div>
 
@@ -731,7 +731,7 @@
         </div>
         <div class="card">
           <h3>CI/CD pipelines</h3>
-          <p>Run <code>prompt-lint</code> as a quality gate. Fail builds when prompt quality drops below your threshold.</p>
+          <p>Run the CLI as a quality gate. Fail builds when prompt quality drops below your threshold.</p>
         </div>
         <div class="card">
           <h3>MCP-powered workflows</h3>

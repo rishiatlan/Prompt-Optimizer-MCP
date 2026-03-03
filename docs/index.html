@@ -271,7 +271,7 @@
           <span class="demo-dot demo-dot-r"></span>
           <span class="demo-dot demo-dot-y"></span>
           <span class="demo-dot demo-dot-g"></span>
-          <span class="demo-bar-title">optimize_prompt &mdash; live analysis</span>
+          <span class="demo-bar-title">Prompt Optimization &mdash; live analysis</span>
         </div>
         <div class="demo-body">
           <div class="demo-panel">
@@ -537,7 +537,7 @@
         </table>
       </div>
       <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-muted);">
-        BQ = Blocking Question. Prompts in ANALYZING state require <code style="font-size:11px;">refine_prompt</code> before compilation completes. All results are deterministic.
+        BQ = Blocking Question. Prompts in ANALYZING state require refinement before compilation completes. All results are deterministic.
       </p>
     </div>
   </section>
@@ -650,6 +650,68 @@
     </div>
   </section>
 
+  <!-- CLI -->
+  <section class="section section-alt" id="cli">
+    <div class="container">
+      <div class="text-center mb-32">
+        <div class="badge badge-accent">CLI</div>
+        <h2 class="section-title">Full engine on the command line</h2>
+        <p class="section-subtitle">Run the same scoring, routing, and policy enforcement from your terminal or CI pipeline. <strong>No MCP needed.</strong></p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px;">
+        <div class="card" style="padding:20px;">
+          <h3 style="margin-top:0;font-size:15px;">Pre-flight &mdash; the lead command</h3>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Classify, score, route, and enforce policy in one call. The single command that covers 90% of use cases.</p>
+          <div style="background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:var(--green);line-height:1.7;overflow-x:auto;">$ pcp preflight "Review auth module security" --json<br><br><span style="color:var(--text-muted);">task_type: review &middot; risk: medium &middot; model: opus</span><br><span style="color:var(--text-muted);">score: 62/100 &middot; policy: advisory</span></div>
+        </div>
+        <div class="card" style="padding:20px;">
+          <h3 style="margin-top:0;font-size:15px;">All subcommands</h3>
+          <div style="font-size:13px;line-height:1.9;color:var(--text-muted);">
+            <code style="color:var(--accent);font-size:12px;">pcp preflight</code> &mdash; full pre-flight analysis<br>
+            <code style="color:var(--accent);font-size:12px;">pcp optimize</code> &mdash; optimization pipeline<br>
+            <code style="color:var(--accent);font-size:12px;">pcp check</code> &mdash; quick quality check<br>
+            <code style="color:var(--accent);font-size:12px;">pcp score</code> &mdash; detailed scoring breakdown<br>
+            <code style="color:var(--accent);font-size:12px;">pcp classify</code> &mdash; task classification<br>
+            <code style="color:var(--accent);font-size:12px;">pcp route</code> &mdash; model routing<br>
+            <code style="color:var(--accent);font-size:12px;">pcp cost</code> &mdash; cost estimation<br>
+            <code style="color:var(--accent);font-size:12px;">pcp compress</code> &mdash; context compression<br>
+            <code style="color:var(--accent);font-size:12px;">pcp config</code> &mdash; show governance config<br>
+            <code style="color:var(--accent);font-size:12px;">pcp doctor</code> &mdash; validate environment
+          </div>
+        </div>
+      </div>
+
+      <!-- Console → CLI governance flow -->
+      <div style="margin-top:40px;text-align:center;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:20px;">Enterprise Console writes config &mdash; CLI enforces it</h3>
+        <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;">
+          <div style="background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:16px 24px;text-align:center;min-width:180px;">
+            <div style="font-size:22px;margin-bottom:4px;">&#x1F5A5;</div>
+            <div style="font-size:14px;font-weight:700;">Enterprise Console</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Governance authority</div>
+            <div style="font-size:11px;color:var(--text-muted);">Writes config, locks policy</div>
+          </div>
+          <div style="font-size:28px;color:var(--accent);font-weight:bold;">&rarr;</div>
+          <div style="background:var(--surface);border:2px solid var(--green);border-radius:12px;padding:16px 24px;text-align:center;min-width:180px;">
+            <div style="font-size:22px;margin-bottom:4px;">&#x2328;</div>
+            <div style="font-size:14px;font-weight:700;">CLI (<code style="font-size:12px;">pcp</code>)</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Developer workflows</div>
+            <div style="font-size:11px;color:var(--text-muted);">Reads config, respects enforce</div>
+          </div>
+          <div style="font-size:28px;color:var(--accent);font-weight:bold;">&rarr;</div>
+          <div style="background:var(--surface);border:2px solid var(--blue);border-radius:12px;padding:16px 24px;text-align:center;min-width:180px;">
+            <div style="font-size:22px;margin-bottom:4px;">&#x1F916;</div>
+            <div style="font-size:14px;font-weight:700;">MCP</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">AI integration</div>
+            <div style="font-size:11px;color:var(--text-muted);">Same policy gates as CLI</div>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:16px;">CLI and MCP respect the same governance config. Policy enforcement applies identically across all interfaces.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Install -->
   <section class="section" id="install">
     <div class="container text-center">
@@ -721,7 +783,7 @@
           { cls:'bad', text:'   "What specific improvement is needed?"' },
           { cls:'', text:'' },
           { cls:'warn', text:'Score:  48/100 \u2192 ANALYZING' },
-          { cls:'warn', text:'Risk:   medium (vague_objective rule)' },
+          { cls:'warn', text:'Risk:   medium (vague objective detected)' },
           { cls:'info', text:'Task:   other' }
         ]
       },

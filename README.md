@@ -296,25 +296,49 @@ Then use in your MCP config:
 
 </details>
 
-## CI Integration
+## CLI (`pcp`)
 
-Lint prompts in your CI/CD pipeline with the `prompt-lint` CLI.
+The `pcp` command exposes the full scoring, routing, and policy engine from the terminal.
 
 ```bash
-# Lint a single prompt
-prompt-lint "Write a REST API for user management"
+# Pre-flight: classify, assess risk, route model, score quality
+pcp preflight "Build a REST API with auth" --json
 
-# Lint files
-prompt-lint --file "prompts/**/*.txt"
+# Quick quality check (default subcommand)
+pcp check "Write a REST API for user management"
 
-# Strict mode (threshold 75)
-prompt-lint --strict --file "prompts/**/*.txt"
+# Lint prompt files
+pcp check --file "prompts/**/*.txt" --strict
 
-# JSON output for CI parsing
-prompt-lint --json --file "prompts/**/*.txt"
+# Classify task type and complexity
+pcp classify "Debug the auth module" --json
+
+# Route to optimal model
+pcp route "Analyze sales data" --target openai --json
+
+# Cost estimate across providers
+pcp cost "Build a dashboard" --json
+
+# Score quality (5 dimensions)
+pcp score "Refactor the middleware" --json
+
+# Compress context
+pcp compress --file README.md --intent "summarize" --json
+
+# Show governance config
+pcp config --show --json
+
+# Validate environment
+pcp doctor --json
 ```
 
-**Exit codes:** `0` = all pass, `1` = at least one fail, `2` = invalid input or no files matched.
+**Exit codes:** `0` = success, `1` = threshold fail (check/doctor), `2` = input error, `3` = policy blocked (enforce mode).
+
+**All subcommands:** preflight, optimize, check, score, classify, route, cost, compress, config, doctor.
+
+**Global flags:** `--json`, `--quiet`, `--pretty`, `--target`, `--file`, `--context`, `--context-file`, `--intent`, `--strict`, `--relaxed`, `--threshold`.
+
+> **Backward compat:** `prompt-lint` still works and maps to `pcp check`.
 
 ### GitHub Action
 
@@ -327,10 +351,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: rishiatlan/Prompt-Optimizer-MCP@v4
+      - uses: rishiatlan/Prompt-Optimizer-MCP@v5
         with:
           files: 'prompts/**/*.txt'
           threshold: 70
+```
+
+**Run pre-flight in CI:**
+
+```yaml
+      - uses: rishiatlan/Prompt-Optimizer-MCP@v5
+        with:
+          subcommand: preflight
+          files: 'prompts/**/*.txt'
 ```
 
 > This action expects your repo to be checked out (`actions/checkout`). Without it, file globs will match nothing.
@@ -340,17 +373,17 @@ jobs:
 ```yaml
       - uses: rishiatlan/Prompt-Optimizer-MCP@abc123def  # SHA-pinned
         with:
-          version: '2.3.2'  # Required when pinning by SHA
+          version: '5.0.0'  # Required when pinning by SHA
           files: 'prompts/**/*.txt'
           threshold: 70
 ```
 
 **Notes:**
-- The action installs `prompt-lint` via `npm install --prefix` into `$RUNNER_TEMP`, then runs `node_modules/.bin/prompt-lint`. No npx.
-- Action tag `@v4` maps to npm `@4` (latest 4.x). Use `@v4.0.4` for exact pinning.
+- The action installs `pcp` via `npm install --prefix` into `$RUNNER_TEMP`, then runs the binary. Falls back to `prompt-lint` for v4 installs.
+- Action tag `@v5` maps to npm `@5` (latest 5.x). Use `@v5.0.0` for exact pinning.
+- `subcommand` input accepts `check` (default), `score`, or `preflight`.
 - Exit code 2 means no files matched or invalid input — not "all passed." Zero matched files is always an error.
 - On Windows runners, prefer single quotes or escape glob wildcards in PowerShell.
-- Markdown files are linted as raw text (no fenced-block extraction) in v1.
 - Rule IDs (e.g., `vague_objective`, `missing_constraints`) are stable — treat as a public contract.
 
 ## Programmatic API

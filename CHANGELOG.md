@@ -1,5 +1,41 @@
 # Changelog
 
+## [5.0.0] - 2026-03-03
+
+### Added — Full CLI Suite (`pcp`)
+- **10 subcommands**: `preflight`, `optimize`, `check`, `score`, `classify`, `route`, `cost`, `compress`, `config`, `doctor` — the full engine on the command line
+- **`pcp preflight`** is the lead command: classifies, scores, routes, and enforces policy in one call
+- **`pcp doctor`** validates environment health: config, storage, audit log, custom rules
+- **`pcp config --show`** displays current governance settings (read-only)
+- **Consistent JSON envelope**: every `--json` response includes `request_id` (UUID), `version`, `schema_version`, `subcommand`, `policy_mode`
+- **Policy enforcement on CLI**: when Enterprise Console sets enforce mode, CLI exits 3 on BLOCKING rule violations or risk threshold exceeded
+- **Console-to-CLI governance flow**: Enterprise Console writes config, CLI reads and respects it — same policy gates as MCP
+- **Global flags**: `--json`, `--quiet`, `--pretty`, `--target`, `--file`, `--context`, `--context-file`, `--intent`
+- **Exit code spec**: 0=success, 1=threshold fail (check/doctor), 2=input error, 3=policy blocked
+- **CRLF normalization**: all input normalized to LF
+- **Context size guard**: warns on stderr when context file exceeds 500KB
+- **96 new tests** for the CLI suite (total: 787 tests passing)
+
+### Changed — GitHub Action
+- **New `subcommand` input**: run `check` (default), `score`, or `preflight` as the action step
+- **Backward compatible**: default behavior unchanged, existing workflows continue working
+- **Action name**: "Prompt Lint" → "Prompt Control Plane"
+
+### Changed — Website
+- **CLI section** added to landing page with all subcommands and Console → CLI → MCP governance flow diagram
+- **Marketing pages** (plans, features): tool names replaced with natural descriptions, internal JSON response structures replaced with human-readable descriptions
+- **Technical docs** (docs.html): full CLI reference with all subcommands, flags, exit codes, JSON envelope, policy enforcement
+- **Docs version** updated to v5.0
+
+### Backward Compatibility
+- `prompt-lint` binary still works (identical to `pcp check`)
+- Running `pcp` without a subcommand defaults to `check` mode
+- All 20 MCP tools unchanged
+- Programmatic API unchanged
+
+### Notes
+- Architecture constraint preserved: **zero LLM calls inside. Deterministic. Offline. Reproducible.**
+
 ## [4.1.0] - 2026-03-03
 
 ### Added — Enterprise Console Integration

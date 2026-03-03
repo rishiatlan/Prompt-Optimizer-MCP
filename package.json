@@ -1,6 +1,6 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "4.1.0",
+  "version": "5.0.0",
   "type": "module",
   "description": "The control plane for AI prompts — deterministic scoring, policy enforcement, audit & governance via MCP. Free tier included.",
   "main": "dist/src/api.js",
@@ -17,7 +17,8 @@
   },
   "bin": {
     "claude-prompt-optimizer-mcp": "./bin/cli.js",
-    "prompt-lint": "./bin/lint.js"
+    "prompt-lint": "./bin/lint.js",
+    "pcp": "./bin/pcp.js"
   },
   "files": [
     "dist/src/**/*.js",
@@ -52,6 +53,8 @@
     "multi-llm",
     "prompt-linter",
     "lint",
+    "pcp",
+    "cli",
     "prompt-quality",
     "audit-trail",
     "policy-enforcement"

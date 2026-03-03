@@ -486,7 +486,7 @@
   <!-- Hero -->
   <section class="docs-hero">
     <div class="container">
-      <div class="badge">Developer Reference &middot; <strong>v4.0</strong></div>
+      <div class="badge">Developer Reference &middot; <strong>v5.0</strong></div>
       <h1>Documentation</h1>
       <p class="subtitle">
         Everything you need to integrate, configure, and enforce prompt governance with Prompt Control Plane.
@@ -521,7 +521,7 @@
         </li>
         <li><a href="#verification">Verification</a></li>
         <li><a href="#enterprise">Enterprise Features</a></li>
-        <li><a href="#cli">CLI Linter</a></li>
+        <li><a href="#cli">CLI (<code>pcp</code>)</a></li>
         <li><a href="#github-action">GitHub Action</a></li>
         <li><a href="#api">Programmatic API</a></li>
         <li><a href="#env-vars">Environment Variables</a></li>
@@ -1552,19 +1552,51 @@ purge_sessions({
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <!-- CLI LINTER                                                          -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <h2 id="cli">CLI Linter (<code>prompt-lint</code>)</h2>
-      <p>A standalone CLI for linting prompt files. Reuses the same scoring, rules, and analysis engine. No MCP dependency &mdash; works in any CI pipeline or terminal.</p>
+      <h2 id="cli">CLI (<code>pcp</code>)</h2>
+      <p>A full CLI exposing the entire scoring, classification, routing, compression, and policy enforcement engine. No MCP dependency &mdash; works in any terminal or CI pipeline. Also available as <code>prompt-lint</code> (backward compatible).</p>
 
-      <h3>All Flags</h3>
+      <h3>Quick Start</h3>
+      <div class="code-block"><span class="comment"># Pre-flight: classify + score + route + policy check in one call</span>
+pcp preflight <span class="string">"Review auth module security"</span> --json
+
+<span class="comment"># Quick quality check (default subcommand)</span>
+pcp check <span class="string">"Make the code better"</span>
+
+<span class="comment"># Pipe from file</span>
+pcp optimize --file prompt.txt --json --target claude</div>
+
+      <h3>All Subcommands</h3>
+      <table class="data-table">
+        <thead><tr><th>Subcommand</th><th>Description</th><th>Exit Codes</th></tr></thead>
+        <tbody>
+          <tr><td><code>preflight</code></td><td>Full pre-flight: classify + score + route + policy check</td><td>0, 2, 3</td></tr>
+          <tr><td><code>optimize</code></td><td>Full optimization pipeline</td><td>0, 2, 3</td></tr>
+          <tr><td><code>check</code></td><td>Quick pass/fail quality check (default)</td><td>0, 1, 2</td></tr>
+          <tr><td><code>score</code></td><td>Detailed 5-dimension scoring breakdown</td><td>0, 2</td></tr>
+          <tr><td><code>classify</code></td><td>Task type + complexity classification</td><td>0, 2</td></tr>
+          <tr><td><code>route</code></td><td>Model routing recommendation</td><td>0, 2, 3</td></tr>
+          <tr><td><code>cost</code></td><td>Multi-provider cost estimation</td><td>0, 2</td></tr>
+          <tr><td><code>compress</code></td><td>Context compression</td><td>0, 2</td></tr>
+          <tr><td><code>config</code></td><td>Show current governance config (read-only)</td><td>0, 2</td></tr>
+          <tr><td><code>doctor</code></td><td>Validate environment health</td><td>0, 1</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Global Flags</h3>
       <table class="data-table">
         <thead><tr><th>Flag</th><th>Description</th></tr></thead>
         <tbody>
-          <tr><td><code>--file &lt;glob&gt;</code></td><td>Glob pattern for prompt files to lint (e.g., <code>"prompts/**/*.txt"</code>)</td></tr>
-          <tr><td><code>--json</code></td><td>Output results as JSON (for machine consumption)</td></tr>
+          <tr><td><code>--json</code></td><td>Structured JSON output with consistent envelope</td></tr>
+          <tr><td><code>--quiet</code></td><td>Suppress non-essential output</td></tr>
+          <tr><td><code>--pretty</code></td><td>Pretty-print JSON (default: minified when piped, pretty when TTY)</td></tr>
+          <tr><td><code>--target &lt;fmt&gt;</code></td><td>Output format: <code>claude</code>, <code>openai</code>, or <code>generic</code></td></tr>
+          <tr><td><code>--file, -f &lt;path&gt;</code></td><td>Read prompt from file or glob pattern</td></tr>
+          <tr><td><code>--context &lt;text&gt;</code></td><td>Additional context</td></tr>
+          <tr><td><code>--context-file &lt;path&gt;</code></td><td>Read context from file</td></tr>
+          <tr><td><code>--intent &lt;text&gt;</code></td><td>Intent description (for compress)</td></tr>
           <tr><td><code>--strict</code></td><td>Use strict threshold (75)</td></tr>
           <tr><td><code>--relaxed</code></td><td>Use relaxed threshold (40)</td></tr>
-          <tr><td><code>--threshold N</code></td><td>Set a custom threshold (0&ndash;100). Overrides --strict/--relaxed.</td></tr>
-          <tr><td><code>--validate-custom-rules</code></td><td>Validate the custom rules JSON file and exit</td></tr>
+          <tr><td><code>--threshold N</code></td><td>Custom threshold (0&ndash;100)</td></tr>
         </tbody>
       </table>
 
@@ -1572,18 +1604,39 @@ purge_sessions({
       <table class="data-table">
         <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
         <tbody>
-          <tr><td><code>0</code></td><td>All files pass the quality threshold</td></tr>
-          <tr><td><code>1</code></td><td>One or more files fail the threshold</td></tr>
-          <tr><td><code>2</code></td><td>Error (invalid args, file not found, etc.)</td></tr>
+          <tr><td><code>0</code></td><td>Success / pass</td></tr>
+          <tr><td><code>1</code></td><td>Threshold failure (check) or health issues (doctor)</td></tr>
+          <tr><td><code>2</code></td><td>Input error (no input, bad flags, unknown subcommand)</td></tr>
+          <tr><td><code>3</code></td><td>Policy blocked (enforce mode: BLOCKING rule or risk threshold exceeded)</td></tr>
         </tbody>
       </table>
 
-      <h3>CI Usage Example</h3>
-      <div class="code-block"><span class="comment"># In your CI pipeline</span>
-npx claude-prompt-optimizer-mcp prompt-lint --file <span class="string">"prompts/**/*.md"</span> --strict --json</div>
+      <h3>JSON Envelope</h3>
+      <p>All <code>--json</code> output follows a consistent envelope:</p>
+      <div class="code-block">{
+  <span class="string">"request_id"</span>: <span class="string">"uuid-v4"</span>,
+  <span class="string">"version"</span>: <span class="string">"5.0.0"</span>,
+  <span class="string">"schema_version"</span>: 1,
+  <span class="string">"subcommand"</span>: <span class="string">"preflight"</span>,
+  <span class="string">"policy_mode"</span>: <span class="string">"advisory"</span>,
+  <span class="comment">// ... subcommand-specific fields</span>
+}</div>
 
-      <p>Reads from stdin if no <code>--file</code> is provided:</p>
-      <div class="code-block">echo <span class="string">"Write a blog post"</span> | npx claude-prompt-optimizer-mcp prompt-lint --threshold 70</div>
+      <h3>Policy Enforcement</h3>
+      <p>The CLI respects the same governance config as the MCP. When the Enterprise Console sets <code>policy_mode</code> to <code>"enforce"</code>, the CLI blocks prompts that violate BLOCKING rules or exceed risk thresholds &mdash; returning exit code 3 with violation details.</p>
+      <div class="code-block"><span class="comment"># Console writes enforce config, CLI respects it</span>
+pcp config --show --json   <span class="comment"># verify policy_mode</span>
+pcp preflight <span class="string">"vague prompt"</span> --json  <span class="comment"># exit 3 if blocked</span></div>
+
+      <h3>CI Usage</h3>
+      <div class="code-block"><span class="comment"># In your CI pipeline</span>
+npx claude-prompt-optimizer-mcp pcp check --file <span class="string">"prompts/**/*.md"</span> --strict --json
+
+<span class="comment"># Read from stdin</span>
+echo <span class="string">"Write a blog post"</span> | pcp check --threshold 70</div>
+
+      <h3>Backward Compatibility</h3>
+      <p>The <code>prompt-lint</code> binary still works and behaves identically to <code>pcp check</code>. Running <code>pcp</code> without a subcommand defaults to <code>check</code> mode.</p>
 
 
       <!-- ════════════════════════════════════════════════════════════════════ -->

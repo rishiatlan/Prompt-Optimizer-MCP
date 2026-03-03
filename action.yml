@@ -1,10 +1,14 @@
-name: 'Prompt Lint'
-description: 'Lint AI prompts for quality — deterministic scoring, zero LLM calls. Exits non-zero if score is below threshold.'
+name: 'Prompt Control Plane'
+description: 'Lint AI prompts for quality — deterministic scoring, classification, routing, and policy enforcement. Zero LLM calls.'
 author: 'Rishi Banerjee'
 branding:
   icon: 'check-circle'
   color: 'purple'
 inputs:
+  subcommand:
+    description: 'CLI subcommand: check (default), score, preflight'
+    required: false
+    default: 'check'
   files:
     description: 'Glob pattern for prompt files to lint'
     required: true
@@ -30,7 +34,13 @@ runs:
         # Strip leading 'v' (git tag v2.3.0 → npm 2.3.0)
         VERSION="${VERSION#v}"
         # Build CLI args with proper quoting (bash array)
-        ARGS=(--file "${{ inputs.files }}")
+        SUBCMD="${{ inputs.subcommand }}"
+        ARGS=()
+        # Prepend subcommand if not the default 'check'
+        if [ -n "$SUBCMD" ] && [ "$SUBCMD" != "check" ]; then
+          ARGS+=("$SUBCMD")
+        fi
+        ARGS+=(--file "${{ inputs.files }}" --json)
         if [ -n "${{ inputs.threshold }}" ]; then
           ARGS+=(--threshold "${{ inputs.threshold }}")
         elif [ "${{ inputs.strictness }}" = "strict" ]; then
@@ -39,23 +49,33 @@ runs:
           ARGS+=(--relaxed)
         fi
         # Local checkout fallback (uses: ./ in self-tests)
+        if [ -z "$VERSION" ] && [ -f "$GITHUB_ACTION_PATH/bin/pcp.js" ] && [ -f "$GITHUB_ACTION_PATH/dist/src/lint-cli.js" ]; then
+          node "$GITHUB_ACTION_PATH/bin/pcp.js" "${ARGS[@]}"
+          exit $?
+        fi
+        # Backward compat: fall back to lint.js if pcp.js not found
         if [ -z "$VERSION" ] && [ -f "$GITHUB_ACTION_PATH/bin/lint.js" ] && [ -f "$GITHUB_ACTION_PATH/dist/src/lint-cli.js" ]; then
           node "$GITHUB_ACTION_PATH/bin/lint.js" "${ARGS[@]}"
           exit $?
         fi
         # Fail fast on empty version
         if [ -z "$VERSION" ]; then
-          echo "::error::Could not resolve npm version. Set the 'version' input explicitly (e.g., version: '3.2.0')."
+          echo "::error::Could not resolve npm version. Set the 'version' input explicitly (e.g., version: '5.0.0')."
           exit 2
         fi
-        # Accept only: major (2), or exact semver (2.3.0). Reject partial (2.3) and SHAs.
+        # Accept only: major (5), or exact semver (5.0.0). Reject partial (5.0) and SHAs.
         if ! echo "$VERSION" | grep -qE '^([0-9]+|[0-9]+\.[0-9]+\.[0-9]+)$'; then
-          echo "::error::Invalid version '${VERSION}'. Use a tag like @v3 or @v3.2.0, or set 'version' input (e.g., version: '3.2.0')."
+          echo "::error::Invalid version '${VERSION}'. Use a tag like @v5 or @v5.0.0, or set 'version' input (e.g., version: '5.0.0')."
           exit 2
         fi
-        # npx can't run secondary bins — install to deterministic path and use node_modules/.bin
-        INSTALL_DIR="${RUNNER_TEMP:-/tmp}/prompt-lint-$$"
+        # Install to deterministic path and use node_modules/.bin
+        INSTALL_DIR="${RUNNER_TEMP:-/tmp}/pcp-$$"
         rm -rf "$INSTALL_DIR"
         npm install --prefix "$INSTALL_DIR" "claude-prompt-optimizer-mcp@${VERSION}" --no-save --ignore-scripts 2>&1
-        "$INSTALL_DIR/node_modules/.bin/prompt-lint" "${ARGS[@]}"
+        # Try pcp first (v5+), fall back to prompt-lint (v4)
+        if [ -x "$INSTALL_DIR/node_modules/.bin/pcp" ]; then
+          "$INSTALL_DIR/node_modules/.bin/pcp" "${ARGS[@]}"
+        else
+          "$INSTALL_DIR/node_modules/.bin/prompt-lint" "${ARGS[@]}"
+        fi
       shell: bash
