@@ -407,13 +407,20 @@
   <section class="section section-alt" id="enterprise-controls">
     <div class="container">
       <h2 class="section-title">Enterprise Controls</h2>
-      <p class="section-subtitle">The governance layer you need before approving AI in production.</p>
+      <p class="section-subtitle">The governance layer you need before approving AI in production. All managed through a license-gated <a href="admin.html" style="color:var(--accent);font-weight:600;">Enterprise Console</a>.</p>
       <div>
+        <div class="flow-step">
+          <div class="flow-num" style="background: var(--accent);">&#x1f5a5;</div>
+          <div class="flow-content">
+            <h3>Enterprise Console</h3>
+            <p>A web-based governance control panel, accessible only with a valid Enterprise license key. Configure policy, inspect audit logs, build custom rules, and manage session retention &mdash; all from one authenticated place. License verification is fully offline.</p>
+          </div>
+        </div>
         <div class="flow-step">
           <div class="flow-num" style="background: var(--accent);">&#x1f512;</div>
           <div class="flow-content">
-            <h3>Config Lock Mode</h3>
-            <p>Lock your governance config with a passphrase. No one can change policy, strictness, or audit settings without the correct secret. Every attempt &mdash; successful or blocked &mdash; is audit-logged.</p>
+            <h3>Policy-Locked Configuration</h3>
+            <p>Lock your governance config with a passphrase derived from your enterprise license. No one can change policy, strictness, or audit settings without authenticating through the console. Every attempt &mdash; successful or blocked &mdash; is audit-logged.</p>
           </div>
         </div>
         <div class="flow-step">
@@ -427,14 +434,14 @@
           <div class="flow-num" style="background: var(--accent);">&#x1f4dc;</div>
           <div class="flow-content">
             <h3>Tamper-Evident Audit Trail</h3>
-            <p>Every action generates a JSONL audit entry with SHA-256 hash chaining. If any line is deleted or modified, the chain breaks. Local-only, opt-in, never stores prompt content. Answers: &ldquo;who changed what, when, and was it allowed?&rdquo;</p>
+            <p>Every action generates a JSONL audit entry with SHA-256 hash chaining. If any line is deleted or modified, the chain breaks. Local-only, opt-in, never stores prompt content. Explore and verify your audit logs visually in the Enterprise Console.</p>
           </div>
         </div>
         <div class="flow-step">
           <div class="flow-num" style="background: var(--accent);">&#x1f5d1;</div>
           <div class="flow-content">
             <h3>Data Lifecycle Management</h3>
-            <p>Delete individual sessions or bulk-purge by age policy. Dry-run mode previews what would be deleted. <code>keep_last</code> protects your newest N sessions. Purge only touches session files &mdash; config, audit, and license are never deleted.</p>
+            <p>Delete individual sessions or bulk-purge by age policy. Dry-run mode previews what would be removed. A configurable retention window protects your newest sessions. Purge only touches session files &mdash; config, audit, and license are never deleted.</p>
           </div>
         </div>
       </div>

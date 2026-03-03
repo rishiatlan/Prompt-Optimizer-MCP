@@ -633,20 +633,20 @@
 
         <div class="card">
           <h3>Add a Rule</h3>
-          <p class="card-desc">Define rules that run on every prompt. BLOCKING rules reject the prompt in enforce mode. NON-BLOCKING rules add to the risk score. Maximum 25 rules.</p>
+          <p class="card-desc">Define rules that run on every prompt. BLOCKING rules reject the prompt in enforce mode. NON-BLOCKING rules add to the risk score. Maximum 25 rules. Export the JSON and save to <code>~/.prompt-control-plane/custom-rules.json</code> — the engine loads it automatically. Validate with <code>prompt-lint --validate-custom-rules</code>.</p>
           <div class="form-row">
             <div class="form-group">
-              <span class="form-label">Rule ID (snake_case, max 64 chars)</span>
-              <input type="text" class="form-control" id="r-id" placeholder="e.g. no_credentials">
+              <span class="form-label">Rule ID (must start with a-z, then a-z 0-9 _ · max 64)</span>
+              <input type="text" class="form-control" id="r-id" placeholder="e.g. no_credentials" maxlength="64">
             </div>
             <div class="form-group">
               <span class="form-label">Description (max 200 chars)</span>
-              <input type="text" class="form-control" id="r-desc" placeholder="What this rule catches and why it matters">
+              <input type="text" class="form-control" id="r-desc" placeholder="What this rule catches and why it matters" maxlength="200">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <span class="form-label">Pattern — flag if matched (regex)</span>
+              <span class="form-label">Pattern — flag if matched (regex, required, max 500)</span>
               <input type="text" class="form-control" id="r-pat" placeholder="e.g. (password|api.?key|secret)" oninput="liveRegex('r-pat','r-pat-s')">
               <span id="r-pat-s" style="font-size:0.75rem;margin-top:2px;"></span>
             </div>
@@ -699,12 +699,22 @@
 
         <div id="rules-export" style="display:none;">
           <div class="cmd-box">
-            <div class="cmd-box-label">Save as <code>~/.prompt-control-plane/custom-rules.json</code></div>
-            <div class="cmd-text" id="rules-json" style="white-space:pre;font-size:0.75rem;max-height:300px;overflow-y:auto;"></div>
-            <div class="btn-row" style="margin-top:8px;">
-              <button class="btn btn-primary btn-sm" onclick="copyEl('rules-json',this)">Copy JSON</button>
-              <button class="btn btn-secondary btn-sm" onclick="downloadRules()">Download File</button>
+            <div class="cmd-box-label">Deploy your rules — choose one method</div>
+            <div style="margin-bottom:14px;">
+              <div style="font-size:0.78rem;font-weight:600;margin-bottom:6px;color:var(--text);">Option 1: Paste into your AI assistant (works with any LLM connected to PCP)</div>
+              <div class="cmd-text" id="rules-deploy-cmd" style="font-size:0.78rem;"></div>
+              <button class="btn btn-primary btn-sm" onclick="copyEl('rules-deploy-cmd',this)" style="margin-top:6px;">Copy Command</button>
             </div>
+            <div style="margin-bottom:14px;">
+              <div style="font-size:0.78rem;font-weight:600;margin-bottom:6px;color:var(--text);">Option 2: Download and save manually to <code>~/.prompt-control-plane/custom-rules.json</code></div>
+              <div class="cmd-text" id="rules-json" style="white-space:pre;font-size:0.75rem;max-height:200px;overflow-y:auto;"></div>
+              <div class="btn-row" style="margin-top:6px;">
+                <button class="btn btn-secondary btn-sm" onclick="copyEl('rules-json',this)">Copy JSON</button>
+                <button class="btn btn-secondary btn-sm" onclick="downloadRules()">Download File</button>
+              </div>
+            </div>
+            <div style="font-size:0.78rem;font-weight:600;margin-bottom:4px;color:var(--text);">Validate after saving</div>
+            <div class="cmd-text" style="font-size:0.78rem;">prompt-lint --validate-custom-rules</div>
           </div>
         </div>
       </section>
@@ -714,7 +724,7 @@
         <div class="section-title-row">
           <h2>Quick Commands</h2>
         </div>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 18px;">Copy-ready phrases to paste into Claude for common operations.</p>
+        <p style="color:var(--text-muted);font-size:0.85rem;margin:0 0 18px;">Copy-ready phrases to paste into any AI assistant connected to Prompt Control Plane.</p>
 
         <div class="quick-grid">
           <div class="quick-card">
@@ -942,8 +952,11 @@
       var desc = document.getElementById('r-desc').value.trim();
       var pat  = document.getElementById('r-pat').value.trim();
       var neg  = document.getElementById('r-neg').value.trim();
-      if (!id || !desc || (!pat && !neg)) return alert('Rule ID, description, and at least one pattern are required.');
-      if (!/^[a-z0-9_]+$/.test(id)) return alert('Rule ID must be snake_case (a-z, 0-9, _).');
+      if (!id || !desc || !pat) return alert('Rule ID, description, and a match pattern are all required. The negative pattern is optional.');
+      if (!/^[a-z][a-z0-9_]{0,63}$/.test(id)) return alert('Rule ID must start with a lowercase letter, followed by a-z, 0-9, or _ (max 64 chars). Example: no_credentials');
+      if (desc.length > 200) return alert('Description cannot exceed 200 characters (' + desc.length + ' entered).');
+      if (pat.length > 500) return alert('Match pattern cannot exceed 500 characters.');
+      if (neg && neg.length > 500) return alert('Negative pattern cannot exceed 500 characters.');
       if (rules.find(r => r.id === id)) return alert('A rule with this ID already exists.');
       if (rules.length >= 25) return alert('Maximum 25 custom rules.');
       var rule = {
@@ -953,7 +966,7 @@
         risk_dimension: document.getElementById('r-dim').value,
         risk_weight: parseInt(document.getElementById('r-weight').value)
       };
-      if (pat) rule.pattern = pat;
+      rule.pattern = pat;
       if (neg) rule.negative_pattern = neg;
       rules.push(rule);
       localStorage.setItem('pcp-rules', JSON.stringify(rules));
@@ -992,7 +1005,10 @@
           </div>
         </div>
       `).join('');
-      document.getElementById('rules-json').textContent = JSON.stringify({ rules }, null, 2);
+      var rulesJson = JSON.stringify({ rules }, null, 2);
+      document.getElementById('rules-json').textContent = rulesJson;
+      document.getElementById('rules-deploy-cmd').textContent =
+        'Please save the following custom rules to ~/.prompt-control-plane/custom-rules.json and confirm:\n\n' + rulesJson;
       document.getElementById('rules-export').style.display = 'block';
     }
     function downloadRules() {

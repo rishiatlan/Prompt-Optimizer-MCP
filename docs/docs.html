@@ -811,11 +811,11 @@ optimize_prompt({
         </table>
       </div>
 
-      <p style="margin-top:1rem;"><strong>Enterprise-only pipeline stages</strong> that influence the PreviewPack:</p>
+      <p style="margin-top:1rem;"><strong>Enterprise-only pipeline stages</strong> that influence the PreviewPack (all configured via the <a href="admin.html" style="color:var(--accent);font-weight:600;">Enterprise Console</a>):</p>
       <ul style="margin-top:0.5rem; padding-left:1.5rem;">
-        <li><strong>Policy Gate</strong> &mdash; can block or warn before compilation begins (Enterprise only)</li>
-        <li><strong>Custom Rules</strong> &mdash; additional rules in steps 3&ndash;4 affect risk score and blocking questions (Enterprise only)</li>
-        <li><strong>Audit Log</strong> &mdash; every PreviewPack approval is written to a tamper-evident JSONL log (Enterprise only)</li>
+        <li><strong>Policy Gate</strong> &mdash; can block or warn before compilation begins. Set enforcement mode and strictness in the Enterprise Console.</li>
+        <li><strong>Custom Rules</strong> &mdash; your regex-based rules affect risk score and blocking decisions. Build rules visually in the Enterprise Console, export to <code>~/.prompt-control-plane/custom-rules.json</code>, validate with <code>prompt-lint --validate-custom-rules</code>.</li>
+        <li><strong>Audit Log</strong> &mdash; every decision is written to a tamper-evident JSONL log with SHA-256 hash chaining. Explore and verify the chain visually in the Enterprise Console.</li>
       </ul>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->

@@ -568,7 +568,7 @@
         <h3><span class="ef-icon">&#x1f6e1;</span> Policy Enforcement</h3>
         <p>Switch from advisory mode (flags issues) to enforce mode (blocks prompts that fail policy). BLOCKING rules &mdash; both built-in and custom &mdash; gate every optimization. Risk threshold gating blocks high-risk approvals above a configurable score. Deterministic: same input produces the same verdict every time.</p>
         <div class="ef-label">How to enable</div>
-        <div class="ef-code">configure_optimizer({ mode: "enforce", threshold: 60 })</div>
+        <div class="ef-code">Enterprise Console &rarr; Policy Enforcement &rarr; set mode to Enforce, strictness to Standard &rarr; Copy Command &rarr; Paste into Claude</div>
         <div class="ef-label">Example output when blocked</div>
         <div class="ef-code ef-output">{
   "status": "blocked",
@@ -585,7 +585,7 @@
         <h3><span class="ef-icon">&#x1f4dc;</span> Audit Logging</h3>
         <p>Every action generates a JSONL audit entry with SHA-256 hash chaining. If any line is deleted or modified, the chain breaks and tampering is detectable. Local-only, opt-in, and never stores raw prompt content. Answers the question: who changed what, when, and was it allowed?</p>
         <div class="ef-label">How to enable</div>
-        <div class="ef-code">configure_optimizer({ audit_logging: true })</div>
+        <div class="ef-code">Enterprise Console &rarr; Policy Enforcement &rarr; enable audit trail toggle &rarr; Copy Command &rarr; Paste into Claude</div>
         <div class="ef-label">Example audit entry</div>
         <div class="ef-code ef-output">{
   "timestamp": "2026-03-01T10:15:32.441Z",
@@ -601,10 +601,10 @@
 
       <!-- Config Lock -->
       <div class="enterprise-feature">
-        <h3><span class="ef-icon">&#x1f512;</span> Config Lock</h3>
-        <p>Lock your governance configuration with a passphrase. Once locked, no one can change policy, strictness, threshold, or audit settings without the correct secret. Every attempt &mdash; successful or blocked &mdash; is audit-logged. Tamper-evident: the lock state itself is hash-protected.</p>
+        <h3><span class="ef-icon">&#x1f512;</span> Policy-Locked Configuration</h3>
+        <p>Lock your governance configuration so it can only be changed through the Enterprise Console. The lock passphrase is automatically derived from your enterprise license key &mdash; no separate secret to remember. Once locked, any attempt to change policy, strictness, threshold, or audit settings without the correct passphrase is blocked and audit-logged. Integrity-protected: the lock state itself is hash-verified.</p>
         <div class="ef-label">How to enable</div>
-        <div class="ef-code">configure_optimizer({ lock: true, passphrase: "your-secret" })</div>
+        <div class="ef-code">Open the Enterprise Console &rarr; Policy Enforcement &rarr; Generate Lock Command &rarr; Paste into Claude</div>
         <div class="ef-label">What happens on unauthorized change</div>
         <div class="ef-code ef-output">{
   "status": "error",
@@ -633,7 +633,9 @@
       <!-- Custom Rules -->
       <div class="enterprise-feature">
         <h3><span class="ef-icon">&#x1f4cb;</span> Custom Rules</h3>
-        <p>Define your own regex-based rules in a JSON file. Each rule specifies a pattern, severity (BLOCKING or NON-BLOCKING), a risk dimension (hallucination, constraint, underspec, or scope), and a risk weight. Up to 25 custom rules. Rules are hashed for reproducibility and included in session exports.</p>
+        <p>Define your own regex-based rules that run on every prompt. Build them visually in the Enterprise Console &mdash; which validates regex syntax, enforces the schema, and exports a ready-to-use JSON file. Each rule specifies a match pattern, severity (BLOCKING or NON-BLOCKING), a risk dimension (hallucination, constraint, underspec, or scope), and a risk weight. Up to 25 custom rules. Rules are hashed for reproducibility and included in session exports.</p>
+        <div class="ef-label">How to create rules</div>
+        <div class="ef-code">Enterprise Console &rarr; Custom Rules &rarr; fill in rule form &rarr; Download File &rarr; save to ~/.prompt-control-plane/custom-rules.json</div>
         <div class="ef-label">Example custom rule</div>
         <div class="ef-code">{
   "id": "no_pii_in_prompt",
@@ -651,9 +653,9 @@
       <!-- Session Retention -->
       <div class="enterprise-feature">
         <h3><span class="ef-icon">&#x1f5d1;</span> Session Retention Policies</h3>
-        <p>Auto-purge sessions older than a configurable retention period. Dry-run mode previews what would be deleted before committing. The <code>keep_last</code> parameter protects your newest N sessions from purge. Only session files are affected &mdash; config, audit logs, and license data are never deleted.</p>
+        <p>Auto-purge sessions older than a configurable retention period. Dry-run mode previews what would be deleted before committing. A configurable retention window protects your newest sessions from purge. Only session files are affected &mdash; config, audit logs, and license data are never deleted.</p>
         <div class="ef-label">How to use</div>
-        <div class="ef-code">purge_sessions({ older_than_days: 90, keep_last: 5, dry_run: true })</div>
+        <div class="ef-code">Enterprise Console &rarr; Session Management &rarr; set age, retention window, dry-run &rarr; Copy Command &rarr; Paste into Claude</div>
         <div class="ef-label">Example dry-run output</div>
         <div class="ef-code ef-output">{
   "dry_run": true,
