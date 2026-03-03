@@ -293,136 +293,155 @@
   </section>
 
   <!-- ════════════════════════════════════════════════════════════════════════
-       All 19 Tools
+       Complete Capability Reference
        ════════════════════════════════════════════════════════════════════════ -->
   <section class="section section-alt">
     <div class="container-wide">
-      <h2 class="section-title text-center">All 19 Tools</h2>
-      <p class="section-subtitle text-center">Every tool available at every tier &mdash; 16 free, 3 metered. Governance capabilities unlock with Enterprise.</p>
+      <h2 class="section-title text-center">Complete Capability Reference</h2>
+      <p class="section-subtitle text-center">19 capabilities across every tier &mdash; 16 always free, 3 metered. Enterprise governance unlocks with the Enterprise plan.</p>
 
       <table class="data-table">
         <thead>
           <tr>
             <th>#</th>
-            <th>Tool</th>
+            <th>Capability</th>
             <th>Tier</th>
-            <th>Purpose</th>
+            <th>What it does</th>
           </tr>
         </thead>
         <tbody>
+          <tr class="group-header">
+            <td colspan="4">Optimization</td>
+          </tr>
           <tr>
             <td>1</td>
-            <td>optimize_prompt</td>
+            <td>Optimize</td>
             <td><span class="tag tag-metered">Metered</span></td>
-            <td>Analyze, score, compile, estimate cost &rarr; PreviewPack. <strong>Enterprise:</strong> blocks on policy violations in enforce mode</td>
+            <td>Full analysis: score, compile, and estimate cost in one pass. <strong>Enterprise:</strong> blocked if policy violations are detected in enforce mode</td>
           </tr>
           <tr>
             <td>2</td>
-            <td>refine_prompt</td>
+            <td>Refine</td>
             <td><span class="tag tag-metered">Metered</span></td>
-            <td>Answer questions, add edits &rarr; updated PreviewPack</td>
+            <td>Iterate on a result — answer blocking questions or add context to update the compiled output</td>
           </tr>
           <tr>
             <td>3</td>
-            <td>approve_prompt</td>
+            <td>Approve</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Sign-off gate &rarr; final compiled prompt. <strong>Enterprise:</strong> blocks on violations or risk threshold in enforce mode</td>
+            <td>Sign off on a result to get the final compiled prompt. <strong>Enterprise:</strong> blocked on violations or high risk score in enforce mode</td>
+          </tr>
+
+          <tr class="group-header">
+            <td colspan="4">Analysis &amp; Utilities</td>
           </tr>
           <tr>
             <td>4</td>
-            <td>estimate_cost</td>
+            <td>Estimate Cost</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Multi-provider token + cost estimator (incl. Perplexity)</td>
+            <td>Token count + cost across Anthropic, OpenAI, Google, and Perplexity before you run anything</td>
           </tr>
           <tr>
             <td>5</td>
-            <td>compress_context</td>
+            <td>Compress Context</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Smart multi-stage compression pipeline</td>
+            <td>Shrink long context with a multi-stage heuristic pipeline — no lossy summarization</td>
           </tr>
           <tr>
             <td>6</td>
-            <td>check_prompt</td>
+            <td>Quick Check</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Quick pass/fail + score + top issues</td>
+            <td>Instant pass/fail score and top issues — no compilation, no session</td>
           </tr>
           <tr>
             <td>7</td>
-            <td>configure_optimizer</td>
+            <td>Configure</td>
             <td><span class="tag tag-free">Free</span> <span class="tag tag-enterprise">Enterprise</span></td>
-            <td>Set mode, threshold, strictness, target. <strong>Enterprise:</strong> policy enforcement, audit trail, config lock, session retention</td>
+            <td>Set mode, thresholds, and output target. <strong>Enterprise:</strong> policy enforcement mode, audit trail, config lock, retention policy</td>
           </tr>
           <tr>
             <td>8</td>
-            <td>get_usage</td>
+            <td>View Usage</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Usage count, limits, remaining quota</td>
+            <td>Check how many optimizations you've used, your limits, and what's remaining</td>
           </tr>
           <tr>
             <td>9</td>
-            <td>prompt_stats</td>
+            <td>Usage Stats</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Aggregated stats: avg score, top tasks, savings</td>
+            <td>Aggregated metrics: average score, top task types, estimated token savings</td>
           </tr>
-          <tr>
-            <td>10</td>
-            <td>set_license</td>
-            <td><span class="tag tag-free">Free</span></td>
-            <td>Activate Pro/Power/Enterprise license key</td>
-          </tr>
-          <tr>
-            <td>11</td>
-            <td>license_status</td>
-            <td><span class="tag tag-free">Free</span></td>
-            <td>Check license, tier, expiry</td>
+
+          <tr class="group-header">
+            <td colspan="4">Decision Engine</td>
           </tr>
           <tr>
             <td>12</td>
-            <td>classify_task</td>
+            <td>Classify Task</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Classify by task type, complexity, risk, profile</td>
+            <td>Identify task type, reasoning complexity, risk level, and recommended optimization profile</td>
           </tr>
           <tr>
             <td>13</td>
-            <td>route_model</td>
+            <td>Route Model</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Route to optimal model with decision_path audit</td>
+            <td>Pick the optimal model for cost, speed, or quality — with a full audit trail of the routing decision</td>
           </tr>
           <tr>
             <td>14</td>
-            <td>pre_flight</td>
+            <td>Pre-flight</td>
             <td><span class="tag tag-metered">Metered</span></td>
-            <td>Full pipeline: classify &rarr; risk &rarr; route &rarr; score</td>
+            <td>One-shot analysis: classify, assess risk, route model, and score quality — before committing to a full optimization</td>
+          </tr>
+
+          <tr class="group-header">
+            <td colspan="4">Context &amp; Session Management</td>
           </tr>
           <tr>
             <td>15</td>
-            <td>prune_tools</td>
+            <td>Prune Context</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Score/rank tools by relevance, optionally prune</td>
+            <td>Score and rank context by relevance to the task; optionally remove low-signal sections to save tokens</td>
           </tr>
           <tr>
             <td>16</td>
-            <td>list_sessions</td>
+            <td>List Sessions</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>List session history (metadata only, no raw prompts)</td>
+            <td>Browse your optimization history — metadata only, raw prompts never stored in the list</td>
           </tr>
           <tr>
             <td>17</td>
-            <td>export_session</td>
+            <td>Export Session</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Full session export with rule-set hash + policy hash. <strong>Enterprise:</strong> includes custom rules metadata + policy enforcement data</td>
+            <td>Full session export with reproducibility hash. <strong>Enterprise:</strong> includes policy enforcement data and custom rule metadata</td>
           </tr>
           <tr>
             <td>18</td>
-            <td>delete_session</td>
+            <td>Delete Session</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Delete a single session by ID</td>
+            <td>Remove a single session from your history</td>
           </tr>
           <tr>
             <td>19</td>
-            <td>purge_sessions</td>
+            <td>Purge Sessions</td>
             <td><span class="tag tag-free">Free</span></td>
-            <td>Bulk purge by age policy, with dry-run + keep_last</td>
+            <td>Bulk-clear old sessions by age, with a dry-run preview and keep-last safeguard</td>
+          </tr>
+
+          <tr class="group-header">
+            <td colspan="4">Account &amp; Licensing</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>Activate License</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>Enter your Pro, Power, or Enterprise license key to unlock your tier — validated offline, no account required</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>View License Status</td>
+            <td><span class="tag tag-free">Free</span></td>
+            <td>See your current tier, license expiry date, and where to upgrade if needed</td>
           </tr>
         </tbody>
       </table>

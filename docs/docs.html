@@ -1807,14 +1807,14 @@ console.<span class="fn">log</span>(result.cost.costs);         <span class="com
   <script>
   (function(){
     var PIPELINE = [
-      {num:'01',name:'Harden',color:'var(--accent)',desc:'Strip null bytes and cap whitespace. Protects the pipeline from malformed input before any analysis begins.',funcs:['hardenInput()','null byte strip','whitespace cap'],output:'Clean prompt string'},
-      {num:'02',name:'Freemium Gate',color:'var(--orange)',desc:'Check lifetime quota, monthly quota, and per-minute rate limit. Blocked prompts never reach analysis \u2014 they fail fast with a clear quota message.',funcs:['canUseOptimization(ctx)','checkLifetimeLimit()','checkMonthlyLimit()','checkRateLimit()'],output:'{ allowed, enforcement, remaining, limits }'},
-      {num:'03',name:'Policy Gate',color:'var(--blue)',desc:'Enterprise-only. Runs policy violation checks before analysis. If policy_mode=enforce and a BLOCKING rule triggers, the prompt is rejected with the violation list.',funcs:['evaluatePolicyViolations()','checkRiskThreshold()','buildPolicySummary()'],output:'PolicyViolation[] or PASS'},
-      {num:'04',name:'Analyze',color:'var(--accent)',desc:'The deepest phase. 10 sub-functions run in sequence to build the IntentSpec \u2014 a structured model of what the prompt is actually asking for.',funcs:['detectTaskType()','classifyComplexity()','detectInputs()','extractGoal()','detectAudience()','runRules()','extractBlockingQuestions()','computeRiskScore()'],output:'IntentSpec { task_type, goal, risk_score, blocking_questions... }'},
-      {num:'05',name:'Score',color:'var(--green)',desc:'5 independent scoring dimensions \u00d7 20 points = 100 max. Each dimension is scored separately then summed.',funcs:['scoreClarity()','scoreSpecificity()','scoreCompleteness()','scoreConstraints()','scoreEfficiency()','generateChecklist()'],output:'QualityScore (0-100) + CompilationChecklist (9 items)'},
-      {num:'06',name:'Compile',color:'var(--accent)',desc:'Produces the final structured prompt in the target format. Enriches with audience/tone hints, optionally compresses context, verifies 9 structural elements.',funcs:['enrichGoal()','compileClaude() / compileOpenAI() / compileGeneric()','compressContext()','generateChecklist()'],output:'{ compiled_prompt, changes_made, format_version: 1 }'},
-      {num:'07',name:'Estimate',color:'var(--orange)',desc:'Token estimation + cost across 5 providers + 2-step model routing. Returns which model to use and how much each option costs.',funcs:['estimateTokens()','costsForProvider()','routeModel()','computeSavings()','generateTradeoffs()'],output:'CostEstimate { all 5 providers, recommended, savings% }'},
-      {num:'08',name:'Build & Return',color:'var(--red)',desc:'Assemble the PreviewPack, write the session to disk, increment usage (only on success), log the audit event, and return JSON to the client.',funcs:['createSession()','incrementUsage()','auditLogger.append()','jsonResponse()'],output:'PreviewPack { request_id, session_id, quality_score, compiled_prompt, cost_estimate... }'}
+      {num:'01',name:'Harden',color:'var(--accent)',desc:'Sanitizes the input before anything else runs. Malformed or adversarial strings are caught here — the rest of the pipeline only ever sees clean input.',output:'A sanitized prompt string, safe for analysis.'},
+      {num:'02',name:'Freemium Gate',color:'var(--orange)',desc:'Checks your lifetime quota, monthly quota, and per-minute rate limit. If you\'re over any limit, the request is rejected immediately with a clear message — it never reaches analysis.',output:'Allowed to proceed, or rejected with your current quota, remaining uses, and a link to upgrade.'},
+      {num:'03',name:'Policy Gate',color:'var(--blue)',desc:'Enterprise only. Evaluates the prompt against your configured policy rules before analysis begins. In enforce mode, any blocking violation stops the request here with a full explanation.',output:'A pass — or a list of policy violations explaining exactly why the prompt was rejected.'},
+      {num:'04',name:'Analyze',color:'var(--accent)',desc:'The core of the engine. Determines what the prompt is asking for, who it\'s for, how complex it is, what ambiguities exist, and what questions need answering before it can be compiled.',output:'A complete picture of the prompt: task type, goal, target audience, detected ambiguities, risk score, and any blocking questions.'},
+      {num:'05',name:'Score',color:'var(--green)',desc:'Scores the prompt across 5 independent dimensions — Clarity, Specificity, Completeness, Constraints, and Efficiency — up to 20 points each. Every deduction has a traceable reason.',output:'A quality score from 0 to 100, plus a 9-item structural checklist showing exactly what\'s present and what\'s missing.'},
+      {num:'06',name:'Compile',color:'var(--accent)',desc:'Produces the final structured prompt in your chosen output format — Claude XML, OpenAI system/user, or plain Markdown. Adds context the original prompt was missing: role, goal, constraints, workflow.',output:'The compiled prompt in your target format, ready to use, along with a list of changes made.'},
+      {num:'07',name:'Estimate',color:'var(--orange)',desc:'Calculates token count and estimated cost across all supported providers. Then runs a two-step routing analysis to recommend which model best fits your task, risk level, budget, and latency needs.',output:'Cost breakdown across providers, a recommended model, estimated savings versus a baseline, and the reasoning behind the recommendation.'},
+      {num:'08',name:'Build &amp; Return',color:'var(--red)',desc:'Packages everything into the final result, saves the session, records usage, and writes to the audit trail (if enabled). Usage is only counted after a successful result — failed requests are never metered.',output:'The complete result: quality score, compiled prompt, cost estimate, detected issues, and a session ID you can use to refine or export later.'}
     ];
 
     var flow = document.getElementById('pipeline-flow');
@@ -1842,17 +1842,11 @@ console.<span class="fn">log</span>(result.cost.costs);         <span class="com
       var detail = document.getElementById('pipe-detail');
       var content = document.getElementById('pipe-detail-content');
       content.innerHTML =
-        '<h4 style="color:'+p.color+';font-family:monospace;">Phase '+p.num+': '+p.name+'</h4>'+
+        '<h4 style="color:'+p.color+';">Phase '+p.num+': '+p.name+'</h4>'+
         '<p style="margin:10px 0 16px;">'+p.desc+'</p>'+
-        '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">'+
-          '<div>'+
-            '<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Functions called</div>'+
-            '<div class="pipe-funcs">'+p.funcs.map(function(f){return '<span class="pipe-func">'+f+'</span>';}).join('')+'</div>'+
-          '</div>'+
-          '<div style="margin-left:auto;">'+
-            '<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">Output</div>'+
-            '<code style="font-size:12px;color:var(--green);background:var(--code-bg);padding:6px 10px;border-radius:6px;display:inline-block;max-width:400px;word-break:break-word;">'+p.output+'</code>'+
-          '</div>'+
+        '<div>'+
+          '<div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px;">What you get back</div>'+
+          '<p style="font-size:14px;color:var(--green);background:var(--code-bg);padding:10px 14px;border-radius:8px;margin:0;line-height:1.5;">'+p.output+'</p>'+
         '</div>';
       detail.style.display = 'block';
     }
