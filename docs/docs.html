@@ -10,7 +10,7 @@
   <link rel="manifest" href="site.webmanifest">
   <title>Documentation — Prompt Control Plane | Developer Reference</title>
   <meta name="description" content="Complete developer documentation for Prompt Control Plane. 20 MCP tools, CLI linter, GitHub Action, programmatic API, enterprise features, and architecture reference. Zero LLM calls, fully deterministic.">
-  <meta name="keywords" content="prompt control plane docs, MCP documentation, prompt linter API, prompt-lint CLI, prompt governance tools, enterprise prompt policy, audit trail, config lock, developer reference">
+  <meta name="keywords" content="prompt control plane docs, pcp CLI, MCP documentation, prompt linter API, prompt governance tools, enterprise prompt policy, audit trail, config lock, developer reference">
   <link rel="canonical" href="https://getpcp.site/docs.html">
 
   <!-- Open Graph -->
@@ -539,14 +539,18 @@
       <h2 id="getting-started">Getting Started</h2>
 
       <h3>Installation</h3>
-      <p>Choose any of the four install methods below. The recommended approach is the MCP config, which requires zero global installs.</p>
+      <p>Install the CLI globally, then optionally add MCP integration for AI-assisted workflows.</p>
 
       <div class="callout">
-        <p><strong>Language-agnostic.</strong> Your project can be Python, Java, Go, Rust, C#, Ruby &mdash; any language. Node.js 18+ is only required to run the MCP server process itself. It communicates with your AI client over stdio and never touches your codebase.</p>
+        <p><strong>Language-agnostic.</strong> Your project can be Python, Java, Go, Rust, C#, Ruby &mdash; any language. Node.js 18+ is only required to run PCP itself. It never touches your codebase.</p>
       </div>
 
-      <h4><span class="step-num">1</span> MCP Config (recommended)</h4>
-      <p>Add the following to your <code>.mcp.json</code> or <code>claude_desktop_config.json</code>:</p>
+      <h4><span class="step-num">1</span> npm global (recommended)</h4>
+      <div class="code-block">npm install -g claude-prompt-optimizer-mcp
+pcp preflight <span class="string">"Your prompt here"</span> --json</div>
+
+      <h4><span class="step-num">2</span> MCP Config (for AI-assisted workflows)</h4>
+      <p>Add to your <code>.mcp.json</code> or <code>claude_desktop_config.json</code> to use inside Claude Code, Cursor, or Windsurf:</p>
       <div class="code-block">{
   <span class="string">"mcpServers"</span>: {
     <span class="string">"prompt-optimizer"</span>: {
@@ -556,13 +560,7 @@
   }
 }</div>
 
-      <h4><span class="step-num">2</span> npx (no install)</h4>
-      <div class="code-block">npx -y claude-prompt-optimizer-mcp</div>
-
-      <h4><span class="step-num">3</span> npm global</h4>
-      <div class="code-block">npm install -g claude-prompt-optimizer-mcp</div>
-
-      <h4><span class="step-num">4</span> curl</h4>
+      <h4><span class="step-num">3</span> curl</h4>
       <div class="code-block">curl -fsSL https://getpcp.site/install.sh | bash</div>
 
       <h3>Your First Prompt</h3>
@@ -828,7 +826,7 @@ pcp hook install --threshold 70</div>
       <p style="margin-top:1rem;"><strong>Enterprise-only pipeline stages</strong> that influence the PreviewPack (all configured via the <a href="admin.html" style="color:var(--accent);font-weight:600;">Enterprise Console</a>):</p>
       <ul style="margin-top:0.5rem; padding-left:1.5rem;">
         <li><strong>Policy Gate</strong> &mdash; can block or warn before compilation begins. Set enforcement mode and strictness in the Enterprise Console.</li>
-        <li><strong>Custom Rules</strong> &mdash; your regex-based rules affect risk score and blocking decisions. Build rules visually in the Enterprise Console and deploy with one click via the <code>save_custom_rules</code> tool. Validate with <code>prompt-lint --validate-custom-rules</code>.</li>
+        <li><strong>Custom Rules</strong> &mdash; your regex-based rules affect risk score and blocking decisions. Build rules visually in the Enterprise Console and deploy with one click via the <code>save_custom_rules</code> tool. Validate with <code>pcp doctor</code>.</li>
         <li><strong>Audit Log</strong> &mdash; every decision is written to a hash-chained JSONL log with SHA-256 hash chaining. Explore and verify the chain visually in the Enterprise Console.</li>
       </ul>
 
@@ -1538,7 +1536,7 @@ pcp hook install --threshold 70</div>
       </table>
       <p>Hard cap: 25 rules per configuration. Invalid regex patterns are skipped with a warning (skip-on-error pattern).</p>
       <h4>Validate custom rules</h4>
-      <div class="code-block">prompt-lint --validate-custom-rules</div>
+      <div class="code-block">pcp doctor</div>
 
       <h3>Session Retention <span class="tag-enterprise">Enterprise</span></h3>
       <p>Configure automatic session cleanup by age policy.</p>
@@ -1702,8 +1700,8 @@ pcp hook uninstall --global  <span class="comment"># remove global hook</span></
       <p>Run prompt linting as a GitHub Actions check. Fails the workflow if any prompt file scores below the threshold.</p>
 
       <h3>Workflow Example</h3>
-      <div class="code-block"><span class="comment"># .github/workflows/prompt-lint.yml</span>
-<span class="keyword">name</span>: Prompt Lint
+      <div class="code-block"><span class="comment"># .github/workflows/pcp.yml</span>
+<span class="keyword">name</span>: Prompt Quality Gate
 <span class="keyword">on</span>: [push, pull_request]
 
 <span class="keyword">jobs</span>:

@@ -12,7 +12,7 @@ Prompt Control Plane is a governance engine that enforces structure on every pro
 - Hash-chained hash-chained audit trail
 - Config lock with passphrase protection
 - Custom rules with regex patterns and risk dimensions
-- Ships as MCP server, CLI linter (prompt-lint), and GitHub Action
+- Ships as CLI (`pcp` with 11 subcommands), MCP server (20 tools), auto-check hooks, and GitHub Action
 - Works with any codebase (Python, Java, Go, Rust, etc.)
 - Four tiers: Free, Pro, Power, Enterprise
 

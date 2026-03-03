@@ -633,7 +633,7 @@
 
         <div class="card">
           <h3>Add a Rule</h3>
-          <p class="card-desc">Define rules that run on every prompt. BLOCKING rules reject the prompt in enforce mode. NON-BLOCKING rules add to the risk score. Maximum 25 rules. Export the JSON and save to <code>~/.prompt-control-plane/custom-rules.json</code> — the engine loads it automatically. Validate with <code>prompt-lint --validate-custom-rules</code>.</p>
+          <p class="card-desc">Define rules that run on every prompt. BLOCKING rules reject the prompt in enforce mode. NON-BLOCKING rules add to the risk score. Maximum 25 rules. Export the JSON and save to <code>~/.prompt-control-plane/custom-rules.json</code> — the engine loads it automatically. Validate with <code>pcp doctor</code>.</p>
           <div class="form-row">
             <div class="form-group">
               <span class="form-label">Rule ID (must start with a-z, then a-z 0-9 _ · max 64)</span>
@@ -713,7 +713,7 @@
                 <div class="btn-row" style="margin-top:6px;">
                   <button class="btn btn-secondary btn-sm" onclick="copyEl('rules-json',this)">Copy JSON</button>
                 </div>
-                <p style="font-size:0.72rem;color:var(--text-muted);margin:8px 0 0;">Save to <code>~/.prompt-control-plane/custom-rules.json</code>, then validate: <code>prompt-lint --validate-custom-rules</code></p>
+                <p style="font-size:0.72rem;color:var(--text-muted);margin:8px 0 0;">Save to <code>~/.prompt-control-plane/custom-rules.json</code>, then validate: <code>pcp doctor</code></p>
               </div>
             </details>
           </div>
@@ -767,8 +767,8 @@
           <div class="quick-card">
             <h4>Validate custom rules file</h4>
             <p>Check your custom rules JSON for schema errors before applying.</p>
-            <div class="quick-snippet">prompt-lint --validate-custom-rules</div>
-            <button class="btn btn-secondary btn-sm" onclick="copyText('prompt-lint --validate-custom-rules',this)">Copy</button>
+            <div class="quick-snippet">pcp doctor</div>
+            <button class="btn btn-secondary btn-sm" onclick="copyText('pcp doctor',this)">Copy</button>
           </div>
           <div class="quick-card">
             <h4>Reset to defaults</h4>

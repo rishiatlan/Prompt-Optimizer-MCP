@@ -733,18 +733,17 @@
   <section class="section" id="install">
     <div class="container text-center">
       <h2 class="section-title">Install in 10 seconds</h2>
-      <p class="section-subtitle">Add to any MCP-compatible client: Claude Code, Cursor, or Windsurf.</p>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:8px;">Works with any codebase &mdash; Python, Java, Go, Rust, or any language. Node.js is only needed to run the MCP server, not your project.</p>
+      <p class="section-subtitle">Works with any codebase &mdash; Python, Java, Go, Rust, or any language.</p>
       <div class="install" style="margin-top: 0;">
-        <div class="install-label">MCP config (recommended)</div>
+        <div class="install-label">npm global (recommended)</div>
+        <code>npm install -g claude-prompt-optimizer-mcp && pcp preflight "Your prompt"</code>
+      </div>
+      <div class="install">
+        <div class="install-label">Or add MCP integration for AI-assisted workflows</div>
         <code>{ "mcpServers": { "prompt-optimizer": {
     "command": "npx",
     "args": ["-y", "claude-prompt-optimizer-mcp"]
   }}}</code>
-      </div>
-      <div class="install">
-        <div class="install-label">Or install globally via npm</div>
-        <code>npm install -g claude-prompt-optimizer-mcp</code>
       </div>
       <div class="install">
         <div class="install-label">Or one-line curl install</div>
