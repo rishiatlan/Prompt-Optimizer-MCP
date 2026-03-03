@@ -28,4 +28,4 @@ Prompt Control Plane is a governance engine that enforces structure on every pro
 ## Install
 npm: claude-prompt-optimizer-mcp
 GitHub: https://github.com/rishiatlan/Prompt-Optimizer-MCP
-GitHub Action: https://github.com/marketplace/actions/prompt-lint
+GitHub Action: https://github.com/marketplace/actions/prompt-control-plane

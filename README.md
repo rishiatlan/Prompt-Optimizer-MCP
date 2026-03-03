@@ -329,8 +329,8 @@ When a prompt scores below the threshold, inline feedback is injected into the c
 ### GitHub Action
 
 ```yaml
-# .github/workflows/prompt-lint.yml
-name: Prompt Lint
+# .github/workflows/pcp.yml
+name: Prompt Quality Gate
 on: [push, pull_request]
 jobs:
   lint:
