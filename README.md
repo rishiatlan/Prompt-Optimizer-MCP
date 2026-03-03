@@ -347,7 +347,7 @@ jobs:
 
 **Notes:**
 - The action installs `prompt-lint` via `npm install --prefix` into `$RUNNER_TEMP`, then runs `node_modules/.bin/prompt-lint`. No npx.
-- Action tag `@v2` maps to npm `@2` (latest 2.x). Use `@v2.3.2` for exact pinning.
+- Action tag `@v4` maps to npm `@4` (latest 4.x). Use `@v4.0.4` for exact pinning.
 - Exit code 2 means no files matched or invalid input — not "all passed." Zero matched files is always an error.
 - On Windows runners, prefer single quotes or escape glob wildcards in PowerShell.
 - Markdown files are linted as raw text (no fenced-block extraction) in v1.

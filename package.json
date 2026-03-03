@@ -1,6 +1,6 @@
 {
   "name": "claude-prompt-optimizer-mcp",
-  "version": "4.0.3",
+  "version": "4.1.0",
   "type": "module",
   "description": "The control plane for AI prompts — deterministic scoring, policy enforcement, audit & governance via MCP. Free tier included.",
   "main": "dist/src/api.js",

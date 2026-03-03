@@ -1,5 +1,25 @@
 # Changelog
 
+## [4.1.0] - 2026-03-03
+
+### Added — Enterprise Console Integration
+- **Tool 20 — `save_custom_rules`** (FREE, Enterprise-only): Deploy custom governance rules built in the Enterprise Console directly to Prompt Control Plane. Validates all rules, sorts deterministically, writes with secure file permissions, and returns a rule-set hash for reproducibility.
+- **Enterprise Console → Product bridge**: Build rules in the visual editor, click "Copy & Deploy", paste into any MCP-connected AI assistant — rules are active on the next optimization. Works with any LLM, not just Claude.
+
+### Changed — Documentation & Governance
+- **"Enterprise Features" section** in README: consolidated Enterprise Console, Policy Enforcement, Policy-Locked Configuration, Hash-Chained Audit Trail, Custom Governance Rules, Session Lifecycle, and Reproducible Exports into a dedicated section with pricing table rows.
+- **Terminology**: "Tamper-evident" → "Hash-chained" across all 15 public docs. Product-facing language, not attack-implying.
+- **Content filter**: Stripped all internal source paths, function names, type names, test counts, and implementation details from README, CHANGELOG, and all website pages.
+- **Roadmap leak removed**: Phase A/B migration plans removed from docs.html and how-i-built-this.html.
+- **Tool count**: Updated to 20 across all public docs (README, website meta tags, feature tables, proof grids).
+- **Enterprise features on website**: Added Enterprise Console card to features.html, updated Custom Rules deploy flow on plans.html and docs.html, added `save_custom_rules` to tool tables.
+- Tool count: 19 → 20
+
+### Notes
+- **No breaking changes** to existing 19 MCP tools, CLI, or programmatic API.
+- New tool is FREE and unlimited (Enterprise tier required).
+- Architecture constraint preserved: **zero LLM calls inside. Deterministic. Offline. Reproducible.**
+
 ## [4.0.3] - 2026-03-02
 
 ### Changed — Contact & Privacy
