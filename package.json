@@ -1,6 +1,6 @@
 {
   "name": "pcp-engine",
-  "version": "5.2.0",
+  "version": "5.2.1",
   "type": "module",
   "description": "PCP — the prompt quality engine. Deterministic scoring, compilation, cost estimation & governance for AI prompts. Zero LLM calls.",
   "main": "dist/src/api.js",

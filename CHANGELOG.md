@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.2.1] - 2026-03-04
+
+### Fixed
+- `--format github`: confidence was hardcoded `n/a` — now reads from lint result (`r.confidence`)
+- `--format github`: passing prompts now emit `::notice` instead of `::warning` (correct severity)
+- `--format github`: confidence included in error annotations too
+
+### Changed
+- README: Added `pcp demo`, `pcp badge`, `pcp report` to CLI examples section
+- README: "All subcommands" list now includes `demo`, `badge`, `report`
+- README: Added `--format github`, `--warn-only`, `--output` CI flags documentation
+- README: Architecture "How It Works" upgraded from ASCII art to mermaid flowchart
+- CLAUDE.md: Updated Key Files table to reference `src/tools/` modules (old `tools.ts` deleted in v5.2.0)
+- CLAUDE.md: "Adding a new MCP tool" task now points to `src/tools/` directory
+
 ## [5.2.0] - 2026-03-04
 
 ### Added

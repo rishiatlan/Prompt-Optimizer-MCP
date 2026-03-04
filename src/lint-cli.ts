@@ -904,11 +904,11 @@ async function handleCheck(args: SubcommandArgs): Promise<void> {
   if (args.format === 'github') {
     // GitHub Actions annotation format
     for (const r of results) {
-      const confidence = 'n/a'; // confidence from lint is not available at this level
+      const confidence = r.confidence ?? 'n/a';
       if (r.pass) {
-        process.stdout.write(`::warning file=${r.source}::PQS ${r.score}/100 — Confidence: ${confidence}\n`);
+        process.stdout.write(`::notice file=${r.source}::PQS ${r.score}/100 — Confidence: ${confidence}\n`);
       } else {
-        process.stdout.write(`::error file=${r.source}::PQS ${r.score}/100 below threshold ${threshold}\n`);
+        process.stdout.write(`::error file=${r.source}::PQS ${r.score}/100 below threshold ${threshold} — Confidence: ${confidence}\n`);
       }
     }
   } else if (args.json) {

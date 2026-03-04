@@ -121,17 +121,26 @@ jobs:
 
 ## How It Works
 
-```
-User prompt → Host Claude → calls optimize_prompt → Deterministic analysis
-                                                       ↓
-                                                  PreviewPack returned
-                                                       ↓
-                                               Claude presents to user
-                                                       ↓
-                                               User approves/refines
-                                                       ↓
-                                               Claude executes with
-                                               compiled prompt as guide
+```mermaid
+flowchart LR
+    A([Your prompt]) --> B[Host Claude]
+    B -->|calls optimize_prompt| C{PCP Engine}
+
+    subgraph C[PCP Engine — Zero LLM Calls]
+        direction TB
+        D[1. Tokenize & normalize] --> E[2. Detect task type]
+        E --> F[3. Score 5 dimensions]
+        F --> G[4. Run 14 rules]
+        G --> H[5. Assess risk]
+        H --> I[6. Route model]
+        I --> J[7. Estimate cost]
+        J --> K[8. Compile prompt]
+    end
+
+    C -->|PreviewPack| B
+    B --> L([User reviews & approves])
+    L -->|approve_prompt| B
+    B --> M([Execute with compiled prompt])
 ```
 
 ### The Approval Loop
@@ -338,14 +347,26 @@ Changes Made:
 The `pcp` command exposes the full scoring, routing, and policy engine from the terminal.
 
 ```bash
-# Pre-flight: classify, assess risk, route model, score quality
-pcp preflight "Build a REST API with auth" --json
+# Guided first-run experience
+pcp demo
 
 # Quick quality check (default subcommand)
 pcp check "Write a REST API for user management"
 
-# Lint prompt files
-pcp check --file "prompts/**/*.txt" --strict
+# Score quality (5 dimensions, full breakdown)
+pcp score "Refactor the middleware"
+
+# Pre-flight: classify, assess risk, route model, score quality
+pcp preflight "Build a REST API with auth" --json
+
+# Lint prompt files with CI annotations
+pcp check --file "prompts/**/*.txt" --format github
+
+# Generate a PQS badge for your README
+pcp badge --file prompts/main-prompt.txt
+
+# Produce a full quality report (JSON + Markdown)
+pcp report --file "prompts/**/*.txt" --output ./reports
 
 # Classify task type and complexity
 pcp classify "Debug the auth module" --json
@@ -356,29 +377,24 @@ pcp route "Analyze sales data" --target openai --json
 # Cost estimate across providers
 pcp cost "Build a dashboard" --json
 
-# Score quality (5 dimensions)
-pcp score "Refactor the middleware" --json
-
 # Compress context
 pcp compress --file README.md --intent "summarize" --json
 
-# Show governance config
+# Show governance config / validate environment
 pcp config --show --json
-
-# Validate environment
 pcp doctor --json
 
 # Install auto-check hook (checks every prompt before it hits the LLM)
 pcp hook install --threshold 70
-
-# Check hook status / uninstall
 pcp hook status
 pcp hook uninstall
 ```
 
 **Exit codes:** `0` = success, `1` = threshold fail (check/doctor), `2` = input error, `3` = policy blocked (enforce mode).
 
-**All subcommands:** preflight, optimize, check, score, classify, route, cost, compress, config, doctor, hook.
+**All subcommands:** demo, check, score, preflight, optimize, badge, report, classify, route, cost, compress, config, doctor, hook.
+
+**CI flags:** `--format github` (PR annotations), `--warn-only` (advisory mode, always exit 0), `--output <dir>` (report destination).
 
 **Global flags:** `--json`, `--quiet`, `--pretty`, `--target`, `--file`, `--context`, `--context-file`, `--intent`, `--strict`, `--relaxed`, `--threshold`.
 

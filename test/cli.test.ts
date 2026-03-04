@@ -1,4 +1,4 @@
-// test/cli.test.ts — Comprehensive CLI tests for pcp (v5.2.0).
+// test/cli.test.ts — Comprehensive CLI tests for pcp (v5.2.1).
 // Spawns `node bin/pcp.js` as a child process to test real exit codes, JSON envelopes,
 // subcommand behavior, policy enforcement, and backward compatibility.
 
@@ -71,7 +71,7 @@ describe('1. Backward compat', () => {
   it('--version prints v5', () => {
     const { stdout, exitCode } = run(['--version']);
     assert.equal(exitCode, 0);
-    assert.ok(stdout.includes('5.2.0'));
+    assert.ok(stdout.includes('5.2.1'));
   });
 
   it('stdin input works', () => {
@@ -114,7 +114,7 @@ describe('2. optimize', () => {
     assert.equal(exitCode, 0);
     const data = parseJson(stdout);
     assert.ok(data.request_id, 'missing request_id');
-    assert.equal(data.version, '5.2.0');
+    assert.equal(data.version, '5.2.1');
     assert.equal(data.schema_version, 1);
     assert.equal(data.subcommand, 'optimize');
     assert.ok(typeof data.policy_mode === 'string');
@@ -603,7 +603,7 @@ describe('11. Envelope consistency', () => {
       const data = parseJson(stdout);
       assert.ok(data.request_id);
       assert.match(data.request_id, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
-      assert.equal(data.version, '5.2.0');
+      assert.equal(data.version, '5.2.1');
       assert.equal(data.schema_version, 1);
       assert.equal(data.subcommand, sub);
       assert.ok(typeof data.policy_mode === 'string');
@@ -1030,7 +1030,7 @@ describe('17. Hook subcommand', () => {
     const { stdout } = runInDir(['hook', 'status', '--json'], hookDir);
     const json = JSON.parse(stdout.trim());
     assert.ok(json.request_id, 'Has request_id');
-    assert.equal(json.version, '5.2.0');
+    assert.equal(json.version, '5.2.1');
     assert.equal(json.schema_version, 1);
     assert.equal(json.subcommand, 'hook');
     assert.ok('policy_mode' in json, 'Has policy_mode');

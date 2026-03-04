@@ -6,12 +6,12 @@
     "url": "https://github.com/rishi-banerjee1/prompt-control-plane",
     "source": "github"
   },
-  "version": "5.2.0",
+  "version": "5.2.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "pcp-engine",
-      "version": "5.2.0",
+      "version": "5.2.1",
       "transport": {
         "type": "stdio"
       },

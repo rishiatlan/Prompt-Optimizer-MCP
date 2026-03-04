@@ -23,7 +23,12 @@ PCP is a deterministic prompt quality engine -- it scores, compiles, and optimiz
 ### Key Files
 | File | Purpose |
 |------|---------|
-| `tools.ts` | 20 MCP tool registrations |
+| `tools/core.ts` | Core MCP tool registrations (optimize, refine, preflight, check) |
+| `tools/analysis.ts` | Analysis MCP tools (approve, cost, compress, classify, route, stats, prune) |
+| `tools/admin.ts` | Admin MCP tools (config, usage, license, custom rules) |
+| `tools/sessions.ts` | Session MCP tools (list, export, delete, purge) |
+| `tools/helpers.ts` | Shared helpers, purchase URLs, context builder |
+| `tools/index.ts` | Barrel — creates MCP server, calls all register functions |
 | `analyzer.ts` | Intent decomposition, task detection |
 | `compiler.ts` | Prompt compilation to structured formats |
 | `scorer.ts` | 5-dimension quality scoring (0-100) |
@@ -66,7 +71,7 @@ PCP is a deterministic prompt quality engine -- it scores, compiles, and optimiz
 ## Build & Test
 ```bash
 npm ci && npm run build    # Install + compile
-npm test                   # Run 797+ tests
+npm test                   # Run 808+ tests
 npx tsc --noEmit          # Type check only
 ```
 
@@ -78,7 +83,7 @@ npx tsc --noEmit          # Type check only
 - **Privacy-first** -- Prompts never logged by default, no telemetry
 
 ## Common Tasks
-- Adding a new MCP tool: Edit `tools.ts`, register with `server.tool()`
+- Adding a new MCP tool: Add to the appropriate file in `src/tools/` (`core.ts`, `analysis.ts`, `admin.ts`, or `sessions.ts`), register with `server.tool()` inside that file's `register*Tools()` function
 - Adding a scoring dimension: Edit `scorer.ts`, update `scorePrompt()`
 - Adding a new rule: Edit `rules.ts`, add to `RULES` array
 - Adding model pricing: Edit `estimator.ts`, update `PRICING_DATA`
