@@ -82,6 +82,14 @@ npx tsc --noEmit          # Type check only
 - **Ed25519 licensing** -- Offline validation, no phone-home
 - **Privacy-first** -- Prompts never logged by default, no telemetry
 
+## Security Infrastructure
+- `SECURITY.md` -- Vulnerability reporting policy, SLA, security model documentation
+- `.github/dependabot.yml` -- Weekly npm + GitHub Actions dependency updates (grouped minor/patch)
+- `.github/workflows/codeql.yml` -- Weekly CodeQL analysis with security-extended queries
+- **Secret scanning + push protection** enabled via GitHub repo settings
+- **Dependabot vulnerability alerts** enabled
+- Security contact: hello@getpcp.site
+
 ## Common Tasks
 - Adding a new MCP tool: Add to the appropriate file in `src/tools/` (`core.ts`, `analysis.ts`, `admin.ts`, or `sessions.ts`), register with `server.tool()` inside that file's `register*Tools()` function
 - Adding a scoring dimension: Edit `scorer.ts`, update `scorePrompt()`

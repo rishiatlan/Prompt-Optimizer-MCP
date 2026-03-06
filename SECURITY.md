@@ -16,7 +16,7 @@ Only the latest two minor versions receive security patches. Upgrade to the late
 **Do not open a public issue.** Instead, use one of these channels:
 
 1. **GitHub Security Advisories (preferred):** [Report a vulnerability](https://github.com/rishi-banerjee1/prompt-control-plane/security/advisories/new)
-2. **Email:** security@getpcp.site
+2. **Email:** hello@getpcp.site
 
 ### What to include
 
