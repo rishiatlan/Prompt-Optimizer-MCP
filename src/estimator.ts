@@ -12,8 +12,8 @@ import { PROFILES, resolveProfile } from './profiles.js';
 // ─── Pricing (per 1M tokens) ─────────────────────────────────────────────────
 
 export const PRICING_DATA = {
-  pricing_version: '2026-02',
-  last_updated: '2026-02-27',
+  pricing_version: '2026-03',
+  last_updated: '2026-03-06',
   providers: {
     anthropic: {
       haiku:  { in: 0.80,  out: 4.00  },
@@ -420,7 +420,7 @@ function computeSavings(
     baselineModel: BASELINE_MODEL,
     baselineCost: Math.round(baselineCost * 1_000_000) / 1_000_000,
     recommendedCost: Math.round(recommendedCost * 1_000_000) / 1_000_000,
-    savingsPercent: Math.max(0, savingsPercent), // clamp: can't have negative savings
+    savingsPercent, // allow negative: honest comparison when recommended costs more than baseline
   };
 }
 
@@ -545,10 +545,12 @@ export function routeModel(
   // Generate tradeoffs
   const tradeoffs = generateTradeoffs(tier, budgetSensitivity, latencySensitivity, researchIntent);
 
-  // Savings summary (display label)
+  // Savings summary (display label) — honest: show cost increase when recommended model is pricier
   const savingsSummary = savings.savingsPercent > 0
-    ? `${savings.savingsPercent}% cheaper than always using ${BASELINE_MODEL}`
-    : `Comparable cost to ${BASELINE_MODEL}`;
+    ? `${savings.savingsPercent}% cheaper than ${BASELINE_MODEL}`
+    : savings.savingsPercent < 0
+      ? `${Math.abs(savings.savingsPercent)}% more expensive than ${BASELINE_MODEL} (higher capability)`
+      : `Same cost as ${BASELINE_MODEL}`;
 
   return {
     primary: {

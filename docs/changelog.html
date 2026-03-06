@@ -299,6 +299,26 @@
     <div class="container">
       <div class="timeline">
 
+        <!-- ── v5.3.1 ─────────────────────────────────────────────────────── -->
+        <div class="release release-patch">
+          <div class="release-card">
+            <div class="release-header">
+              <span class="release-version"><a href="https://github.com/rishi-banerjee1/prompt-control-plane/releases/tag/v5.3.1">v5.3.1</a></span>
+              <span class="release-tag release-tag-fix">Fix</span>
+              <span class="release-date">March 6, 2026</span>
+            </div>
+            <div class="release-title">Accuracy &amp; Docs Audit</div>
+            <ul class="release-changes">
+              <li><strong>Honest cost comparison</strong> &mdash; Fixed savings display that clamped negative values to 0%. When routing to a pricier model (e.g., Sonnet vs GPT-4o baseline), the CLI and MCP now honestly show &ldquo;X% more expensive&rdquo; instead of &ldquo;Comparable cost.&rdquo;</li>
+              <li><strong>Model count corrected</strong> &mdash; 11 &rarr; 10 across all pages (matches actual PRICING_DATA: 3 Anthropic + 3 OpenAI + 2 Google + 2 Perplexity)</li>
+              <li><strong>Free tier updated</strong> &mdash; why.html and terms.html now correctly reflect 50 optimizations/month (was showing stale &ldquo;10 lifetime&rdquo; from pre-v5.1.0)</li>
+              <li><strong>Nav standardized</strong> &mdash; All 15 pages now share the same canonical nav: Features | Models | Docs | Pricing | Changelog. Removed stale Home and Enterprise Console links.</li>
+              <li><strong>Docs expanded</strong> &mdash; Added Validate API, Benchmark, and PR Comment Bot sections to docs.html. Added 4 missing CLI subcommands to reference table.</li>
+              <li>Pricing version updated to 2026-03</li>
+            </ul>
+          </div>
+        </div>
+
         <!-- ── v5.3.0 ─────────────────────────────────────────────────────── -->
         <div class="release release-major">
           <div class="release-card">

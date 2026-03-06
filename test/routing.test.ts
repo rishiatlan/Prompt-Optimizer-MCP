@@ -443,9 +443,10 @@ describe('routeModel: savings_vs_default (G2, G13)', () => {
     assert.ok(result.decision_path.includes('baseline_model=gpt-4o'));
   });
 
-  it('savingsPercent is non-negative', () => {
+  it('savingsPercent is an integer (can be negative for pricier models)', () => {
     const result = routeModel(makeInput());
-    assert.ok(result.savings_vs_default.savingsPercent >= 0);
+    assert.equal(typeof result.savings_vs_default.savingsPercent, 'number');
+    assert.equal(result.savings_vs_default.savingsPercent, Math.round(result.savings_vs_default.savingsPercent));
   });
 
   it('small tier model is cheaper than baseline', () => {
@@ -458,11 +459,11 @@ describe('routeModel: savings_vs_default (G2, G13)', () => {
       'Small tier should be cheaper than gpt-4o baseline');
   });
 
-  it('savings_summary contains percentage or comparable', () => {
+  it('savings_summary contains percentage or same cost', () => {
     const result = routeModel(makeInput());
     assert.ok(
-      result.savings_summary.includes('%') || result.savings_summary.includes('Comparable'),
-      'savings_summary should contain % or Comparable',
+      result.savings_summary.includes('%') || result.savings_summary.includes('Same cost'),
+      'savings_summary should contain % or Same cost',
     );
   });
 });

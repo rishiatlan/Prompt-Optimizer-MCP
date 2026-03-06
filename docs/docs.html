@@ -469,12 +469,11 @@
         <svg viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
       </button>
       <div class="nav-links">
-        <a href="./">Home</a>
         <a href="features.html">Features</a>
         <a href="models.html">Models</a>
         <a href="docs.html" class="active">Docs</a>
         <a href="plans.html">Pricing</a>
-        <a href="admin.html" style="color:var(--accent);font-weight:600;">Enterprise Console</a>
+        <a href="changelog.html">Changelog</a>
         <button class="theme-toggle" aria-label="Toggle theme">
           <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -525,6 +524,8 @@
         <li><a href="#hooks">Auto-Check Hooks</a></li>
         <li><a href="#github-action">GitHub Action</a></li>
         <li><a href="#api">Programmatic API</a></li>
+        <li><a href="#validate-api">Validate API</a></li>
+        <li><a href="#benchmark">Benchmark</a></li>
         <li><a href="#env-vars">Environment Variables</a></li>
         <li><a href="#storage">Storage</a></li>
       </ul>
@@ -591,7 +592,7 @@ pcp hook install --threshold 70</div>
         <li><code>quality_before</code> &mdash; A multi-dimensional score from 0&ndash;100 with traceable deductions</li>
         <li><code>compiled_prompt</code> &mdash; The structured, optimized prompt formatted for your target LLM</li>
         <li><code>blocking_questions</code> &mdash; Ambiguities that must be resolved before approval</li>
-        <li><code>cost_estimate</code> &mdash; Token counts and costs across 11 models from 4 providers</li>
+        <li><code>cost_estimate</code> &mdash; Token counts and costs across 10 models from 4 providers</li>
         <li><code>model_recommendation</code> &mdash; The recommended model for this task</li>
       </ul>
 
@@ -792,7 +793,7 @@ pcp hook install --threshold 70</div>
             <tr style="border-bottom:1px solid var(--border);">
               <td style="padding:8px 12px;"><code>cost_estimate</code></td>
               <td style="padding:8px 12px;">CostEstimate</td>
-              <td style="padding:8px 12px;">Token counts + cost across 11 models from 4 providers</td>
+              <td style="padding:8px 12px;">Token counts + cost across 10 models from 4 providers</td>
               <td style="padding:8px 12px;"><span class="tag tag-free">All</span></td>
             </tr>
             <tr style="border-bottom:1px solid var(--border);">
@@ -1080,7 +1081,7 @@ pcp hook install --threshold 70</div>
           <span class="tag tag-free">Free</span>
           <span class="tag tag-free">All Plans</span>
         </div>
-        <p class="tool-desc">Estimates token count and cost across all supported providers for any prompt text. No session needed. Covers 11 models from Anthropic, OpenAI, Google, and Perplexity.</p>
+        <p class="tool-desc">Estimates token count and cost across all supported providers for any prompt text. No session needed. Covers 10 models from Anthropic, OpenAI, Google, and Perplexity.</p>
         <div class="tool-params">
           <div class="tool-params-title">Parameters</div>
           <div class="param-row"><span class="param-name">prompt_text</span> <span class="param-type">string</span> <span class="param-required">required</span> <span class="param-desc">The prompt text to estimate</span></div>
@@ -1592,6 +1593,10 @@ pcp optimize --file prompt.txt --json --target claude</div>
           <tr><td><code>config</code></td><td>Show current governance config (read-only)</td><td>0, 2</td></tr>
           <tr><td><code>doctor</code></td><td>Validate environment health</td><td>0, 1</td></tr>
           <tr><td><code>hook</code></td><td>Install/uninstall/status for auto-check hooks</td><td>0</td></tr>
+          <tr><td><code>demo</code></td><td>Interactive demonstration of PCP capabilities</td><td>0</td></tr>
+          <tr><td><code>report</code></td><td>Generate quality report for prompt files</td><td>0</td></tr>
+          <tr><td><code>badge</code></td><td>Generate quality badge for README</td><td>0</td></tr>
+          <tr><td><code>benchmark</code></td><td>Regression testing against golden dataset (15 prompts)</td><td>0, 1</td></tr>
         </tbody>
       </table>
 
@@ -1628,7 +1633,7 @@ pcp optimize --file prompt.txt --json --target claude</div>
       <p>All <code>--json</code> output follows a consistent envelope:</p>
       <div class="code-block">{
   <span class="string">"request_id"</span>: <span class="string">"uuid-v4"</span>,
-  <span class="string">"version"</span>: <span class="string">"5.0.0"</span>,
+  <span class="string">"version"</span>: <span class="string">"5.3.1"</span>,
   <span class="string">"schema_version"</span>: 1,
   <span class="string">"subcommand"</span>: <span class="string">"preflight"</span>,
   <span class="string">"policy_mode"</span>: <span class="string">"advisory"</span>,
@@ -1728,8 +1733,21 @@ pcp hook uninstall --global  <span class="comment"># remove global hook</span></
           <tr><td><code>threshold</code></td><td>No</td><td>&mdash;</td><td>Minimum score (0&ndash;100). Overrides strictness.</td></tr>
           <tr><td><code>strictness</code></td><td>No</td><td>standard</td><td>Preset: standard (60), strict (75), relaxed (40)</td></tr>
           <tr><td><code>version</code></td><td>No</td><td>tag ref</td><td>npm version to install</td></tr>
+          <tr><td><code>comment</code></td><td>No</td><td>false</td><td>Post results as PR comment (requires <code>pull-requests: write</code>)</td></tr>
+          <tr><td><code>token</code></td><td>No</td><td><code>${{ github.token }}</code></td><td>GitHub token for PR commenting</td></tr>
         </tbody>
       </table>
+
+      <h3>PR Comment Bot</h3>
+      <p>When <code>comment: 'true'</code> is set, PCP posts a formatted markdown table to the pull request with per-file scores. Comments are idempotent &mdash; the <code>&lt;!-- pcp-bot --&gt;</code> marker ensures existing comments are updated instead of duplicated.</p>
+      <div class="code-block"><span class="comment"># Enable PR commenting</span>
+- name: Lint prompts
+  uses: rishi-banerjee1/prompt-control-plane@v5
+  with:
+    files: <span class="string">"prompts/**/*.md"</span>
+    comment: <span class="string">'true'</span>
+    <span class="comment"># token: ${{ secrets.GITHUB_TOKEN }}  # defaults to github.token</span></div>
+      <p>For fork PRs, the bot gracefully catches 403 errors and emits a <code>core.notice()</code> instead of failing the workflow.</p>
 
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
@@ -1787,9 +1805,64 @@ console.<span class="fn">log</span>(result.cost.costs);         <span class="com
         <thead><tr><th>Import</th><th>Effect</th></tr></thead>
         <tbody>
           <tr><td><code>import { optimize } from 'pcp-engine'</code></td><td>Pure API &mdash; no side effects, no server</td></tr>
+          <tr><td><code>import { validate } from 'pcp-engine/validate'</code></td><td>Lightweight validate API &mdash; zero MCP dependency</td></tr>
           <tr><td><code>import 'pcp-engine/server'</code></td><td>Starts MCP stdio server (side-effect import)</td></tr>
         </tbody>
       </table>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- VALIDATE API                                                        -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="validate-api">Validate API</h2>
+      <p>A lightweight entry point for framework integrations. Zero MCP dependency &mdash; imports only pure analysis modules. Ideal for LangChain guards, OpenAI wrappers, or any pipeline that needs a quick pass/fail check.</p>
+
+      <h3>Usage</h3>
+      <div class="code-block"><span class="keyword">import</span> { validate, quickScore } <span class="keyword">from</span> <span class="string">'pcp-engine/validate'</span>;
+
+<span class="comment">// Full validation with issues</span>
+<span class="keyword">const</span> result = <span class="fn">validate</span>(<span class="string">'Write a blog post'</span>, { threshold: 60 });
+console.<span class="fn">log</span>(result.pass);        <span class="comment">// false</span>
+console.<span class="fn">log</span>(result.score);       <span class="comment">// 42</span>
+console.<span class="fn">log</span>(result.issues);      <span class="comment">// [{rule, message, severity}]</span>
+console.<span class="fn">log</span>(result.task_type);   <span class="comment">// 'writing'</span>
+console.<span class="fn">log</span>(result.risk_level);  <span class="comment">// 'medium'</span>
+
+<span class="comment">// Quick score only (no issues)</span>
+<span class="keyword">const</span> score = <span class="fn">quickScore</span>(<span class="string">'Analyze the auth module for SQL injection vulnerabilities'</span>);
+console.<span class="fn">log</span>(score);  <span class="comment">// 78</span></div>
+
+      <h3>ValidateResult Shape</h3>
+      <div class="code-block"><span class="keyword">interface</span> ValidateResult {
+  pass: <span class="keyword">boolean</span>;           <span class="comment">// score >= threshold</span>
+  score: <span class="keyword">number</span>;           <span class="comment">// 0-100 quality score</span>
+  threshold: <span class="keyword">number</span>;       <span class="comment">// Applied threshold (default: 60)</span>
+  task_type: <span class="keyword">string</span>;       <span class="comment">// Detected task type</span>
+  risk_level: <span class="keyword">string</span>;      <span class="comment">// 'low' | 'medium' | 'high'</span>
+  issues: Issue[];          <span class="comment">// Matched quality rules</span>
+}</div>
+
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- BENCHMARK                                                           -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <h2 id="benchmark">Benchmark</h2>
+      <p>PCP ships with a curated dataset of 15 prompts spanning all task types and quality tiers. Use it as a regression guard &mdash; scores are locked with &plusmn;3 tolerance, so any rule change that drifts scores will be caught.</p>
+
+      <h3>Running</h3>
+      <div class="code-block"><span class="comment"># Human-readable table</span>
+pcp benchmark
+
+<span class="comment"># JSON output for CI</span>
+pcp benchmark --json</div>
+
+      <h3>Dataset</h3>
+      <p>The dataset lives at <code>benchmarks/prompts.json</code> and ships in the npm package. Each prompt includes expected score (&plusmn;3), expected risk level, and expected task type. The CLI compares actual vs expected and reports regressions.</p>
+
+      <h3>CI Integration</h3>
+      <div class="code-block"><span class="comment"># Add to your CI pipeline as a regression guard</span>
+npx pcp-engine pcp benchmark --json
+<span class="comment"># Exit code 1 if any prompt regresses beyond tolerance</span></div>
 
 
       <!-- ════════════════════════════════════════════════════════════════════ -->

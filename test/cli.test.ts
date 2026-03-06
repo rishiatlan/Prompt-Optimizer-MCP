@@ -1,4 +1,4 @@
-// test/cli.test.ts — Comprehensive CLI tests for pcp (v5.3.0).
+// test/cli.test.ts — Comprehensive CLI tests for pcp (v5.3.1).
 // Spawns `node bin/pcp.js` as a child process to test real exit codes, JSON envelopes,
 // subcommand behavior, policy enforcement, and backward compatibility.
 
@@ -14,6 +14,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..', '..');
 const BIN = resolve(ROOT, 'bin', 'pcp.js');
 const LINT_BIN = resolve(ROOT, 'bin', 'lint.js');
+
+/** Read version from package.json — single source of truth for version assertions. */
+const PKG_VERSION = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf-8')).version as string;
 
 /** Run the CLI and return { stdout, stderr, exitCode }. Always captures both streams. */
 function run(
@@ -71,7 +74,7 @@ describe('1. Backward compat', () => {
   it('--version prints v5', () => {
     const { stdout, exitCode } = run(['--version']);
     assert.equal(exitCode, 0);
-    assert.ok(stdout.includes('5.3.0'));
+    assert.ok(stdout.includes(PKG_VERSION));
   });
 
   it('stdin input works', () => {
@@ -114,7 +117,7 @@ describe('2. optimize', () => {
     assert.equal(exitCode, 0);
     const data = parseJson(stdout);
     assert.ok(data.request_id, 'missing request_id');
-    assert.equal(data.version, '5.3.0');
+    assert.equal(data.version, PKG_VERSION);
     assert.equal(data.schema_version, 1);
     assert.equal(data.subcommand, 'optimize');
     assert.ok(typeof data.policy_mode === 'string');
@@ -603,7 +606,7 @@ describe('11. Envelope consistency', () => {
       const data = parseJson(stdout);
       assert.ok(data.request_id);
       assert.match(data.request_id, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
-      assert.equal(data.version, '5.3.0');
+      assert.equal(data.version, PKG_VERSION);
       assert.equal(data.schema_version, 1);
       assert.equal(data.subcommand, sub);
       assert.ok(typeof data.policy_mode === 'string');
@@ -1030,7 +1033,7 @@ describe('17. Hook subcommand', () => {
     const { stdout } = runInDir(['hook', 'status', '--json'], hookDir);
     const json = JSON.parse(stdout.trim());
     assert.ok(json.request_id, 'Has request_id');
-    assert.equal(json.version, '5.3.0');
+    assert.equal(json.version, PKG_VERSION);
     assert.equal(json.schema_version, 1);
     assert.equal(json.subcommand, 'hook');
     assert.ok('policy_mode' in json, 'Has policy_mode');
