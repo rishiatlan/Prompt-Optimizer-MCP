@@ -40,7 +40,7 @@ export const CiIntegration: React.FC = () => {
         <AbsoluteFill style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 60}}>
           <FadeIn delay={0}>
             <div style={{fontSize: 28, fontWeight: 700, color: theme.white, marginBottom: 24, textAlign: 'center'}}>
-              GitHub Action — 4 Lines
+              GitHub Action — 5 Lines
             </div>
           </FadeIn>
           <FadeIn delay={FPS * 1}>
@@ -179,7 +179,7 @@ const PrComment: React.FC = () => (
           <span style={{flex: 2, color: '#79c0ff'}}>prompts/user.txt</span>
           <span style={{flex: 1}}>42/100</span>
           <span style={{flex: 1, color: '#f85149'}}>FAIL</span>
-          <span style={{flex: 1.5, color: '#d29922'}}>vague_no_target</span>
+          <span style={{flex: 1.5, color: '#d29922'}}>vague_objective</span>
         </div>
       </div>
       <div style={{marginTop: 16, fontSize: 14, color: '#c9d1d9'}}>
