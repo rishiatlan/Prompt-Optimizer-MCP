@@ -299,6 +299,26 @@
     <div class="container">
       <div class="timeline">
 
+        <!-- ── v5.3.0 ─────────────────────────────────────────────────────── -->
+        <div class="release release-major">
+          <div class="release-card">
+            <div class="release-header">
+              <span class="release-version"><a href="https://github.com/rishi-banerjee1/prompt-control-plane/releases/tag/v5.3.0">v5.3.0</a></span>
+              <span class="release-tag release-tag-new">New</span>
+              <span class="release-date">March 6, 2026</span>
+            </div>
+            <div class="release-title">CI-First Release</div>
+            <ul class="release-changes">
+              <li><strong>GitHub Action PR Comment Bot</strong> &mdash; <code>comment: 'true'</code> posts a formatted markdown table to every PR with per-file scores, pass/fail status, and top issues. Idempotent updates via <code>&lt;!-- pcp-bot --&gt;</code> marker.</li>
+              <li><strong>Lightweight Validate API</strong> &mdash; <code>import { validate } from 'pcp-engine/validate'</code> for any Node.js backend. Zero MCP dependency.</li>
+              <li><strong>Benchmark Dataset + CLI</strong> &mdash; 15 curated prompts with locked expected scores (&plusmn;3 tolerance). <code>pcp benchmark</code> for regression testing.</li>
+              <li><strong>4 new CLI subcommands</strong> &mdash; <code>benchmark</code>, <code>demo</code>, <code>report</code>, <code>badge</code> (11 &rarr; 15 total)</li>
+              <li><strong>Product explainer video</strong> &mdash; 5-minute enterprise-ready walkthrough embedded on landing page</li>
+              <li>832 tests across 38 test files</li>
+            </ul>
+          </div>
+        </div>
+
         <!-- ── v5.1.0 ─────────────────────────────────────────────────────── -->
         <div class="release release-major">
           <div class="release-card">

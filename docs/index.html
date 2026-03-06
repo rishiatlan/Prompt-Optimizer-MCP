@@ -253,7 +253,7 @@
       <p class="subtitle">
         Lint, score, and improve prompts before they hit production &mdash; deterministic, offline, zero LLM calls.
       </p>
-      <p class="sub-subtitle">The prompt quality engine for developers. 20 MCP tools. 11 CLI commands. Works with any LLM.</p>
+      <p class="sub-subtitle">The prompt quality engine for developers. 20 MCP tools. 15 CLI commands. Works with any LLM.</p>
       <div class="badge-strip" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;">
         <a href="https://www.npmjs.com/package/pcp-engine"><img src="https://img.shields.io/npm/v/pcp-engine?style=flat-square&color=6366f1" alt="npm version"></a>
         <a href="https://www.npmjs.com/package/pcp-engine"><img src="https://img.shields.io/npm/dm/pcp-engine?style=flat-square&color=6366f1" alt="npm downloads"></a>
@@ -390,15 +390,14 @@
         <p class="section-subtitle">See a vague prompt get analyzed, improved, routed to the right model, and approved &mdash; all without a single LLM call.</p>
       </div>
       <div class="video-wrap">
-        <canvas id="pcp-canvas" width="1080" height="580"></canvas>
-        <div class="video-controls">
-          <button class="vc-btn active" id="vc-play" title="Play / Pause">&#x25B6;</button>
-          <button class="vc-btn" id="vc-restart" title="Restart">&#x21BA;</button>
-          <div class="vc-progress-wrap" id="vc-progress-wrap">
-            <div class="vc-progress-fill" id="vc-progress"></div>
-          </div>
-          <span class="vc-time" id="vc-time">0:00 / 2:00</span>
-        </div>
+        <video
+          controls
+          preload="metadata"
+          style="width:100%;border-radius:12px;background:#07080f;"
+        >
+          <source src="pcp-explainer.mp4" type="video/mp4">
+          Your browser does not support video. <a href="pcp-explainer.mp4">Download the video</a>.
+        </video>
       </div>
     </div>
   </section>
@@ -666,7 +665,7 @@
           <div style="background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:var(--green);line-height:1.7;overflow-x:auto;">$ pcp preflight "Review auth module security" --json<br><br><span style="color:var(--text-muted);">task_type: review &middot; risk: medium &middot; model: opus</span><br><span style="color:var(--text-muted);">score: 62/100 &middot; policy: advisory</span></div>
         </div>
         <div class="card" style="padding:20px;">
-          <h3 style="margin-top:0;font-size:15px;">All subcommands</h3>
+          <h3 style="margin-top:0;font-size:15px;">All 15 subcommands</h3>
           <div style="font-size:13px;line-height:1.9;color:var(--text-muted);">
             <code style="color:var(--accent);font-size:12px;">pcp preflight</code> &mdash; full pre-flight analysis<br>
             <code style="color:var(--accent);font-size:12px;">pcp optimize</code> &mdash; optimization pipeline<br>
@@ -678,7 +677,11 @@
             <code style="color:var(--accent);font-size:12px;">pcp compress</code> &mdash; context compression<br>
             <code style="color:var(--accent);font-size:12px;">pcp config</code> &mdash; show governance config<br>
             <code style="color:var(--accent);font-size:12px;">pcp doctor</code> &mdash; validate environment<br>
-            <code style="color:var(--accent);font-size:12px;">pcp hook</code> &mdash; manage auto-check hooks
+            <code style="color:var(--accent);font-size:12px;">pcp hook</code> &mdash; manage auto-check hooks<br>
+            <code style="color:var(--accent);font-size:12px;">pcp benchmark</code> &mdash; regression testing<br>
+            <code style="color:var(--accent);font-size:12px;">pcp demo</code> &mdash; interactive demo<br>
+            <code style="color:var(--accent);font-size:12px;">pcp report</code> &mdash; quality report<br>
+            <code style="color:var(--accent);font-size:12px;">pcp badge</code> &mdash; README quality badge
           </div>
         </div>
       </div>
@@ -800,7 +803,6 @@
   </footer>
 
   <script src="shared.js"></script>
-  <script src="video.js"></script>
 
   <!-- Live Demo Animation -->
   <script>
