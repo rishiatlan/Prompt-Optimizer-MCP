@@ -163,7 +163,8 @@ These are immutable coding rules. If implementation drifts from any, it's a bug.
 | `docs/plans.html` | Pricing plans comparison — 4-tier feature matrix, FAQ, CTA |
 | `docs/contact.html` | Enterprise contact form — Formspree integration, thank-you redirect |
 | `docs/thank-you.html` | Post-form confirmation — next steps, noindex |
-| `docs/how-i-built-this.html` | Blog post — "From Idea to Product in 49 Hours" |
+| `docs/how-i-built-this.html` | Blog post — "From Idea to Product in 49 Hours" — **DARK PAGE** (direct URL only, noindex) |
+| `docs/blog.html` | Blog index listing — **DARK PAGE** (direct URL only, noindex) |
 | `docs/shared.css` | Shared design system — dark/light tokens, nav, footer, cards, grids, pricing |
 | `docs/shared.js` | Theme toggle (localStorage), mobile nav hamburger |
 | `action.yml` | GitHub Action — composite action with check/preflight/score subcommands, PR comment bot, step summary |
@@ -287,17 +288,23 @@ wrangler pages deploy docs/ --project-name getpcp
 
 **Never do one without the other.** GitHub is the source of truth; Cloudflare is the live site. They diverge silently if you only push to one.
 
-### Dark Page: `how-i-built-this.html`
+### Dark Pages
 
-**`how-i-built-this.html` is a dark page** — intentionally private, accessible only via direct URL at `https://getpcp.site/how-i-built-this.html`. It must NEVER be discovered via search, npm distribution, or link. Access control:
+Two pages are intentionally private — accessible only via direct URL. They must NEVER be linked from nav, footer, or any public page.
 
+**`how-i-built-this.html`** — "From Idea to Product in 49 Hours" blog post
+**`blog.html`** — Blog index listing
+
+Access controls for both:
 - **Search engine:** `<meta name="robots" content="noindex, nofollow">` — prevents indexing
-- **npm tarball:** Excluded via `.npmignore` → `docs/` — the file never ships to npm
-- **Website navigation:** No footer or header links point to it (removed from all pages)
-- **Git history:** Safe — file is in repo, but not prominently linked anywhere
-- **URL-only access:** Only users with the direct URL can access it
+- **npm tarball:** Excluded via `.npmignore` → `docs/` — never ships to npm
+- **Website navigation:** Zero nav/footer links (removed in v4.0.2 changelog)
+- **Git history:** Safe — files exist in repo but not prominently linked anywhere
+- **URL-only access:** Only users with the direct URL can access them
 
-If future updates to `how-i-built-this.html` are needed, ensure these protections remain intact.
+**NEVER add blog.html or how-i-built-this.html to any footer Resources section, nav, or sitemap.**
+
+If future updates to either dark page are needed, ensure these protections remain intact.
 
 ## npm Publishing
 

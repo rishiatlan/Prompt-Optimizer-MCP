@@ -299,6 +299,23 @@
     <div class="container">
       <div class="timeline">
 
+        <!-- ── v5.3.3 ─────────────────────────────────────────────────────── -->
+        <div class="release release-patch">
+          <div class="release-card">
+            <div class="release-header">
+              <span class="release-version"><a href="https://github.com/rishi-banerjee1/prompt-control-plane/releases/tag/v5.3.3">v5.3.3</a></span>
+              <span class="release-tag release-tag-fix">Fix</span>
+              <span class="release-date">March 6, 2026</span>
+            </div>
+            <div class="release-title">Dependency Updates</div>
+            <ul class="release-changes">
+              <li><strong>zod</strong> &mdash; upgraded from 3.25.76 to 4.3.6</li>
+              <li><strong>@types/node</strong> &mdash; upgraded from 22.19.11 to 25.3.5 (dev)</li>
+              <li><strong>CI actions</strong> &mdash; setup-node v4 &rarr; v6, codeql-action v3 &rarr; v4, github-script v7 &rarr; v8</li>
+            </ul>
+          </div>
+        </div>
+
         <!-- ── v5.3.2 ─────────────────────────────────────────────────────── -->
         <div class="release release-patch">
           <div class="release-card">
@@ -354,6 +371,54 @@
               <li><strong>4 new CLI subcommands</strong> &mdash; <code>benchmark</code>, <code>demo</code>, <code>report</code>, <code>badge</code> (11 &rarr; 15 total)</li>
               <li><strong>Product explainer video</strong> &mdash; 5-minute enterprise-ready walkthrough embedded on landing page</li>
               <li>832 tests across 38 test files</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── v5.2.1 ─────────────────────────────────────────────────────── -->
+        <div class="release release-patch">
+          <div class="release-card">
+            <div class="release-header">
+              <span class="release-version"><a href="https://github.com/rishi-banerjee1/prompt-control-plane/releases/tag/v5.2.1">v5.2.1</a></span>
+              <span class="release-tag release-tag-fix">Fix</span>
+              <span class="release-date">March 4, 2026</span>
+            </div>
+            <div class="release-title">GitHub Format &amp; Docs Fixes</div>
+            <ul class="release-changes">
+              <li><strong>GitHub format fix</strong> &mdash; <code>--format github</code>: confidence now reads from lint result instead of hardcoded <code>n/a</code></li>
+              <li><strong>Severity fix</strong> &mdash; Passing prompts now emit <code>::notice</code> instead of <code>::warning</code> (correct severity level)</li>
+              <li><strong>Annotation fix</strong> &mdash; Confidence included in error annotations too</li>
+              <li><strong>README</strong> &mdash; Added <code>pcp demo</code>, <code>pcp badge</code>, <code>pcp report</code> to CLI examples; <code>demo</code>/<code>badge</code>/<code>report</code> now listed under &ldquo;All subcommands&rdquo;</li>
+              <li><strong>README</strong> &mdash; Added <code>--format github</code>, <code>--warn-only</code>, <code>--output</code> CI flags documentation</li>
+              <li><strong>README</strong> &mdash; Architecture diagram upgraded from ASCII art to Mermaid flowchart</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── v5.2.0 ─────────────────────────────────────────────────────── -->
+        <div class="release release-major">
+          <div class="release-card">
+            <div class="release-header">
+              <span class="release-version"><a href="https://github.com/rishi-banerjee1/prompt-control-plane/releases/tag/v5.2.0">v5.2.0</a></span>
+              <span class="release-tag release-tag-new">New</span>
+              <span class="release-date">March 4, 2026</span>
+            </div>
+            <div class="release-title">CLI Expansion + Modular Architecture</div>
+            <ul class="release-changes">
+              <li><strong><code>pcp demo</code></strong> &mdash; Guided first-run experience with example prompts</li>
+              <li><strong><code>pcp badge</code></strong> &mdash; Generates shields.io PQS badge markdown for README</li>
+              <li><strong><code>pcp report</code></strong> &mdash; Produces <code>prompt-quality.json</code> + <code>prompt-quality.md</code> artifacts</li>
+              <li><strong><code>--format github</code></strong> &mdash; Outputs <code>::warning</code>/<code>::error</code> annotations for PR inline display</li>
+              <li><strong><code>--warn-only</code></strong> &mdash; Advisory CI mode (exit 0 even on failures)</li>
+              <li><strong><code>--output &lt;dir&gt;</code></strong> &mdash; Custom output directory for report files</li>
+              <li><strong>GitHub Action step summary</strong> &mdash; Markdown quality table in <code>$GITHUB_STEP_SUMMARY</code></li>
+              <li><strong>Confidence levels</strong> &mdash; Shown in check, score, and preflight human output</li>
+              <li><strong>PQS branding</strong> &mdash; &ldquo;Prompt Quality Score&rdquo; consistent branding throughout CLI output</li>
+              <li><strong>Modular tools architecture</strong> &mdash; Split 1957-line <code>tools.ts</code> into 6 focused files in <code>src/tools/</code></li>
+              <li><strong>MIGRATION.md</strong> &mdash; Step-by-step migration guide from old package names</li>
+              <li><strong>PQS_SPEC.md</strong> &mdash; Formal scoring specification</li>
+              <li><strong>Examples directory</strong> &mdash; 6 real-world prompt examples covering various quality levels</li>
+              <li>8 golden snapshot tests for CLI output format stability</li>
             </ul>
           </div>
         </div>
@@ -717,6 +782,7 @@
         <div class="footer-col">
           <h4>Resources</h4>
           <a href="changelog.html">Changelog</a>
+          <a href="models.html">Models</a>
           <a href="https://github.com/rishi-banerjee1/prompt-control-plane">GitHub</a>
           <a href="https://www.npmjs.com/package/pcp-engine">npm</a>
         </div>

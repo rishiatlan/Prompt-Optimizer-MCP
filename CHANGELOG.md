@@ -1,5 +1,51 @@
 # Changelog
 
+## [5.3.3] - 2026-03-06
+
+### Changed
+- Dependency: zod upgraded from 3.25.76 to 4.3.6
+- Dependency: @types/node upgraded from 22.19.11 to 25.3.5 (dev)
+- CI: actions/setup-node bumped to v6, github/codeql-action to v4, actions/github-script to v8
+
+## [5.3.2] - 2026-03-06
+
+### Fixed
+- Enterprise Console: nav structure corrected to match standard pattern
+- Enterprise Console: audit file path corrected (`audit.jsonl` → `audit.log`)
+- Enterprise Console: `save_custom_rules` event type added to audit filter
+- Enterprise Console: footer standardized
+- CI docs: wrong `npx pcp-engine pcp check` commands corrected (should be `pcp check` after global install)
+- features.html: SVG provider count corrected from 5 to 4
+- models.html: pricing date updated to March 2026 (was February)
+
+## [5.3.1] - 2026-03-06
+
+### Fixed
+- Cost comparison: negative savings now correctly shown as "X% more expensive" instead of clamping to "Comparable cost"
+- Model count: corrected from 11 to 10 across all pages (matches actual PRICING_DATA: 3 Anthropic + 3 OpenAI + 2 Google + 2 Perplexity)
+- Free tier display: why.html and terms.html now correctly show 50 optimizations/month (was stale "10 lifetime" from pre-v5.1.0)
+- Nav: standardized across all 15 pages to canonical set (Features | Models | Docs | Pricing | Changelog)
+- docs.html: Added Validate API, Benchmark, and PR Comment Bot sections; added 4 missing CLI subcommands to reference table
+- Pricing version updated to 2026-03
+
+## [5.3.0] - 2026-03-06
+
+### Added — CI-First Release
+- **GitHub Action PR Comment Bot**: `comment: 'true'` posts a formatted markdown table to every PR. Idempotent updates via `<!-- pcp-bot -->` marker. Graceful fork PR handling (catches 403, emits `core.notice()`).
+- **Lightweight Validate API**: `import { validate } from 'pcp-engine/validate'` for any Node.js backend — zero MCP dependency. Returns `{ pass, score, threshold, task_type, risk_level, issues[] }`.
+- **Benchmark Dataset**: `benchmarks/prompts.json` — 15 curated prompts with locked expected scores (±3 tolerance), risk levels, and task types.
+- **`pcp benchmark`**: Regression testing CLI command — runs all 15 benchmark prompts, compares actual vs expected, reports failures.
+- **4 new CLI subcommands**: `benchmark`, `demo`, `report`, `badge` — total CLI subcommands: 11 → 15
+- **Product explainer video**: 5-minute enterprise-ready walkthrough embedded on landing page
+
+### Changed
+- 832 tests across 38 test files
+
+### Notes
+- Architecture constraint preserved: **zero LLM calls inside. Deterministic. Offline. Reproducible.**
+- `benchmarks/` ships in npm package (`files` array).
+- Package export: `exports["./validate"]` → `dist/src/validate.js`
+
 ## [5.2.1] - 2026-03-04
 
 ### Fixed
