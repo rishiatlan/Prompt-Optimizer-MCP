@@ -147,7 +147,7 @@ runs:
 
     # Step 2: Post PR comment (opt-in, runs even if step 1 fails)
     - if: always() && inputs.comment == 'true' && github.event_name == 'pull_request'
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         github-token: ${{ inputs.token }}
         script: |
