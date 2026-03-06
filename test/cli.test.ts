@@ -1,4 +1,4 @@
-// test/cli.test.ts — Comprehensive CLI tests for pcp (v5.3.1).
+// test/cli.test.ts — Comprehensive CLI tests for pcp (v5.3.2).
 // Spawns `node bin/pcp.js` as a child process to test real exit codes, JSON envelopes,
 // subcommand behavior, policy enforcement, and backward compatibility.
 

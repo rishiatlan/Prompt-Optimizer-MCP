@@ -46,7 +46,7 @@ export const CiIntegration: React.FC = () => {
           <FadeIn delay={FPS * 1}>
             <CodeBlock
               language=".github/workflows/prompt-lint.yml"
-              code={`- uses: rishi-banerjee1/prompt-control-plane@v5.3.1
+              code={`- uses: rishi-banerjee1/prompt-control-plane@v5.3.2
   with:
     files: 'prompts/**/*.txt'
     subcommand: preflight
