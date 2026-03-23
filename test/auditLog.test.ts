@@ -3,6 +3,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs/promises';
+import { mkdtempSync } from 'node:fs';
 import * as path from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID, createHash } from 'node:crypto';
@@ -22,7 +23,7 @@ function makeEntry(overrides: Partial<AuditEntry> = {}): AuditEntry {
 
 describe('AuditLogger', async () => {
   it('1. appends JSONL line to audit.log', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry());
 
@@ -36,7 +37,7 @@ describe('AuditLogger', async () => {
   });
 
   it('2. appends multiple entries as separate JSONL lines', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry({ event: 'optimize' }));
     await logger.append(makeEntry({ event: 'approve' }));
@@ -53,7 +54,7 @@ describe('AuditLogger', async () => {
   });
 
   it('3. each line is valid JSON with required fields', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     const entry = makeEntry({
       session_id: 'sess-123',
@@ -74,7 +75,7 @@ describe('AuditLogger', async () => {
   });
 
   it('4. timestamp is ISO 8601 format', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry());
 
@@ -93,18 +94,19 @@ describe('AuditLogger', async () => {
   });
 
   it('6. creates directory if missing', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`, 'nested');
+    const parentDir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
+    const dir = path.join(parentDir, 'nested');
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry());
 
     const exists = await fs.stat(path.join(dir, 'audit.log')).then(() => true).catch(() => false);
     assert.ok(exists);
 
-    await fs.rm(path.join(tmpdir(), path.basename(path.dirname(dir))), { recursive: true });
+    await fs.rm(parentDir, { recursive: true });
   });
 
   it('7. readAll returns all entries', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry({ event: 'optimize' }));
     await logger.append(makeEntry({ event: 'approve' }));
@@ -118,7 +120,7 @@ describe('AuditLogger', async () => {
   });
 
   it('8. readAll returns empty for missing file', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
 
     const entries = await logger.readAll();
@@ -126,7 +128,7 @@ describe('AuditLogger', async () => {
   });
 
   it('9. details field capped at 10 keys', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
 
     const details: Record<string, string> = {};
@@ -145,7 +147,7 @@ describe('AuditLogger', async () => {
   });
 
   it('10. audit entries never contain prompt content', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry({
       task_type: 'code_change',
@@ -170,7 +172,7 @@ describe('AuditLogger', async () => {
   });
 
   it('12. details values typed as string | number | boolean', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry({
       details: { str: 'hello', num: 42, bool: true },
@@ -188,7 +190,7 @@ describe('AuditLogger', async () => {
   // ─── Hash Chaining Tests ──────────────────────────────────────────────────
 
   it('13. first entry chains from GENESIS_HASH', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry());
 
@@ -207,7 +209,7 @@ describe('AuditLogger', async () => {
   });
 
   it('14. second entry chains from first entry hash', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry({ event: 'optimize' }));
     await logger.append(makeEntry({ event: 'approve' }));
@@ -229,7 +231,7 @@ describe('AuditLogger', async () => {
   });
 
   it('15. verifyChain returns valid for clean chain', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry({ event: 'optimize' }));
     await logger.append(makeEntry({ event: 'approve' }));
@@ -243,7 +245,7 @@ describe('AuditLogger', async () => {
   });
 
   it('16. verifyChain detects tampered entry', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
     await logger.append(makeEntry({ event: 'optimize' }));
     await logger.append(makeEntry({ event: 'approve' }));
@@ -266,7 +268,7 @@ describe('AuditLogger', async () => {
   });
 
   it('17. verifyChain returns valid for empty log', async () => {
-    const dir = path.join(tmpdir(), `audit-test-${randomUUID()}`);
+    const dir = mkdtempSync(path.join(tmpdir(), 'audit-test-'));
     const logger = new AuditLogger(dir);
 
     const result = await logger.verifyChain();

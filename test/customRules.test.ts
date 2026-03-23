@@ -4,8 +4,8 @@
 import { test } from 'node:test';
 import * as assert from 'node:assert';
 import * as fs from 'node:fs/promises';
+import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { randomUUID } from 'node:crypto';
 import * as path from 'node:path';
 import { CustomRulesManager } from '../src/customRules.js';
 import type { CustomRule, TaskType } from '../src/types.js';
@@ -13,8 +13,7 @@ import type { CustomRule, TaskType } from '../src/types.js';
 // ─── File I/O Tests (3) ─────────────────────────────────────────────────────
 
 test('File I/O: Load rules from valid JSON file', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
 
@@ -45,8 +44,7 @@ test('File I/O: Load rules from valid JSON file', async () => {
 });
 
 test('File I/O: Handle missing file (return empty array)', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const rules = await manager.loadRules();
@@ -56,8 +54,7 @@ test('File I/O: Handle missing file (return empty array)', async () => {
 });
 
 test('File I/O: Handle JSON parse error (return empty array, log error)', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const filePath = path.join(tempDir, 'custom-rules.json');
@@ -176,8 +173,7 @@ test('Regex Safety: Reject pattern exceeding 500 chars', () => {
 });
 
 test('Regex Safety: Skip rule with invalid regex (try/catch)', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const config = {
@@ -225,8 +221,7 @@ test('Regex Safety: Validate negative_pattern (optional, max 500 chars)', () => 
 // ─── Determinism Tests (4) ──────────────────────────────────────────────────
 
 test('Determinism: Rules sorted by ID after load', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const config = {
@@ -265,8 +260,7 @@ test('Determinism: Rules sorted by ID after load', async () => {
 });
 
 test('Determinism: Rule-set hash consistent across loads', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const config = {
@@ -320,8 +314,7 @@ test('Determinism: Rule-set hash includes all fields in exact order', async () =
 });
 
 test('Determinism: Max 5 decision_path annotations enforced', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   // Test that decision_path capping is part of integration
@@ -334,8 +327,7 @@ test('Determinism: Max 5 decision_path annotations enforced', async () => {
 // ─── Integration Tests (3) ──────────────────────────────────────────────────
 
 test('Integration: Export metadata includes custom_rules_applied array', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const config = {
@@ -426,8 +418,7 @@ test('Integration: applies_to enum (code, prose, all) constrains rule scope', ()
 // ─── Edge Cases Tests (2) ───────────────────────────────────────────────────
 
 test('Edge Cases: Empty rules file', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const config = {
@@ -446,8 +437,7 @@ test('Edge Cases: Empty rules file', async () => {
 });
 
 test('Edge Cases: Max 25 rules enforced on load', async () => {
-  const tempDir = path.join(tmpdir(), `custom-rules-test-${randomUUID()}`);
-  await fs.mkdir(tempDir, { recursive: true });
+  const tempDir = mkdtempSync(path.join(tmpdir(), 'custom-rules-test-'));
 
   const manager = new CustomRulesManager(tempDir);
   const rules: CustomRule[] = Array.from({ length: 26 }, (_, i) => ({

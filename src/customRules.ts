@@ -4,14 +4,14 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
-import { platform } from 'node:os';
+import { platform, homedir } from 'node:os';
 import { log } from './logger.js';
 import type { CustomRule, CustomRulesConfig, TaskType, RuleMatch } from './types.js';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
 const DEFAULT_DATA_DIR = path.join(
-  process.env.HOME || process.env.USERPROFILE || '/tmp',
+  homedir(),
   '.prompt-control-plane',
 );
 

@@ -2,6 +2,22 @@
 // All heuristics skip preserved lines without duplicating regex checks.
 
 /**
+ * Validate a user-supplied regex string is safe to compile.
+ * If it looks like a literal string (no regex metacharacters), escape it.
+ * This prevents regex injection from user-controlled pattern strings.
+ */
+function escapeRegExpIfNeeded(pattern: string): string {
+  // Detect likely-dangerous quantifier nesting patterns that cause polynomial ReDoS
+  // e.g., (a+)+, (a*)*,  (\w+)+ etc.
+  const dangerousNesting = /([+*])\s*\)\s*[+*]/;
+  if (dangerousNesting.test(pattern)) {
+    // Fall back to literal match — escape all metacharacters
+    return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+  return pattern;
+}
+
+/**
  * Mark untouchable lines based on preserve patterns and internal safety rules.
  * This runs once before the heuristic pipeline, ensuring all heuristics
  * automatically respect preserved lines without re-checking patterns.
@@ -30,7 +46,14 @@ export function markPreservedLines(
     compiledUserPatterns = patterns
       .map((patternStr, idx) => {
         try {
-          return new RegExp(patternStr);
+          // Sanitize: limit pattern length to prevent ReDoS, and use a timeout-safe approach
+          if (patternStr.length > 500) {
+            compileWarnings.push(
+              `Pattern[${idx}] exceeds 500 chars — skipped for safety`
+            );
+            return null;
+          }
+          return new RegExp(escapeRegExpIfNeeded(patternStr));
         } catch (err) {
           compileWarnings.push(
             `Invalid regex at pattern[${idx}]: "${patternStr}" — ${

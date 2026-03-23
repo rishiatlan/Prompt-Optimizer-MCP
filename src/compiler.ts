@@ -474,7 +474,8 @@ function applyLegacyCompression(context: string): { compressed: string; removed:
   const originalLength = context.length;
 
   // Remove import blocks (keep first 5 lines of imports, summarize the rest)
-  const importBlockPattern = /^(import\s+.*\n){6,}/gm;
+  // Use [^\n]* instead of .* to prevent cross-line backtracking (ReDoS safe)
+  const importBlockPattern = /^(?:import\s[^\n]*\n){6,}/gm;
   compressed = compressed.replace(importBlockPattern, (match) => {
     const lines = match.trim().split('\n');
     removed.push(`Trimmed ${lines.length - 5} import statements (kept first 5)`);

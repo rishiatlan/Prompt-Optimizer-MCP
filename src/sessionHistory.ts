@@ -5,6 +5,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
+import { homedir } from 'node:os';
 import { log } from './logger.js';
 import { customRules } from './customRules.js';
 import { runRules, computeRiskScore, calculateBuiltInRuleSetHash, RULES_VERSION } from './rules.js';
@@ -20,7 +21,7 @@ import type {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const DEFAULT_DATA_DIR = path.join(
-  process.env.HOME || process.env.USERPROFILE || '/tmp',
+  homedir(),
   '.prompt-control-plane',
 );
 

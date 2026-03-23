@@ -6,7 +6,6 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import * as crypto from 'node:crypto';
 import { LocalFsStorage } from '../src/storage/localFs.js';
 import { PLAN_LIMITS } from '../src/types.js';
 import type { OptimizerConfig, Tier } from '../src/types.js';
@@ -14,8 +13,7 @@ import type { OptimizerConfig, Tier } from '../src/types.js';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function makeTempStorage(): { storage: LocalFsStorage; dir: string } {
-  const dir = path.join(os.tmpdir(), `tier-gate-test-${crypto.randomUUID()}`);
-  fs.mkdirSync(dir, { recursive: true });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tier-gate-test-'));
   const storage = new LocalFsStorage(dir);
   return { storage, dir };
 }
