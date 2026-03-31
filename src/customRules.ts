@@ -3,7 +3,7 @@
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { platform, homedir } from 'node:os';
 import { log } from './logger.js';
 import type { CustomRule, CustomRulesConfig, TaskType, RuleMatch } from './types.js';
@@ -370,19 +370,14 @@ export class CustomRulesManager {
       rules: sorted,
     };
 
-    // 5. Write to disk
+    // 5. Atomic write: exclusive-create temp file + rename (CodeQL js/insecure-temporary-file)
+    // 'wx' flag = O_CREAT | O_EXCL | O_WRONLY — fails if file already exists, preventing symlink attacks
     await fs.mkdir(this.dataDir, { recursive: true });
     const filePath = path.join(this.dataDir, 'custom-rules.json');
-    await fs.writeFile(filePath, JSON.stringify(config, null, 2), 'utf-8');
-
-    // 6. Set file permissions (chmod 600 on POSIX — same pattern as license.ts)
-    if (platform() !== 'win32') {
-      try {
-        await fs.chmod(filePath, 0o600);
-      } catch {
-        // Best-effort — skip on permission errors (e.g., some CI envs)
-      }
-    }
+    const tmpPath = filePath + `.tmp-${randomBytes(8).toString('hex')}`;
+    const mode = platform() !== 'win32' ? 0o600 : undefined;
+    await fs.writeFile(tmpPath, JSON.stringify(config, null, 2), { encoding: 'utf-8', flag: 'wx', ...(mode !== undefined && { mode }) });
+    await fs.rename(tmpPath, filePath);
 
     // 7. Return confirmation with hash
     const hash = this.calculateRuleSetHash(sorted);

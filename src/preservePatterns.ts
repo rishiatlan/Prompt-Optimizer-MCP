@@ -2,18 +2,40 @@
 // All heuristics skip preserved lines without duplicating regex checks.
 
 /**
+ * Escape all regex metacharacters in a string for use as a literal match.
+ */
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Validate a user-supplied regex string is safe to compile.
- * If it looks like a literal string (no regex metacharacters), escape it.
- * This prevents regex injection from user-controlled pattern strings.
+ * Rejects patterns with known ReDoS-prone constructs and falls back to
+ * literal matching. This prevents regex injection from user-controlled
+ * pattern strings (CodeQL #20 js/regex-injection).
  */
 function escapeRegExpIfNeeded(pattern: string): string {
-  // Detect likely-dangerous quantifier nesting patterns that cause polynomial ReDoS
-  // e.g., (a+)+, (a*)*,  (\w+)+ etc.
-  const dangerousNesting = /([+*])\s*\)\s*[+*]/;
-  if (dangerousNesting.test(pattern)) {
-    // Fall back to literal match — escape all metacharacters
-    return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Detect dangerous constructs that cause polynomial/exponential backtracking:
+  // - Nested quantifiers: (a+)+, (a*)+, (\w+)*, etc.
+  // - Overlapping alternations with quantifiers
+  const dangerousPatterns = [
+    /([+*])\s*\)\s*[+*]/,            // Nested quantifiers: (a+)+
+    /([+*])\s*\}\s*[+*]/,            // Nested quantifiers with {}: {2,}+
+    /\(\?[^)]*[+*][^)]*\|[^)]*[+*]/, // Overlapping alternation with quantifiers
+    /\\[bBdDwWsS]\s*[+*].*\\[bBdDwWsS]\s*[+*]/, // Adjacent char-class quantifiers
+  ];
+
+  for (const dp of dangerousPatterns) {
+    if (dp.test(pattern)) {
+      return escapeRegExp(pattern);
+    }
   }
+
+  // If no regex metacharacters present, it's a literal — escape to be safe
+  if (!/[.*+?^${}()|[\]\\]/.test(pattern)) {
+    return escapeRegExp(pattern);
+  }
+
   return pattern;
 }
 

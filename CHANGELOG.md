@@ -6,6 +6,10 @@
 - **Fixed:** path-to-regexp DoS via sequential optional groups (GHSA-j3q9-mxjg-w52f, high severity)
 - **Fixed:** path-to-regexp ReDoS via multiple wildcards (GHSA-27v5-c462-wpq7, medium severity)
 - Transitive dependency `path-to-regexp` upgraded from 8.3.0 to 8.4.1 (via `router` → `express` → `@modelcontextprotocol/sdk`)
+- **Fixed:** Polynomial ReDoS in `analyzer.ts` multi-step pattern (CodeQL js/polynomial-redos) — bounded quantifiers + sentence-boundary anchor
+- **Fixed:** Insecure temp file creation in `sessionHistory.ts` and `customRules.ts` (CodeQL js/insecure-temporary-file) — atomic write via exclusive-create temp + rename
+- **Fixed:** Regex injection in `preservePatterns.ts` user patterns (CodeQL js/regex-injection) — expanded dangerous pattern detection
+- **Fixed:** Missing regex anchor in `test/cli.test.ts` (CodeQL js/regex/missing-regexp-anchor)
 
 ### Changed
 - Dependency: @modelcontextprotocol/sdk upgraded from ^1.25.2 to ^1.29.0

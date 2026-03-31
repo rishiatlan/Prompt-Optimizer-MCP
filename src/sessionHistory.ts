@@ -3,8 +3,9 @@
 // No auto-purge (manual deletion only).
 
 import * as fs from 'node:fs/promises';
+import { constants as fsConstants } from 'node:fs';
 import * as path from 'node:path';
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { homedir } from 'node:os';
 import { log } from './logger.js';
 import { customRules } from './customRules.js';
@@ -56,8 +57,12 @@ export class SessionHistoryManager {
       const sessionId = sanitizeSessionId(session.id);
       const sessionPath = path.join(this.dataDir, `session-${sessionId}.json`);
 
+      // Atomic write: exclusive-create temp file + rename (CodeQL js/insecure-temporary-file)
+      // 'wx' flag = O_CREAT | O_EXCL | O_WRONLY — fails if file already exists, preventing symlink attacks
+      const tmpPath = sessionPath + `.tmp-${randomBytes(8).toString('hex')}`;
       const data = JSON.stringify(session, null, 2);
-      await fs.writeFile(sessionPath, data, 'utf8');
+      await fs.writeFile(tmpPath, data, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+      await fs.rename(tmpPath, sessionPath);
 
       log.debug('sessionHistory', `Saved session ${sessionId}`);
       return true;

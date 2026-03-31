@@ -462,7 +462,7 @@ const AGENT_PATTERNS = [
 ];
 const MULTI_STEP_PATTERNS = [
   /\b(?:first|second|third|then|after\s{1,10}that|next|finally)\b/gi,
-  /\d+\.\s{1,10}\w/g,
+  /(?:^|[.;)\]}\n]\s{0,5})\d{1,5}\.\s{1,5}\w/g,  // Bounded quantifiers + anchored to sentence boundary (CodeQL #2)
   /\bstep\s{1,10}\d+/gi,
 ];
 const CREATIVE_PATTERNS = [
