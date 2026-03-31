@@ -1108,7 +1108,12 @@ describe('Snapshot: CLI output formats', () => {
     const { stdout, exitCode } = run(['badge', VAGUE_SNAP]);
     assert.equal(exitCode, 0);
     assert.match(stdout, /!\[PQS\]/);
-    assert.ok(stdout.includes('https://img.shields.io/'));
+    // Validate badge URL structure: must start with shields.io badge markdown pattern
+    // Using URL constructor to avoid CodeQL js/incomplete-url-substring-sanitization
+    const urlMatch = stdout.match(/\((https:\/\/[^)]+)\)/);
+    assert.ok(urlMatch, 'Badge markdown should contain a URL');
+    const badgeUrl = new URL(urlMatch![1]);
+    assert.equal(badgeUrl.hostname, 'img.shields.io', 'Badge URL must be from img.shields.io');
   });
 
   it('--format github outputs annotations', () => {
