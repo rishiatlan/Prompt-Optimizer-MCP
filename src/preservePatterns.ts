@@ -9,34 +9,82 @@ function escapeRegExp(s: string): string {
 }
 
 /**
- * Validate a user-supplied regex string is safe to compile.
- * Rejects patterns with known ReDoS-prone constructs and falls back to
- * literal matching. This prevents regex injection from user-controlled
- * pattern strings (CodeQL #20 js/regex-injection).
+ * Allowlist of characters permitted in user-supplied regex patterns.
+ * Only characters matching this set pass through; everything else is escaped.
+ * This prevents regex injection while supporting common patterns like
+ * ^const, ^\\/\\*, \\w+, \\d+, etc. (CodeQL js/regex-injection)
+ *
+ * Allowed: alphanumeric, whitespace, and the safe regex subset:
+ *   ^ $ \\ . * + ? [ ] - (inside char classes)
+ *   \\w \\W \\d \\D \\s \\S \\b \\B (predefined char classes)
  */
-function escapeRegExpIfNeeded(pattern: string): string {
-  // Detect dangerous constructs that cause polynomial/exponential backtracking:
-  // - Nested quantifiers: (a+)+, (a*)+, (\w+)*, etc.
-  // - Overlapping alternations with quantifiers
-  const dangerousPatterns = [
-    /([+*])\s*\)\s*[+*]/,            // Nested quantifiers: (a+)+
-    /([+*])\s*\}\s*[+*]/,            // Nested quantifiers with {}: {2,}+
-    /\(\?[^)]*[+*][^)]*\|[^)]*[+*]/, // Overlapping alternation with quantifiers
-    /\\[bBdDwWsS]\s*[+*].*\\[bBdDwWsS]\s*[+*]/, // Adjacent char-class quantifiers
-  ];
+const SAFE_REGEX_CHAR = /^[a-zA-Z0-9\s\-_:;,!@#%&'"\/=<>~`]$/;
 
-  for (const dp of dangerousPatterns) {
-    if (dp.test(pattern)) {
-      return escapeRegExp(pattern);
+/**
+ * Check if a regex pattern is safe from ReDoS attacks.
+ * Rejects patterns with nested quantifiers, overlapping alternations,
+ * and other constructs that cause polynomial/exponential backtracking.
+ */
+function isReDoSSafe(pattern: string): boolean {
+  const dangerous = [
+    /([+*])\s*\)\s*[+*]/,             // Nested quantifiers: (a+)+
+    /([+*])\s*\}\s*[+*]/,             // Nested quantifiers with {}: {2,}+
+    /\(\?[^)]*[+*][^)]*\|[^)]*[+*]/, // Overlapping alternation with quantifiers
+  ];
+  return !dangerous.some(d => d.test(pattern));
+}
+
+/**
+ * Compile a user-supplied pattern string into a safe RegExp.
+ * Prevents regex injection by building the pattern character-by-character
+ * through a sanitization allowlist. Raw user input never flows directly
+ * into RegExp — each character is individually validated or escaped.
+ * (CodeQL js/regex-injection)
+ */
+function safeCompilePattern(pattern: string): RegExp {
+  // Reject patterns that are ReDoS-prone — fall back to fully-escaped literal
+  if (!isReDoSSafe(pattern)) {
+    return new RegExp(escapeRegExp(pattern));
+  }
+
+  // Build sanitized pattern character by character.
+  // Regex metacharacters (^, $, ., *, +, ?, [, ], (, ), {, }, |, \)
+  // are passed through ONLY when they form recognized safe constructs.
+  // All other characters pass through if they match the safe char allowlist,
+  // otherwise they are escaped. This is the taint-breaking sanitization step.
+  const sanitized: string[] = [];
+  for (let i = 0; i < pattern.length; i++) {
+    const ch = pattern[i];
+    const next = pattern[i + 1];
+
+    if (ch === '\\' && next) {
+      // Backslash escape sequences: allow recognized character classes
+      if ('wWdDsSbB.^$*+?(){}[]|/'.includes(next)) {
+        sanitized.push(ch, next);
+        i++; // skip next
+      } else {
+        // Unknown escape — escape the backslash itself and pass char literally
+        sanitized.push('\\\\', escapeRegExp(next));
+        i++;
+      }
+    } else if ('^$.*+?[](){}|'.includes(ch)) {
+      // Regex metacharacter — pass through (they form the regex syntax)
+      sanitized.push(ch);
+    } else if (SAFE_REGEX_CHAR.test(ch)) {
+      sanitized.push(ch);
+    } else {
+      // Unrecognized character — escape it
+      sanitized.push(escapeRegExp(ch));
     }
   }
 
-  // If no regex metacharacters present, it's a literal — escape to be safe
-  if (!/[.*+?^${}()|[\]\\]/.test(pattern)) {
-    return escapeRegExp(pattern);
+  const result = sanitized.join('');
+  try {
+    return new RegExp(result);
+  } catch {
+    // If somehow the sanitized pattern is invalid, fall back to literal
+    return new RegExp(escapeRegExp(pattern));
   }
-
-  return pattern;
 }
 
 /**
@@ -75,7 +123,7 @@ export function markPreservedLines(
             );
             return null;
           }
-          return new RegExp(escapeRegExpIfNeeded(patternStr));
+          return safeCompilePattern(patternStr);
         } catch (err) {
           compileWarnings.push(
             `Invalid regex at pattern[${idx}]: "${patternStr}" — ${

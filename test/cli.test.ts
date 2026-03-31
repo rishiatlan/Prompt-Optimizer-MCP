@@ -1108,7 +1108,7 @@ describe('Snapshot: CLI output formats', () => {
     const { stdout, exitCode } = run(['badge', VAGUE_SNAP]);
     assert.equal(exitCode, 0);
     assert.match(stdout, /!\[PQS\]/);
-    assert.ok(stdout.includes('img.shields.io/'));
+    assert.ok(stdout.includes('https://img.shields.io/'));
   });
 
   it('--format github outputs annotations', () => {

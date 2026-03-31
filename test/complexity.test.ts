@@ -107,6 +107,18 @@ describe('classifyComplexity: multi_step', () => {
     const result = classifyComplexity('First do X, then do Y');
     assert.notEqual(result.complexity, 'multi_step');
   });
+
+  // Security regression: ReDoS prevention (CodeQL js/polynomial-redos)
+  it('adversarial input with long digit sequences does not cause ReDoS', () => {
+    // This input would cause polynomial backtracking with the old unbounded regex
+    const adversarial = '9'.repeat(50000) + ' some text. 1. step one. 2. step two. 3. step three. 4. step four.';
+    const start = Date.now();
+    const result = classifyComplexity(adversarial);
+    const elapsed = Date.now() - start;
+    // Should complete in well under 1 second, not hang on backtracking
+    assert.ok(elapsed < 1000, `Regex should not backtrack — took ${elapsed}ms`);
+    assert.ok(result.complexity !== undefined);
+  });
 });
 
 // ─── creative ──────────────────────────────────────────────────────────────

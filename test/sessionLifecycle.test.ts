@@ -269,4 +269,43 @@ describe('sessionLifecycle', async () => {
 
     await fs.rm(dir, { recursive: true });
   });
+
+  // ─── Security regression: atomic write (CodeQL js/insecure-temporary-file) ──
+
+  it('16. saveSession writes atomically — no .tmp- files remain on disk', async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'lifecycle-'));
+    const mgr = new SessionHistoryManager(dir);
+    const session = createMockSession();
+
+    const success = await mgr.saveSession(session);
+    assert.ok(success, 'saveSession should succeed');
+
+    // Verify no leftover temp files
+    const files = await fs.readdir(dir);
+    const tmpFiles = files.filter(f => f.includes('.tmp-'));
+    assert.equal(tmpFiles.length, 0, 'No temp files should remain after atomic write');
+
+    // Verify the session file has correct permissions on POSIX
+    const sessionFiles = files.filter(f => f.startsWith('session-'));
+    assert.equal(sessionFiles.length, 1);
+
+    await fs.rm(dir, { recursive: true });
+  });
+
+  it('17. saveSession file has restrictive permissions on POSIX', async () => {
+    if (process.platform === 'win32') return;
+    const dir = mkdtempSync(path.join(tmpdir(), 'lifecycle-'));
+    const mgr = new SessionHistoryManager(dir);
+    await mgr.saveSession(createMockSession());
+
+    const files = await fs.readdir(dir);
+    const sessionFile = files.find(f => f.startsWith('session-'));
+    assert.ok(sessionFile, 'Session file should exist');
+
+    const stat = await fs.stat(path.join(dir, sessionFile!));
+    const mode = stat.mode & 0o777;
+    assert.equal(mode, 0o600, `File permissions should be 600, got ${mode.toString(8)}`);
+
+    await fs.rm(dir, { recursive: true });
+  });
 });

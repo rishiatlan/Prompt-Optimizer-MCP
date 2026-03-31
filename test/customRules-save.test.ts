@@ -256,4 +256,43 @@ describe('save_custom_rules', async () => {
 
     await fs.rm(dir, { recursive: true, force: true });
   });
+
+  // ─── Security regression: atomic write (CodeQL js/insecure-temporary-file) ──
+
+  it('16. saveRules writes atomically — no partial files on disk during write', async () => {
+    const dir = path.join(tmpdir(), `rules-atomic-${randomUUID()}`);
+    const mgr = new CustomRulesManager(dir);
+    const rules = [makeRule({ id: 'atomic_test' })];
+
+    await mgr.saveRules(rules);
+
+    // Verify the final file exists and no .tmp- files remain
+    const filePath = path.join(dir, 'custom-rules.json');
+    const content = await fs.readFile(filePath, 'utf-8');
+    const parsed = JSON.parse(content);
+    assert.equal(parsed.rules.length, 1);
+    assert.equal(parsed.rules[0].id, 'atomic_test');
+
+    // Ensure no leftover temp files
+    const files = await fs.readdir(dir);
+    const tmpFiles = files.filter(f => f.includes('.tmp-'));
+    assert.equal(tmpFiles.length, 0, 'No temp files should remain after atomic write');
+
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it('17. saveRules sets restrictive file permissions on POSIX', async () => {
+    if (platform() === 'win32') return; // skip on Windows
+    const dir = path.join(tmpdir(), `rules-perms-${randomUUID()}`);
+    const mgr = new CustomRulesManager(dir);
+    await mgr.saveRules([makeRule({ id: 'perms_test' })]);
+
+    const filePath = path.join(dir, 'custom-rules.json');
+    const stat = await fs.stat(filePath);
+    // Mode should be 0o600 (owner read/write only) — mask with 0o777 to get permission bits
+    const mode = stat.mode & 0o777;
+    assert.equal(mode, 0o600, `File permissions should be 600, got ${mode.toString(8)}`);
+
+    await fs.rm(dir, { recursive: true, force: true });
+  });
 });

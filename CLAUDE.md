@@ -71,7 +71,7 @@ PCP is a deterministic prompt quality engine -- it scores, compiles, and optimiz
 ## Build & Test
 ```bash
 npm ci && npm run build    # Install + compile
-npm test                   # Run 832 tests
+npm test                   # Run 842 tests
 npx tsc --noEmit          # Type check only
 ```
 

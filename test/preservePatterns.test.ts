@@ -76,6 +76,47 @@ describe('markPreservedLines', () => {
   });
 });
 
+// ─── Security regression tests (CodeQL js/regex-injection) ──────────────────
+describe('safeCompilePattern — regex injection prevention', () => {
+  it('nested quantifier pattern is escaped to literal (ReDoS prevention)', () => {
+    const lines = ['(a+)+', 'normal'];
+    const preserved = markPreservedLines(lines, ['(a+)+']);
+    // Pattern should be treated as literal, matching the exact string "(a+)+"
+    assert.ok(preserved.has(0));
+    assert.ok(!preserved.has(1));
+  });
+
+  it('user pattern with metacharacters works safely', () => {
+    const lines = ['file.txt', 'filetxt', 'other'];
+    const preserved = markPreservedLines(lines, ['file\\.txt']);
+    assert.ok(preserved.has(0));
+    assert.ok(!preserved.has(1)); // should NOT match without the dot
+  });
+
+  it('user pattern with anchors works', () => {
+    const lines = ['const x = 1;', 'let const y = 2;', 'const z = 3;'];
+    const preserved = markPreservedLines(lines, ['^const']);
+    assert.ok(preserved.has(0));
+    assert.ok(!preserved.has(1)); // "const" not at start
+    assert.ok(preserved.has(2));
+  });
+
+  it('extremely long pattern is rejected safely', () => {
+    const lines = ['a'.repeat(600), 'short'];
+    const longPattern = 'a'.repeat(600);
+    // Should not throw; long patterns are skipped with a warning
+    const preserved = markPreservedLines(lines, [longPattern]);
+    assert.ok(preserved instanceof Set);
+  });
+
+  it('pattern with backslash character classes works', () => {
+    const lines = ['abc123', '------', 'hello'];
+    const preserved = markPreservedLines(lines, ['\\w+\\d+']);
+    assert.ok(preserved.has(0));    // "abc123" matches \\w+\\d+
+    assert.ok(!preserved.has(1));   // "------" has no word/digit chars at start
+  });
+});
+
 describe('isLinePreserved', () => {
   it('returns true for preserved line', () => {
     const preserved = new Set([1, 3, 5]);

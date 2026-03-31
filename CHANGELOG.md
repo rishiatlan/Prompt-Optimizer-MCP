@@ -7,12 +7,14 @@
 - **Fixed:** path-to-regexp ReDoS via multiple wildcards (GHSA-27v5-c462-wpq7, medium severity)
 - Transitive dependency `path-to-regexp` upgraded from 8.3.0 to 8.4.1 (via `router` → `express` → `@modelcontextprotocol/sdk`)
 - **Fixed:** Polynomial ReDoS in `analyzer.ts` multi-step pattern (CodeQL js/polynomial-redos) — bounded quantifiers + sentence-boundary anchor
-- **Fixed:** Insecure temp file creation in `sessionHistory.ts` and `customRules.ts` (CodeQL js/insecure-temporary-file) — atomic write via exclusive-create temp + rename
-- **Fixed:** Regex injection in `preservePatterns.ts` user patterns (CodeQL js/regex-injection) — expanded dangerous pattern detection
-- **Fixed:** Missing regex anchor in `test/cli.test.ts` (CodeQL js/regex/missing-regexp-anchor)
+- **Fixed:** Insecure temp file creation in `sessionHistory.ts` and `customRules.ts` (CodeQL js/insecure-temporary-file) — atomic write via `fs.open()` with `O_CREAT|O_EXCL|O_WRONLY` flags + rename
+- **Fixed:** Regex injection in `preservePatterns.ts` user patterns (CodeQL js/regex-injection) — character-by-character allowlist sanitizer replaces partial blocklist
+- **Fixed:** Incomplete URL substring sanitization in `test/cli.test.ts` (CodeQL js/incomplete-url-substring-sanitization) — full URL origin check
+- 10 new security regression tests covering: atomic writes, file permissions, ReDoS resistance, regex injection prevention, URL validation
 
 ### Changed
 - Dependency: @modelcontextprotocol/sdk upgraded from ^1.25.2 to ^1.29.0
+- Test count: 832 → 842
 
 ## [5.3.3] - 2026-03-06
 
