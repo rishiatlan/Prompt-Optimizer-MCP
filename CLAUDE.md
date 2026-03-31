@@ -55,7 +55,7 @@ PCP is a deterministic prompt quality engine -- it scores, compiles, and optimiz
 | `sort.ts` | Deterministic sorting utilities |
 
 ### Dependencies
-- 3 runtime: `@modelcontextprotocol/sdk`, `zod`, `fast-glob`
+- 3 runtime: `@modelcontextprotocol/sdk` (^1.29.0), `zod`, `fast-glob`
 - 0 vulnerabilities (verified via `npm audit`)
 
 ### Data Directory

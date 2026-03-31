@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.3.4] - 2026-03-31
+
+### Security
+- **Fixed:** path-to-regexp DoS via sequential optional groups (GHSA-j3q9-mxjg-w52f, high severity)
+- **Fixed:** path-to-regexp ReDoS via multiple wildcards (GHSA-27v5-c462-wpq7, medium severity)
+- Transitive dependency `path-to-regexp` upgraded from 8.3.0 to 8.4.1 (via `router` → `express` → `@modelcontextprotocol/sdk`)
+
+### Changed
+- Dependency: @modelcontextprotocol/sdk upgraded from ^1.25.2 to ^1.29.0
+
 ## [5.3.3] - 2026-03-06
 
 ### Changed

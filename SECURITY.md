@@ -77,7 +77,7 @@ All data is stored locally at `~/.prompt-control-plane/`:
 
 ### Supply chain
 
-- **3 runtime dependencies:** `@modelcontextprotocol/sdk`, `zod`, `fast-glob`
+- **3 runtime dependencies:** `@modelcontextprotocol/sdk` (^1.29.0), `zod`, `fast-glob`
 - **CI runs `npm audit`** on every push (moderate+ severity threshold)
 - **Dependabot** enabled for automated dependency updates
 - **No postinstall scripts** — the package runs no code during installation
